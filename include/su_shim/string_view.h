@@ -228,9 +228,10 @@ typedef intptr_t ssize_t;
 
 namespace su
 {
-
-using std::experimental::string_view;
-
+using string_view = std::experimental::string_view;
+using u16string_view = std::experimental::u16string_view;
+template<typename CHAR>
+using basic_string_view = std::experimental::basic_string_view<CHAR>;
 }
 
 #endif
