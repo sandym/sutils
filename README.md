@@ -20,3 +20,5 @@ functions.
 ## spinlock
 ## uuid
 ## version
+## thread
+## json
