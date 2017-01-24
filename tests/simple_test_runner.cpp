@@ -4,7 +4,7 @@
 
 namespace
 {
-std::vector<su::TestCaseAbstract *> g_testCases;
+std::vector<su::TestCaseAbstract *> *g_testCases;
 }
 
 namespace su
@@ -12,14 +12,16 @@ namespace su
 
 void addTestCase( TestCaseAbstract *i_tg )
 {
-	g_testCases.push_back( i_tg );
+	if ( not g_testCases )
+		g_testCases = new std::vector<su::TestCaseAbstract *>;
+	g_testCases->push_back( i_tg );
 }
 
 }
 
 int main()
 {
-	for ( auto testcase : g_testCases )
+	for ( auto testcase : *g_testCases )
 	{
 		std::cout << "Test Case : " << testcase->name() << std::endl;
 		auto tests = testcase->getTests();
@@ -27,16 +29,6 @@ int main()
 		{
 			std::cout << "  " << test.name() << " : ";
 			std::cout.flush();
-			
-			try
-			{
-				testcase->setup();
-			}
-			catch ( ... )
-			{
-				std::cout << "setup FAILED!" << std::endl;
-				break;
-			}
 			
 			std::string results;
 			try
@@ -56,15 +48,6 @@ int main()
 				results = "unknown reason";
 			}
 			
-			try
-			{
-				testcase->teardown();
-			}
-			catch ( ... )
-			{
-				std::cout << " - teardown FAILED";
-				break;
-			}
 			std::cout << std::endl;
 		}
 		

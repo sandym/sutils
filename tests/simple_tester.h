@@ -43,8 +43,6 @@ class TestCaseAbstract
 		
 		inline const std::string &name() const { return _name; }
 		
-		virtual void setup() = 0;
-		virtual void teardown() = 0;
 		virtual std::vector<SingleTest> getTests() = 0;
 		
 	protected:
@@ -67,10 +65,7 @@ class TestCase : public TestCaseAbstract
 			registerTestCases( args... );
 			addTestCase( this );
 		}
-		~TestCase()
-		{
-			teardown();
-		}
+		~TestCase() = default;
 		void registerTestCases( void (T::*i_method)(), const std::string &i_name )
 		{
 			_tests.push_back( TestCaseData{ i_method, i_name } );
@@ -83,25 +78,22 @@ class TestCase : public TestCaseAbstract
 			registerTestCases( args... );
 		}
 		
-		virtual void setup()
-		{
-			_obj = new T;
-		}
-		virtual void teardown()
-		{
-			delete _obj;
-			_obj = nullptr;
-		}
 		virtual std::vector<SingleTest> getTests()
 		{
 			std::vector<SingleTest> result;
 			for ( auto it : _tests )
-				result.emplace_back( it.name, std::bind( it.method, _obj ) );
+			{
+				auto methodPtr = it.method;
+				result.emplace_back( it.name, [methodPtr]()
+					{
+						T obj;
+						(obj.*methodPtr)();
+					} );
+			}
 			return result;
 		}
 		
 	private:
-		T *_obj = nullptr;
 		struct TestCaseData { void (T::*method)(); std::string name; };
 		std::vector<TestCaseData> _tests;
 };
