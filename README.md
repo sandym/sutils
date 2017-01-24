@@ -14,3 +14,9 @@ functions.
 ## platform
 ## stackarray
 ## statesaver
+## cfauto
+## map
+## signal
+## spinlock
+## uuid
+## version
