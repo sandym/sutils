@@ -23,3 +23,5 @@ functions.
 ## thread
 ## json
 ## xml parser (expat wrapper)
+## string
+## string_format
