@@ -22,3 +22,4 @@ functions.
 ## version
 ## thread
 ## json
+## xml parser (expat wrapper)
