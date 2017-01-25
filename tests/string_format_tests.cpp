@@ -215,7 +215,6 @@ void string_format_tests::test_case_format()
 	PRINTF_TEST( "%025i", 12 );
 	PRINTF_TEST( "%0*i", 25, 12 );
 
-
 	PRINTF_TEST( "%+#23.15e", pnumber );
 	PRINTF_TEST( "%-#23.15e", pnumber );
 	PRINTF_TEST( "%#23.15e", pnumber );
