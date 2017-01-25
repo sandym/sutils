@@ -25,3 +25,7 @@ functions.
 ## xml parser (expat wrapper)
 ## string
 ## string_format
+## async job dispatcher
+## attachable
+## logger
+## basic_teebuf
