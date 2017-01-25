@@ -34,7 +34,9 @@
 
 #include "simple_tester.h"
 #include "su_string_format.h"
+#include "su_platform.h"
 #include <cmath>
+#include <cstdarg>
 
 struct string_format_tests
 {
@@ -179,9 +181,13 @@ void string_format_tests::test_case_format()
 	PRINTF_TEST( "%u\n", 653 );
 
 	PRINTF_TEST( "%s %d 123", "test", 3 );
+#if !UPLATFORM_WIN
+
 	PRINTF_TEST( "%2$s %1$d 123", 3, "test" );
 	PRINTF_TEST( "%1$d %2$s 123", 3, "test" );
 	PRINTF_TEST( "%2$s %1$d %2$s 123", 3, "test" );
+#endif
+
 	PRINTF_TEST( "%25s", "123" );
 	PRINTF_TEST( "%-25s", "123" );
 	PRINTF_TEST( "%d", 13 );

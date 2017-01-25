@@ -34,7 +34,10 @@
 
 #include "simple_tester.h"
 #include "su_saxparser.h"
+#ifndef SU_NO_EXPAT
+
 #include <sstream>
+#include <cctype>
 
 class MyParser : public su::saxparser
 {
@@ -137,3 +140,5 @@ this is text
 };
 
 REGISTER_TESTS( xml_tests, TEST_CASE(xml_tests,test_case_1) );
+
+#endif

@@ -11,6 +11,8 @@
  */
 
 #include "su_saxparser.h"
+
+#ifndef SU_NO_EXPAT
 #include <expat.h>
 #include <cstring>
 #include <iostream>
@@ -117,3 +119,5 @@ bool saxparser::parse()
 }
 
 }
+
+#endif

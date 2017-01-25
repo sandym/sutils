@@ -12,7 +12,7 @@ namespace su
 
 void addTestCase( TestCaseAbstract *i_tg )
 {
-	if ( not g_testCases )
+	if ( g_testCases == nullptr )
 		g_testCases = new std::vector<su::TestCaseAbstract *>;
 	g_testCases->push_back( i_tg );
 }

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <utility>
 #include <cstring>
+#include <cctype>
 
 namespace su
 {
@@ -1481,7 +1482,7 @@ double Json::number_value() const
 			case kInt:
 				return _data.i;
 			case kInt64:
-				return _data.i64;
+				return static_cast<double>(_data.i64);
 		}
 	}
 	return 0;
@@ -1494,11 +1495,11 @@ int Json::int_value() const
 		switch ( numberType() )
 		{
 			case kDouble:
-				return _data.d;
+				return static_cast<int>(_data.d);
 			case kInt:
 				return _data.i;
 			case kInt64:
-				return (int)_data.i64;
+				return static_cast<int>(_data.i64);
 		}
 	}
 	return 0;
@@ -1511,7 +1512,7 @@ int64_t Json::int64_value() const
 		switch ( numberType() )
 		{
 			case kDouble:
-				return _data.d;
+				return static_cast<int64_t>(_data.d);
 			case kInt:
 				return _data.i;
 			case kInt64:

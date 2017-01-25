@@ -16,6 +16,7 @@
 #include <list>
 #include <vector>
 #include <thread>
+#include <mutex>
 
 namespace su
 {
@@ -79,7 +80,7 @@ class jobdispatcher
 
 	private:
 		bool _isRunning = true;	//!< dispatcher state
-		size_t _nbOfWorkersRunning = 0, _nbOfWorkersFree = 0;
+		int _nbOfWorkersRunning = 0, _nbOfWorkersFree = 0;
 		std::vector<std::thread *> _threadPool;
 
 		// Async queue

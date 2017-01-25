@@ -14,6 +14,7 @@
 #include "su_stackarray.h"
 #include <vector>
 #include <cassert>
+#include <cctype>
 
 namespace su
 {
@@ -66,11 +67,11 @@ inline double FormatArg::cast() const
 		case kShort: return u._short;
 		case kInt: return u._int;
 		case kLong: return u._long;
-		case kLongLong: return u._longlong;
+		case kLongLong: return static_cast<double>(u._longlong);
 		case kUnsignedShort: return u._unsignedshort;
 		case kUnsignedInt: return u._unsignedint;
 		case kUnsignedLong: return u._unsignedlong;
-		case kUnsignedLongLong: return u._unsignedlonglong;
+		case kUnsignedLongLong: return static_cast<double>(u._unsignedlonglong);
 		case kDouble: return u._double;
 		default:
 			break;
@@ -787,7 +788,7 @@ void format_impl::appendFormattedArg( const su::details::FormatSpec &i_formatSpe
 	}
 }
 
-std::string::iterator format_impl::prepare_append_integer( int num_digits, int flags, int width, int prec, const char *prefix, int prefix_size )
+char *format_impl::prepare_append_integer( int num_digits, int flags, int width, int prec, const char *prefix, int prefix_size )
 {
 	if ( prec < num_digits )
 		prec = num_digits;
@@ -799,8 +800,9 @@ std::string::iterator format_impl::prepare_append_integer( int num_digits, int f
 	{
 		result.append( prefix, prefix_size );
 		result.append( prec, '0' );
-		result.append( width - prefix_size - prec, ' ' );
-		return result.end() - (width - prefix_size - prec) - 1;
+		auto padding = width - prefix_size - prec;
+		result.append(padding, ' ' );
+		return const_cast<char *>(result.data()) + result.size() - 1 - padding;
 	}
 	else if ( flags&kZeroFlag )
 	{
@@ -814,7 +816,7 @@ std::string::iterator format_impl::prepare_append_integer( int num_digits, int f
 		result.append( prec, '0' );
 	}
 	
-	return result.end() - 1;
+	return const_cast<char *>(result.data()) + result.size() - 1;
 }
 
 template<typename T>

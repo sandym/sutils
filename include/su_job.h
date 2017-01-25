@@ -16,6 +16,7 @@
 #include <memory>
 #include <functional>
 #include <condition_variable>
+#include <atomic>
 
 namespace su
 {

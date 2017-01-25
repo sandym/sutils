@@ -37,6 +37,7 @@
 #include "su_job.h"
 #include "su_thread.h"
 #include <cassert>
+#include <ciso646>
 
 class MyDispatcher;
 

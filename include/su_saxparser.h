@@ -13,6 +13,8 @@
 #ifndef H_SU_SAXPARSER
 #define H_SU_SAXPARSER
 
+#ifndef SU_NO_EXPAT
+
 #include "su_flat_map.h"
 #include "su_shim/string_view.h"
 
@@ -53,5 +55,7 @@ class saxparser
 };
 
 }
+
+#endif
 
 #endif

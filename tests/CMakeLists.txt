@@ -46,8 +46,11 @@ execute_process( COMMAND git rev-parse HEAD
 add_definitions( -DGIT_REVISION=${GIT_REVISION} )
 
 find_library( EXPAT_LIBRARY expat )
-target_link_libraries( sutils_tests
-							${EXPAT_LIBRARY} )
+if(EXPAT_LIBRARY)
+	target_link_libraries( sutils_tests ${EXPAT_LIBRARY} )
+else()
+	add_definitions( -DSU_NO_EXPAT )
+endif()
 
 find_package( Threads )
 target_link_libraries( sutils_tests ${CMAKE_THREAD_LIBS_INIT} )
@@ -63,9 +66,8 @@ elseif(UNIX)
 else()
 	add_definitions( -D_SCL_SECURE_NO_WARNINGS )
 	add_definitions( -D_CRT_SECURE_NO_WARNINGS )
-	find_library( RPCRT4_LIBRARY Rpcrt4 )
-	target_link_libraries( sutils_tests
-							${RPCRT4_LIBRARY} )
+	find_library( RPCRT4_LIBRARY rpcrt4 )
+	target_link_libraries( sutils_tests ${RPCRT4_LIBRARY} )
 endif()
 
 # precompiled headers

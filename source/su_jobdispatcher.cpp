@@ -14,6 +14,8 @@
 #include "su_job.h"
 #include "su_thread.h"
 #include <memory>
+#include <algorithm>
+#include <ciso646>
 
 namespace su
 {

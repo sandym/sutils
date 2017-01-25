@@ -18,6 +18,7 @@
 #define H_SU_STRING_FORMAT
 
 #include <string>
+#include <ciso646>
 #include "su_shim/string_view.h"
 #include "su_always_inline.h"
 
@@ -115,7 +116,7 @@ struct format_impl
 		void appendFormattedArg( const su::details::FormatSpec &i_formatSpec, const su::details::FormatArg *i_args, size_t i_argsSize );
 		template<typename T>
 		void formatInteger( T i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec );
-		std::string::iterator prepare_append_integer( int num_digits, int flags, int width, int prec, const char *prefix, int prefix_size );
+		char *prepare_append_integer( int num_digits, int flags, int width, int prec, const char *prefix, int prefix_size );
 		void formatDouble( double i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec );
 };
 }
