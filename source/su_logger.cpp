@@ -59,7 +59,7 @@ std::thread g_loggerThread;
 
 inline uint64_t timestamp()
 {
-	return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+	return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 class logger_thread_data

@@ -34,6 +34,8 @@
 
 #include "simple_tester.h"
 #include "su_logger.h"
+#include "su_logger_file.h"
+#include "su_filepath.h"
 #include <iostream>
 #include <sstream>
 
@@ -75,16 +77,43 @@ struct logger_tests
 
 	void test_case_3()
 	{
-//		su::logger_file lf( "/tmp/sutils_tests.log", false, su::logger_file::action::kPush );
-//		su::Logger<> test_logger( std::clog, "test" );
-//		
-//		log_debug() << "test " << 1;
-//		log_info(test_logger) << 2;
-//		log_warn() << "test " << 3;
+		{
+			su::logger_file lf( "/tmp/sutils_tests.log", false, su::logger_file::action::kPush );
+
+			log_debug() << "test " << 1;
+			log_warn() << "test " << 3;
+		}
+		
+		std::ifstream istr( "/tmp/sutils_tests.log" );
+		
+		if ( not istr )
+			TEST_ASSERT( !"cannot read /tmp/sutils_tests.log" );
+		
+		std::string line;
+
+		std::getline( istr, line );
+		TEST_ASSERT_NOT_EQUAL( line.find( "test 1" ), std::string::npos );
+		std::getline( istr, line );
+		TEST_ASSERT_NOT_EQUAL( line.find( "test 3" ), std::string::npos );
+	}
+
+	void test_case_4()
+	{
+		std::ostringstream ss;
+		{
+			su::Logger<> test_logger( ss, "test" );
+			log_info(test_logger) << "123 " << 2;
+		}
+		
+		auto res = ss.str();
+		TEST_ASSERT_NOT_EQUAL( res.find( "123 2\n" ), std::string::npos );
+		TEST_ASSERT_NOT_EQUAL( res.find( "[test]" ), std::string::npos );
+		TEST_ASSERT_NOT_EQUAL( res.find( "[INFO]" ), std::string::npos );
 	}
 };
 
 REGISTER_TESTS( logger_tests,
 	TEST_CASE(logger_tests,test_case_1),
 	TEST_CASE(logger_tests,test_case_2),
-	TEST_CASE(logger_tests,test_case_3) );
+	TEST_CASE(logger_tests,test_case_3),
+	TEST_CASE(logger_tests,test_case_4) );
