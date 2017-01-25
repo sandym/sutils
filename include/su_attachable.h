@@ -67,7 +67,7 @@ class attachment
 	virtual ~attachment();
 
   protected:
-	inline attachable *attachable() { return _attachable; }
+	inline class attachable *attachable() { return _attachable; }
 	inline const class attachable *attachable() const { return _attachable; }
   private:
 	class attachable *_attachable = nullptr;

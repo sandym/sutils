@@ -88,7 +88,7 @@ struct FormatArg
 			unsigned long _unsignedlong;
 			unsigned long long _unsignedlonglong;
 			size_t _size_t;
-			ptrdiff_t _ptrdiff_t;
+			std::ptrdiff_t _ptrdiff_t;
 			double _double;
 			char _char;
 			const void *_ptr;

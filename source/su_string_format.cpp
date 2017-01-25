@@ -14,6 +14,7 @@
 #include "su_stackarray.h"
 #include <vector>
 #include <cassert>
+#include <algorithm>
 #include <cctype>
 
 namespace su
