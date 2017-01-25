@@ -560,7 +560,11 @@ std::time_t filepath::creation_date() const
 #else
 	struct stat info;
 	if ( stat( ospath().c_str(), &info ) == 0 )
+#if UPLATFORM_MAC
 		return info.st_birthtimespec.tv_sec;
+#else
+		return info.st_mtim.tv_sec;
+#endif
 #endif
 	return 0;
 }

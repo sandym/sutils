@@ -86,7 +86,7 @@ struct logger_tests
 		TEST_ASSERT( GetTempPath(MAX_PATH, tmpLog) != 0 );
 		strcat(tmpLog, "sutils_tests.log");
 #else
-		const char tmpLog = "/tmp/sutils_tests.log";
+		const char *tmpLog = "/tmp/sutils_tests.log";
 #endif
 
 		{
