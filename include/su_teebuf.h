@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <ciso646>
+#include <algorithm>
 
 namespace su
 {
