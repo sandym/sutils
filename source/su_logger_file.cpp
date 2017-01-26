@@ -37,8 +37,13 @@ logger_file::logger_file( std::ostream &i_sink, const filepath &i_path, bool i_t
 				auto newName = i_path.name( false );
 				newName += "_";
 				struct tm gmtm;
-				char isoTime[32];
+				char isoTime[32] = "";
+#if UPLATFORM_WIN
+				if (gmtime_s(&gmtm, &tm) == 0)
+					strftime(isoTime, 32, "%Y-%m-%d", &gmtm);
+#else
 				strftime( isoTime, 32, "%Y-%m-%d", gmtime_r( &tm, &gmtm ) );
+#endif
 				newName += isoTime;
 				filepath folder( i_path );
 				folder.up();

@@ -549,11 +549,22 @@ bool filepath::isFile() const
 std::time_t filepath::creation_date() const
 {
 #if UPLATFORM_WIN
-#error
+	WIN32_FILE_ATTRIBUTE_DATA info;
+	if (GetFileAttributesExW(ospath().c_str(), GetFileExInfoStandard, &info))
+	{
+		ULARGE_INTEGER ull;
+		ull.LowPart = info.ftCreationTime.dwLowDateTime;
+		ull.HighPart = info.ftCreationTime.dwHighDateTime;
+		return ull.QuadPart / 10000000ULL - 11644473600ULL;
+	}
 #else
 	struct stat info;
 	if ( stat( ospath().c_str(), &info ) == 0 )
+#if UPLATFORM_MAC
 		return info.st_birthtimespec.tv_sec;
+#else
+		return info.st_mtim.tv_sec;
+#endif
 #endif
 	return 0;
 }

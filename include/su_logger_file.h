@@ -15,6 +15,7 @@
 
 #include "su_teebuf.h"
 #include <fstream>
+#include <memory>
 
 namespace su
 {

@@ -36,8 +36,12 @@
 #include "su_logger.h"
 #include "su_logger_file.h"
 #include "su_filepath.h"
+#include "su_platform.h"
 #include <iostream>
 #include <sstream>
+#if UPLATFORM_WIN
+#include <Windows.h>
+#endif
 
 struct logger_tests
 {
@@ -77,14 +81,22 @@ struct logger_tests
 
 	void test_case_3()
 	{
+#if UPLATFORM_WIN
+		char tmpLog[MAX_PATH + 1];
+		TEST_ASSERT( GetTempPath(MAX_PATH, tmpLog) != 0 );
+		strcat(tmpLog, "sutils_tests.log");
+#else
+		const char *tmpLog = "/tmp/sutils_tests.log";
+#endif
+
 		{
-			su::logger_file lf( "/tmp/sutils_tests.log", false, su::logger_file::action::kPush );
+			su::logger_file lf( tmpLog, false, su::logger_file::action::kPush );
 
 			log_debug() << "test " << 1;
 			log_warn() << "test " << 3;
 		}
 		
-		std::ifstream istr( "/tmp/sutils_tests.log" );
+		std::ifstream istr( tmpLog );
 		
 		if ( not istr )
 			TEST_ASSERT( !"cannot read /tmp/sutils_tests.log" );
