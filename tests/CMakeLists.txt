@@ -70,9 +70,3 @@ else()
 	target_link_libraries( sutils_tests ${RPCRT4_LIBRARY} )
 endif()
 
-# precompiled headers
-#set_target_properties( sutils_tests
-#  PROPERTIES
-#  XCODE_ATTRIBUTE_GCC_PREFIX_HEADER "sutils_tests_prefix.h"
-#  XCODE_ATTRIBUTE_GCC_PRECOMPILE_PREFIX_HEADER "YES"
-#)
