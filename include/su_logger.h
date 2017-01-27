@@ -143,14 +143,14 @@ class LogEvent final
 	}
 	
 	template<typename T>
-	inline typename std::enable_if<std::is_same<T,const char *>::value>::type
+	inline typename std::enable_if<std::is_same<T,const char *>::value,LogEvent &>::type
 	operator<<( const T &v )
 	{
 		encode_string_data( v, strlen( v ) );
 		return *this;
 	}
 	template<typename T>
-	inline typename std::enable_if<std::is_same<T,char *>::value>::type
+	inline typename std::enable_if<std::is_same<T,char *>::value,LogEvent &>::type
 	operator<<( const T &v )
 	{
 		encode_string_data( v, strlen( v ) );
