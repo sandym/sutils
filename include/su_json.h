@@ -7,7 +7,7 @@
 
 namespace su
 {
-enum JsonParse
+enum class JsonParse
 {
 	STANDARD,
 	COMMENTS
@@ -22,7 +22,7 @@ class Json final
 {
   public:
 	// Types
-	enum Type
+	enum class Type
 	{
 		NUL, BOOL, NUMBER, STRING, ARRAY, OBJECT
 	};
@@ -74,13 +74,13 @@ class Json final
 	void clear();
 
 	// Accessors
-	inline Type type() const { return (Type)_type; }
-	bool is_null() const { return type() == NUL; }
-	bool is_number() const { return type() == NUMBER; }
-	bool is_bool() const { return type() == BOOL; }
-	bool is_string() const { return type() == STRING; }
-	bool is_array() const { return type() == ARRAY; }
-	bool is_object() const { return type() == OBJECT; }
+	inline Type type() const { return _type; }
+	bool is_null() const { return type() == Type::NUL; }
+	bool is_number() const { return type() == Type::NUMBER; }
+	bool is_bool() const { return type() == Type::BOOL; }
+	bool is_string() const { return type() == Type::STRING; }
+	bool is_array() const { return type() == Type::ARRAY; }
+	bool is_object() const { return type() == Type::OBJECT; }
 	// Return the enclosed value if this is a number, 0 otherwise. Note that sjson does not
 	// distinguish between integer and non-integer numbers - number_value() and int_value()
 	// can both be applied to a NUMBER-typed object.
@@ -160,14 +160,14 @@ class Json final
 	bool has_shape( const shape &types, std::string &err ) const;
 
   private:
-	union Stotage
+	union Storage
 	{
-		Stotage() : all( 0 ){};
-		Stotage( double v ) : all( 0 ) { d = v; };
-		Stotage( int v ) : all( 0 ) { i = v; };
-		Stotage( int64_t v ) : all( 0 ) { i64 = v; };
-		Stotage( bool v ) : all( 0 ) { b = v; };
-		Stotage( details::JsonValue *v ) : all( 0 ) { p = v; };
+		Storage() : all( 0 ){};
+		Storage( double v ) : all( 0 ) { d = v; };
+		Storage( int v ) : all( 0 ) { i = v; };
+		Storage( int64_t v ) : all( 0 ) { i64 = v; };
+		Storage( bool v ) : all( 0 ) { b = v; };
+		Storage( details::JsonValue *v ) : all( 0 ) { p = v; };
 		uint64_t all;
 		int64_t i64;
 		double d;
@@ -175,8 +175,8 @@ class Json final
 		bool b;
 		details::JsonValue *p;
 	} _data;
-	static_assert( sizeof( Stotage ) == 8, "" );
-	uint8_t _type{0};
+	static_assert( sizeof( Storage ) == 8, "" );
+	Type _type{ Type::NUL };
 	uint8_t _tag{0};
 	
 	enum tag_t

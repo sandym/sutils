@@ -1416,7 +1416,7 @@ Json::Json( Json &&rhs ) noexcept
 	_tag = rhs._tag;
 	_data.all = rhs._data.all;
 
-	rhs._type = 0;
+	rhs._type = Type::NUL;
 	rhs._tag = 0;
 	rhs._data.all = 0;
 }
@@ -1439,41 +1439,41 @@ Json &Json::operator=( Json &&rhs ) noexcept
 /* * * * * * * * * * * * * * * * * * * *
  * Constructors
  */
-Json::Json( double value ) : _data( value ), _type( NUMBER ), _tag( kDouble )
+Json::Json( double value ) : _data( value ), _type( Type::NUMBER ), _tag( kDouble )
 {}
-Json::Json( int value ) : _data( value ), _type( NUMBER ), _tag( kInt )
+Json::Json( int value ) : _data( value ), _type( Type::NUMBER ), _tag( kInt )
 {}
-Json::Json( int64_t value ) : _data( value ), _type( NUMBER ), _tag( kInt64 )
+Json::Json( int64_t value ) : _data( value ), _type( Type::NUMBER ), _tag( kInt64 )
 {}
-Json::Json( bool value ) : _data( value ), _type( BOOL )
+Json::Json( bool value ) : _data( value ), _type( Type::BOOL )
 {}
-Json::Json( const std::string &value ) : _data( new details::JsonString( value ) ), _type( STRING ), _tag( kPtr )
+Json::Json( const std::string &value ) : _data( new details::JsonString( value ) ), _type( Type::STRING ), _tag( kPtr )
 {}
-Json::Json( std::string &&value ) : _data( new details::JsonString( std::move( value ) ) ), _type( STRING ), _tag( kPtr )
+Json::Json( std::string &&value ) : _data( new details::JsonString( std::move( value ) ) ), _type( Type::STRING ), _tag( kPtr )
 {}
-Json::Json( const char *value ) : _data( new details::JsonString( value ) ), _type( STRING ), _tag( kPtr )
+Json::Json( const char *value ) : _data( new details::JsonString( value ) ), _type( Type::STRING ), _tag( kPtr )
 {}
-Json::Json( const Json::array &values ) : _data( new details::JsonArray( values ) ), _type( ARRAY ), _tag( kPtr )
+Json::Json( const Json::array &values ) : _data( new details::JsonArray( values ) ), _type( Type::ARRAY ), _tag( kPtr )
 {}
-Json::Json( Json::array &&values ) : _data( new details::JsonArray( std::move( values ) ) ), _type( ARRAY ), _tag( kPtr )
+Json::Json( Json::array &&values ) : _data( new details::JsonArray( std::move( values ) ) ), _type( Type::ARRAY ), _tag( kPtr )
 {}
-Json::Json( const Json::object &values ) : _data( new details::JsonObject( values ) ), _type( OBJECT ), _tag( kPtr )
+Json::Json( const Json::object &values ) : _data( new details::JsonObject( values ) ), _type( Type::OBJECT ), _tag( kPtr )
 {}
-Json::Json( Json::object &&values ) : _data( new details::JsonObject( std::move( values ) ) ), _type( OBJECT ), _tag( kPtr )
+Json::Json( Json::object &&values ) : _data( new details::JsonObject( std::move( values ) ) ), _type( Type::OBJECT ), _tag( kPtr )
 {}
 
 void Json::clear()
 {
 	if ( isPtr() )
 		_data.p->dec();
-	_type = 0;
+	_type = Type::NUL;
 	_tag = 0;
 	_data.all = 0;
 }
 
 double Json::number_value() const
 {
-	if ( type() == NUMBER )
+	if ( type() == Type::NUMBER )
 	{
 		switch ( numberType() )
 		{
@@ -1490,7 +1490,7 @@ double Json::number_value() const
 
 int Json::int_value() const
 {
-	if ( type() == NUMBER )
+	if ( type() == Type::NUMBER )
 	{
 		switch ( numberType() )
 		{
@@ -1507,7 +1507,7 @@ int Json::int_value() const
 
 int64_t Json::int64_value() const
 {
-	if ( type() == NUMBER )
+	if ( type() == Type::NUMBER )
 	{
 		switch ( numberType() )
 		{
@@ -1524,28 +1524,28 @@ int64_t Json::int64_value() const
 
 bool Json::bool_value() const
 {
-	if ( type() == BOOL )
+	if ( type() == Type::BOOL )
 		return _data.b;
 	return false;
 }
 
 const std::string &Json::string_value() const
 {
-	if ( type() == STRING )
+	if ( type() == Type::STRING )
 		return ( (details::JsonString *)_data.p )->value;
 	return details::statics().empty_string;
 }
 
 const Json::array &Json::array_items() const
 {
-	if ( type() == ARRAY )
+	if ( type() == Type::ARRAY )
 		return ( (details::JsonArray *)_data.p )->value;
 	return details::statics().empty_array;
 }
 
 const Json::object &Json::object_items() const
 {
-	if ( type() == OBJECT )
+	if ( type() == Type::OBJECT )
 		return ( (details::JsonObject *)_data.p )->value;
 	return details::statics().empty_object;
 }
@@ -1554,11 +1554,11 @@ double Json::to_number_value() const
 {
 	switch ( type() )
 	{
-		case NUMBER:
+		case Type::NUMBER:
 			return number_value();
-		case BOOL:
+		case Type::BOOL:
 			return bool_value() ? 0 : 1;
-		case STRING:
+		case Type::STRING:
 			try
 			{
 				return std::stod( string_value() );
@@ -1576,11 +1576,11 @@ int Json::to_int_value() const
 {
 	switch ( type() )
 	{
-		case NUMBER:
+		case Type::NUMBER:
 			return int_value();
-		case BOOL:
+		case Type::BOOL:
 			return bool_value() ? 0 : 1;
-		case STRING:
+		case Type::STRING:
 			try
 			{
 				return std::stoi( string_value() );
@@ -1599,11 +1599,11 @@ int64_t Json::to_int64_value() const
 {
 	switch ( type() )
 	{
-		case NUMBER:
+		case Type::NUMBER:
 			return int64_value();
-		case BOOL:
+		case Type::BOOL:
 			return bool_value() ? 0 : 1;
-		case STRING:
+		case Type::STRING:
 			try
 			{
 				return std::stoll( string_value() );
@@ -1621,11 +1621,11 @@ bool Json::to_bool_value() const
 {
 	switch ( type() )
 	{
-		case NUMBER:
+		case Type::NUMBER:
 			return int_value() != 0;
-		case BOOL:
+		case Type::BOOL:
 			return bool_value();
-		case STRING:
+		case Type::STRING:
 			return string_value() == "true";
 		default:
 			break;
@@ -1636,7 +1636,7 @@ std::string Json::to_string_value() const
 {
 	switch ( type() )
 	{
-		case NUMBER:
+		case Type::NUMBER:
 			switch ( numberType() )
 			{
 				case kInt:
@@ -1649,9 +1649,9 @@ std::string Json::to_string_value() const
 					break;
 			}
 			break;
-		case BOOL:
+		case Type::BOOL:
 			return bool_value() ? "true" : "false";
-		case STRING:
+		case Type::STRING:
 			return string_value();
 		default:
 			break;
@@ -1661,7 +1661,7 @@ std::string Json::to_string_value() const
 
 const Json &Json::operator[]( size_t i ) const
 {
-	if ( type() == ARRAY )
+	if ( type() == Type::ARRAY )
 	{
 		if ( i < ( (details::JsonArray *)_data.p )->value.size() )
 			return ( (details::JsonArray *)_data.p )->value[i];
@@ -1671,7 +1671,7 @@ const Json &Json::operator[]( size_t i ) const
 
 const Json &Json::operator[]( const std::string &key ) const
 {
-	if ( type() == OBJECT )
+	if ( type() == Type::OBJECT )
 	{
 		auto it = ( (details::JsonObject *)_data.p )->value.find( key );
 		if ( it != ( (details::JsonObject *)_data.p )->value.end() )
@@ -1753,13 +1753,13 @@ void Json::dump( std::string &output ) const
 	char buf[32];
 	switch ( type() )
 	{
-		case NUL:
+		case Type::NUL:
 			output += "null";
 			break;
-		case BOOL:
+		case Type::BOOL:
 			output += _data.b ? "true" : "false";
 			break;
-		case NUMBER:
+		case Type::NUMBER:
 			switch ( numberType() )
 			{
 				case kInt:
@@ -1778,10 +1778,10 @@ void Json::dump( std::string &output ) const
 					break;
 			}
 			break;
-		case STRING:
+		case Type::STRING:
 			details::dump( ( (details::JsonString *)_data.p )->value, output );
 			break;
-		case ARRAY:
+		case Type::ARRAY:
 		{
 			bool first = true;
 			output += "[";
@@ -1795,7 +1795,7 @@ void Json::dump( std::string &output ) const
 			output += "]";
 			break;
 		}
-		case OBJECT:
+		case Type::OBJECT:
 		{
 			bool first = true;
 			output += "{";
@@ -1824,9 +1824,9 @@ bool Json::operator==( const Json &rhs ) const
 	{
 		switch ( type() )
 		{
-			case NUL:
+			case Type::NUL:
 				return true;
-			case NUMBER:
+			case Type::NUMBER:
 				switch ( numberType() )
 				{
 					case kInt:
@@ -1863,13 +1863,13 @@ bool Json::operator==( const Json &rhs ) const
 						break;
 				}
 				break;
-			case BOOL:
+			case Type::BOOL:
 				return bool_value() == rhs.bool_value();
-			case STRING:
+			case Type::STRING:
 				return string_value() == rhs.string_value();
-			case ARRAY:
+			case Type::ARRAY:
 				return array_items() == rhs.array_items();
-			case OBJECT:
+			case Type::OBJECT:
 				return object_items() == rhs.object_items();
 		}
 	}
@@ -1882,9 +1882,9 @@ bool Json::operator<( const Json &rhs ) const
 	{
 		switch ( type() )
 		{
-			case NUL:
+			case Type::NUL:
 				return true;
-			case NUMBER:
+			case Type::NUMBER:
 				switch ( numberType() )
 				{
 					case kInt:
@@ -1921,13 +1921,13 @@ bool Json::operator<( const Json &rhs ) const
 						break;
 				}
 				break;
-			case BOOL:
+			case Type::BOOL:
 				return bool_value() < rhs.bool_value();
-			case STRING:
+			case Type::STRING:
 				return string_value() < rhs.string_value();
-			case ARRAY:
+			case Type::ARRAY:
 				return array_items() < rhs.array_items();
-			case OBJECT:
+			case Type::OBJECT:
 				return object_items() < rhs.object_items();
 		}
 	}
