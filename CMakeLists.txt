@@ -4,10 +4,10 @@ project( sutils )
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/source )
 
 file( GLOB SUTILS_HEADERS
-    "include/*.h"
+    "source/*.h"
 )
 file( GLOB SUTILS_SOURCES
     "source/*.cpp"
