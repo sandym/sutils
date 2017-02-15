@@ -14,6 +14,7 @@
 #define H_SU_MEMBUF
 
 #include <streambuf>
+#include <cassert>
 
 namespace su
 {
@@ -30,10 +31,37 @@ class membuf : public std::streambuf
 	
 		// Buffer management and positioning:
 //		virtual basic_streambuf *setbuf( char_type *s, std::streamsize n );
-//		virtual pos_type seekoff( off_type off, std::ios_base::seekdir way,
-//									std::ios_base::openmode which = std::ios_base::in | std::ios_base::out );
-//		virtual pos_type seekpos( pos_type sp,
-//									std::ios_base::openmode which = std::ios_base::in | std::ios_base::out );
+		virtual pos_type seekoff( off_type off, std::ios_base::seekdir way,
+									std::ios_base::openmode which = std::ios_base::in | std::ios_base::out )
+		{
+			switch ( way )
+			{
+				case std::ios_base::cur:
+					_current += off;
+					break;
+				case std::ios_base::end:
+					_current = _end + off;
+					break;
+				default:
+					_current = _begin + off;
+					break;
+			}
+			if ( _current > _end )
+				_current = _end;
+			if ( _current < _begin )
+				_current = _begin;
+			return _current - _begin;
+		}
+		virtual pos_type seekpos( pos_type sp,
+									std::ios_base::openmode which = std::ios_base::in | std::ios_base::out )
+		{
+			_current = _begin + sp;
+			if ( _current > _end )
+				_current = _end;
+			if ( _current < _begin )
+				_current = _begin;
+			return _current - _begin;
+		}
 //		virtual int sync();
 
 		// Get area:
