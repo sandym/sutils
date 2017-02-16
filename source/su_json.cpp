@@ -5,6 +5,10 @@
 #include <cstring>
 #include <cctype>
 
+#if defined( _MSC_VER )
+#include <intrin.h>
+#endif
+
 namespace su
 {
 namespace details

@@ -13,6 +13,8 @@
 #include "su_membuf.h"
 #include <cassert>
 #include <string.h>
+#include <algorithm>
+#include <ciso646>
 
 namespace su
 {

@@ -56,7 +56,7 @@ logger_file::logger_file( std::ostream &i_sink, const filepath &i_path, bool i_t
 					pushTo = folder;
 					pushTo.add( newName + std::to_string( ++i ) + ext );
 				}
-				i_path.move( pushTo.name() );
+				i_path.move( pushTo );
 			}
 			i_path.fsopen( _ofstr );
 			break;
