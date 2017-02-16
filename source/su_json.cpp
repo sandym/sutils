@@ -1694,61 +1694,61 @@ void dump( const std::string &value, std::string &out )
 	auto new_cap = out.size() + value.size() + 2; // at least
 	if ( new_cap > out.capacity() )
 		out.reserve( new_cap );
-	out += '"';
+	out.append( 1, '"' );
 	for ( auto ch = value.begin(); ch != value.end(); ++ch )
 	{
 		if ( *ch == '\\' )
 		{
-			out += "\\\\";
+			out.append( "\\\\", 2 );
 		}
 		else if ( *ch == '"' )
 		{
-			out += "\\\"";
+			out.append( "\\\"", 2 );
 		}
 		else if ( *ch == '\b' )
 		{
-			out += "\\b";
+			out.append( "\\b", 2 );
 		}
 		else if ( *ch == '\f' )
 		{
-			out += "\\f";
+			out.append( "\\f", 2 );
 		}
 		else if ( *ch == '\n' )
 		{
-			out += "\\n";
+			out.append( "\\n", 2 );
 		}
 		else if ( *ch == '\r' )
 		{
-			out += "\\r";
+			out.append( "\\r", 2 );
 		}
 		else if ( *ch == '\t' )
 		{
-			out += "\\t";
+			out.append( "\\t", 2 );
 		}
 		else if ( static_cast<uint8_t>( *ch ) <= 0x1f )
 		{
 			char buf[8];
-			snprintf( buf, sizeof buf, "\\u%04x", *ch );
-			out += buf;
+			auto l = snprintf( buf, sizeof buf, "\\u%04x", *ch );
+			out.append( buf, l );
 		}
 		else if ( static_cast<uint8_t>( *ch ) == 0xe2 && static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
 				  static_cast<uint8_t>( *( ch + 2 ) ) == 0xa8 )
 		{
-			out += "\\u2028";
+			out.append( "\\u2028", 6 );
 			ch += 2;
 		}
 		else if ( static_cast<uint8_t>( *ch ) == 0xe2 && static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
 				  static_cast<uint8_t>( *( ch + 2 ) ) == 0xa9 )
 		{
-			out += "\\u2029";
+			out.append( "\\u2029", 6 );
 			ch += 2;
 		}
 		else
 		{
-			out += *ch;
+			out.append( 1, *ch );
 		}
 	}
-	out += '"';
+	out.append( 1, '"' );
 }
 
 }
@@ -1758,10 +1758,13 @@ void Json::dump( std::string &output ) const
 	switch ( type() )
 	{
 		case Type::NUL:
-			output += "null";
+			output.append( "null", 4 );
 			break;
 		case Type::BOOL:
-			output += _data.b ? "true" : "false";
+			if ( _data.b )
+				output.append( "true", 4 );
+			else
+				output.append( "false", 5 );
 			break;
 		case Type::NUMBER:
 			switch ( numberType() )
@@ -1773,7 +1776,7 @@ void Json::dump( std::string &output ) const
 					if ( std::isfinite( _data.d ) )
 						output.append( buf, details::dtoa( _data.d, buf ) - buf );
 					else
-						output += "null";
+						output.append( "null", 4 );
 					break;
 				case kInt64:
 					output.append( buf, details::i64toa( _data.i64, buf ) - buf );
@@ -1786,35 +1789,35 @@ void Json::dump( std::string &output ) const
 			details::dump( ( (details::JsonString *)_data.p )->value, output );
 			break;
 		case Type::ARRAY:
-		{
-			bool first = true;
-			output += "[";
-			for ( const auto &value : ( (details::JsonArray *)_data.p )->value )
+			if ( ( (details::JsonArray *)_data.p )->value.empty() )
+				output.append( "[]", 2 );
+			else
 			{
-				if ( !first )
-					output += ",";
-				value.dump( output );
-				first = false;
+				output.append( 1, '[' );
+				for ( const auto &value : ( (details::JsonArray *)_data.p )->value )
+				{
+					value.dump( output );
+					output.append( 1, ',' );
+				}
+				output.back() = ']';
 			}
-			output += "]";
 			break;
-		}
 		case Type::OBJECT:
-		{
-			bool first = true;
-			output += "{";
-			for ( const auto &kv : ( (details::JsonObject *)_data.p )->value )
+			if ( ( (details::JsonObject *)_data.p )->value.empty() )
+				output.append( "{}", 2 );
+			else
 			{
-				if ( !first )
-					output += ",";
-				details::dump( kv.first, output );
-				output += ":";
-				kv.second.dump( output );
-				first = false;
+				output.append( 1, '{' );
+				for ( const auto &kv : ( (details::JsonObject *)_data.p )->value )
+				{
+					details::dump( kv.first, output );
+					output.append( 1, ':' );
+					kv.second.dump( output );
+					output.append( 1, ',' );
+				}
+				output.back() = '}';
 			}
-			output += "}";
 			break;
-		}
 	}
 }
 
@@ -2651,7 +2654,7 @@ struct JsonParser final
 				output = std::move(object_data);
 				return;
 			}
-			object_data.reserve( 16 );
+			//object_data.reserve( 16 );
 
 			for ( ;; )
 			{
@@ -2704,7 +2707,7 @@ struct JsonParser final
 				output = std::move(array_data);
 				return;
 			}
-			array_data.reserve( 16 );
+			//array_data.reserve( 16 );
 
 			for ( ;; )
 			{
