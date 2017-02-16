@@ -12,6 +12,7 @@
 
 #include "su_membuf.h"
 #include <cassert>
+#include <string.h>
 
 namespace su
 {
