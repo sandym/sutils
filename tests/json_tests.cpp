@@ -43,6 +43,10 @@
 using namespace su;
 using std::string;
 
+#include "data/twitter.json"
+#include "data/citm_catalog.json"
+#include "data/canada.json"
+
 // Check that Json has the properties we want.
 #define CHECK_TRAIT(x) static_assert(std::x::value, #x)
 CHECK_TRAIT(is_nothrow_constructible<Json>);
@@ -57,10 +61,12 @@ struct json_tests
 {
 	//	declare all test cases here...
 	void test_case_1();
+	void test_case_2();
 };
 
 REGISTER_TESTS( json_tests,
-			   TEST_CASE(json_tests,test_case_1) );
+			   TEST_CASE(json_tests,test_case_1),
+			   TEST_CASE(json_tests,test_case_2) );
 
 // MARK: -
 // MARK:  === test cases ===
@@ -233,4 +239,110 @@ void json_tests::test_case_1()
     std::vector<Point> points = { { 1, 2 }, { 10, 20 }, { 100, 200 } };
     std::string points_json = Json(points).dump();
 	TEST_ASSERT( points_json == "[[1,2],[10,20],[100,200]]" );
+}
+
+struct Stat
+{
+	size_t arrayCount = 0;
+	size_t elementCount = 0;
+	size_t stringLength = 0;
+	size_t objectCount = 0;
+	size_t memberCount = 0;
+	size_t stringCount = 0;
+	size_t numberCount = 0;
+	size_t trueCount = 0;
+	size_t falseCount = 0;
+	size_t nullCount = 0;
+};
+
+void getStat( const su::Json &i_json, Stat &io_stat )
+{
+	switch ( i_json.type() )
+	{
+		case Json::Type::ARRAY:
+			for ( auto const& i : i_json.array_items() )
+				getStat( i, io_stat );
+			io_stat.arrayCount++;
+			io_stat.elementCount += i_json.array_items().size();
+			break;
+		case Json::Type::OBJECT:
+			for ( auto const& i : i_json.object_items() )
+			{
+				getStat( i.second, io_stat );
+				io_stat.stringLength += i.first.size();
+			}
+			io_stat.objectCount++;
+			io_stat.memberCount += i_json.object_items().size();
+			io_stat.stringCount += i_json.object_items().size();
+			break;
+		case Json::Type::STRING:
+			io_stat.stringCount++;
+			io_stat.stringLength += i_json.string_value().size();
+			break;
+		case Json::Type::NUMBER:
+			io_stat.numberCount++;
+			break;
+		case Json::Type::BOOL:
+			if ( i_json.bool_value() )
+				io_stat.trueCount++;
+			else
+				io_stat.falseCount++;
+			break;
+		case Json::Type::NUL:
+			io_stat.nullCount++;
+			break;
+	}
+}
+
+void json_tests::test_case_2()
+{
+	std::string err;
+	Stat stat;
+	
+	auto json = su::Json::parse( kTwitter, err );
+	TEST_ASSERT( err.empty() );
+	getStat( json, stat );
+	TEST_ASSERT_EQUAL( stat.objectCount, 1264 );
+	TEST_ASSERT_EQUAL( stat.arrayCount, 1050 );
+	TEST_ASSERT_EQUAL( stat.numberCount, 2109 );
+	TEST_ASSERT_EQUAL( stat.stringCount, 18099 );
+	TEST_ASSERT_EQUAL( stat.trueCount, 345 );
+	TEST_ASSERT_EQUAL( stat.falseCount, 2446 );
+	TEST_ASSERT_EQUAL( stat.nullCount, 1946 );
+	TEST_ASSERT_EQUAL( stat.memberCount, 13345 );
+	TEST_ASSERT_EQUAL( stat.elementCount, 568 );
+	TEST_ASSERT_EQUAL( stat.stringLength, 367917 );
+	
+	err.clear();
+	stat = Stat();
+	json = su::Json::parse( kCITM, err );
+	TEST_ASSERT( err.empty() );
+	getStat( json, stat );
+	TEST_ASSERT_EQUAL( stat.objectCount, 10937 );
+	TEST_ASSERT_EQUAL( stat.arrayCount, 10451 );
+	TEST_ASSERT_EQUAL( stat.numberCount, 14392 );
+	TEST_ASSERT_EQUAL( stat.stringCount, 26604 );
+	TEST_ASSERT_EQUAL( stat.trueCount, 0 );
+	TEST_ASSERT_EQUAL( stat.falseCount, 0 );
+	TEST_ASSERT_EQUAL( stat.nullCount, 1263 );
+	TEST_ASSERT_EQUAL( stat.memberCount, 25869 );
+	TEST_ASSERT_EQUAL( stat.elementCount, 11908 );
+	TEST_ASSERT_EQUAL( stat.stringLength, 221379 );
+	
+	err.clear();
+	stat = Stat();
+	json = su::Json::parse( kCanada, err );
+	TEST_ASSERT( err.empty() );
+	getStat( json, stat );
+	TEST_ASSERT_EQUAL( stat.objectCount, 4 );
+	TEST_ASSERT_EQUAL( stat.arrayCount, 56045 );
+	TEST_ASSERT_EQUAL( stat.numberCount, 111126 );
+	TEST_ASSERT_EQUAL( stat.stringCount, 12 );
+	TEST_ASSERT_EQUAL( stat.trueCount, 0 );
+	TEST_ASSERT_EQUAL( stat.falseCount, 0 );
+	TEST_ASSERT_EQUAL( stat.nullCount, 0 );
+	TEST_ASSERT_EQUAL( stat.memberCount, 8 );
+	TEST_ASSERT_EQUAL( stat.elementCount, 167170 );
+	TEST_ASSERT_EQUAL( stat.stringLength, 90 );
+	
 }

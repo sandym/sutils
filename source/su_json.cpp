@@ -2035,17 +2035,12 @@ struct JsonParser final
 	
 	InlineString collect;
 
-	flat_map<std::string, Json> object_data;
-	std::vector<Json> array_data;
-
 	JsonParser( const su::string_view &i_in, std::string &i_err, JsonParse i_strategy )
 		: str( i_in ), err( i_err ), strategy( i_strategy )
 	{
 		it = str.begin();
 		parse_string_result.reserve( 1024 );
 		object_key.reserve( 128 );
-		object_data.reserve( 16 );
-		array_data.reserve( 16 );
 	}
 
 	Json fail( std::string &&msg ) { return fail( std::move( msg ), Json() ); }
@@ -2650,13 +2645,14 @@ struct JsonParser final
 
 		if ( ch == '{' )
 		{
-			object_data.clear();
+			flat_map<std::string, Json> object_data;
 			ch = get_next_token();
 			if ( ch == '}' )
 			{
-				output = object_data;
+				output = std::move(object_data);
 				return;
 			}
+			object_data.reserve( 16 );
 
 			for ( ;; )
 			{
@@ -2694,20 +2690,21 @@ struct JsonParser final
 
 				ch = get_next_token();
 			}
-			output = object_data;
+			output = std::move(object_data);
 			return;
 		}
 
 		if ( ch == '[' )
 		{
-			array_data.clear();
+			std::vector<Json> array_data;
 			
 			ch = get_next_token();
 			if ( ch == ']' )
 			{
-				output = array_data;
+				output = std::move(array_data);
 				return;
 			}
+			array_data.reserve( 16 );
 
 			for ( ;; )
 			{
@@ -2730,7 +2727,7 @@ struct JsonParser final
 				ch = get_next_token();
 				(void)ch;
 			}
-			output = array_data;
+			output = std::move(array_data);
 			return;
 		}
 
