@@ -1992,7 +1992,7 @@ struct JsonParser final
 	std::string &err;
 	JsonParse strategy;
 	
-	std::string parse_string_result, object_key;
+	std::string parse_string_result;
 
 	struct InlineString
 	{
@@ -2040,7 +2040,6 @@ struct JsonParser final
 	{
 		it = str.begin();
 		parse_string_result.reserve( 1024 );
-		object_key.reserve( 128 );
 	}
 
 	Json fail( std::string &&msg ) { return fail( std::move( msg ), Json() ); }
@@ -2583,7 +2582,7 @@ struct JsonParser final
 	 * Expect that 'str' starts at the character that was just read. If it does, advance
 	 * the input and return res. If not, flag an error.
 	 */
-	Json expect( const std::string &expected, Json res )
+	Json expect( const su::string_view &expected, Json res )
 	{
 		assert( it != str.begin() );
 		--it;
@@ -2595,7 +2594,7 @@ struct JsonParser final
 		}
 		else
 		{
-			return fail( "parse error: expected " + expected + ", got " + tmp.to_string() );
+			return fail( "parse error: expected " + expected.to_string() + ", got " + tmp.to_string() );
 		}
 	}
 
@@ -2662,6 +2661,7 @@ struct JsonParser final
 					return;
 				}
 
+				std::string object_key;
 				parse_string( object_key );
 				if ( failed )
 					return;
@@ -2675,7 +2675,7 @@ struct JsonParser final
 				
 				Json v;
 				parse_json( depth + 1, v );
-				object_data.emplace( object_key, std::move(v) );
+				object_data.emplace( std::move(object_key), std::move(v) );
 				if ( failed )
 					return;
 
