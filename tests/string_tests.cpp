@@ -50,10 +50,10 @@ void string_tests::test_case_convert()
 	
 	TEST_ASSERT_EQUAL( "aBcD", su::to_string( L"aBcD" ) );
 	TEST_ASSERT_EQUAL( "aBcD", su::to_string( u16 ) );
-	TEST_ASSERT( L"aBcD" == su::to_wstring( "aBcD" ) );
-	TEST_ASSERT( L"aBcD" == su::to_wstring( u16 ) );
-	TEST_ASSERT( u16 == su::to_u16string( "aBcD" ) );
-	TEST_ASSERT( u16 == su::to_u16string( L"aBcD" ) );
+	TEST_ASSERT_EQUAL( L"aBcD", su::to_wstring( "aBcD" ) );
+	TEST_ASSERT_EQUAL( L"aBcD", su::to_wstring( u16 ) );
+	TEST_ASSERT_EQUAL( u16, su::to_u16string( "aBcD" ) );
+	TEST_ASSERT_EQUAL( u16, su::to_u16string( L"aBcD" ) );
 
 #if UPLATFORM_MAC || UPLATFORM_IOS
 	TEST_ASSERT_EQUAL( "aBcD", su::to_string( CFSTR("aBcD") ) );

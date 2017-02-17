@@ -67,10 +67,10 @@ void json_tests::test_case_1()
     string err;
     auto json = Json::parse(simple_test, err);
 
-	TEST_ASSERT( json["k1"].string_value() == "v1" );
-	TEST_ASSERT( json["k3"].dump() == "[\"a\",123,true,false,null]" );
+	TEST_ASSERT_EQUAL( json["k1"].string_value(), "v1" );
+	TEST_ASSERT_EQUAL( json["k3"].dump(), "[\"a\",123,true,false,null]" );
 
-	TEST_ASSERT( json["k3"].array_items().size() == 5 );
+	TEST_ASSERT_EQUAL( json["k3"].array_items().size(), 5 );
 
     const string comment_test = R"({
       // comment /* with nested comment */
@@ -132,12 +132,12 @@ void json_tests::test_case_1()
     std::list<int> l1 { 1, 2, 3 };
     std::vector<int> l2 { 1, 2, 3 };
     std::set<int> l3 { 1, 2, 3 };
-    TEST_ASSERT(Json(l1) == Json(l2));
-    TEST_ASSERT(Json(l2) == Json(l3));
+    TEST_ASSERT_EQUAL(Json(l1), Json(l2));
+    TEST_ASSERT_EQUAL(Json(l2), Json(l3));
 
     std::map<string, string> m1 { { "k1", "v1" }, { "k2", "v2" } };
     std::unordered_map<string, string> m2 { { "k1", "v1" }, { "k2", "v2" } };
-    TEST_ASSERT(Json(m1) == Json(m2));
+    TEST_ASSERT_EQUAL(Json(m1), Json(m2));
 
     // Json literals
     Json obj = Json::object({
@@ -148,13 +148,13 @@ void json_tests::test_case_1()
 
     //std::cout << "obj: " << obj.dump() << "\n";
 
-    TEST_ASSERT(Json("a").number_value() == 0);
-    TEST_ASSERT(Json("a").string_value() == "a");
-    TEST_ASSERT(Json().number_value() == 0);
+    TEST_ASSERT_EQUAL(Json("a").number_value(), 0);
+    TEST_ASSERT_EQUAL(Json("a").string_value(), "a");
+    TEST_ASSERT_EQUAL(Json().number_value(), 0);
 
-    TEST_ASSERT(obj == json);
-    TEST_ASSERT(Json(42) == Json(42.0));
-    TEST_ASSERT(Json(42) != Json(42.1));
+    TEST_ASSERT_EQUAL(obj, json);
+    TEST_ASSERT_EQUAL(Json(42), Json(42.0));
+    TEST_ASSERT_NOT_EQUAL(Json(42), Json(42.1));
 
     const string unicode_escape_test =
         R"([ "blah\ud83d\udca9blah\ud83dblah\udca9blah\u0000blah\u1234" ])";
@@ -163,17 +163,17 @@ void json_tests::test_case_1()
                         "\xed\xb2\xa9" "blah" "\0" "blah" "\xe1\x88\xb4";
 
     Json uni = Json::parse(unicode_escape_test, err);
-    TEST_ASSERT(uni[0].string_value().size() == (sizeof utf8) - 1);
-    TEST_ASSERT(std::memcmp(uni[0].string_value().data(), utf8, sizeof utf8) == 0);
+    TEST_ASSERT_EQUAL(uni[0].string_value().size(), (sizeof utf8) - 1);
+    TEST_ASSERT_EQUAL(std::memcmp(uni[0].string_value().data(), utf8, sizeof utf8), 0);
 
     // Demonstrates the behavior change in Xcode 7 / Clang 3.7, introduced by DR1467
     // and described here: https://llvm.org/bugs/show_bug.cgi?id=23812
     if (SJSON_ENABLE_DR1467_CANARY) {
         Json nested_array = Json::array { Json::array { 1, 2, 3 } };
         TEST_ASSERT(nested_array.is_array());
-        TEST_ASSERT(nested_array.array_items().size() == 1);
+        TEST_ASSERT_EQUAL(nested_array.array_items().size(), 1);
         TEST_ASSERT(nested_array.array_items()[0].is_array());
-        TEST_ASSERT(nested_array.array_items()[0].array_items().size() == 3);
+        TEST_ASSERT_EQUAL(nested_array.array_items()[0].array_items().size(), 3);
     }
 
     {
@@ -196,13 +196,13 @@ void json_tests::test_case_1()
             std::string::size_type parser_stop_pos;
             std::string err;
             auto res = Json::parse_multi(tst.input, parser_stop_pos, err);
-            TEST_ASSERT(parser_stop_pos == tst.expect_parser_stop_pos);
-            TEST_ASSERT(
+            TEST_ASSERT_EQUAL(parser_stop_pos, tst.expect_parser_stop_pos);
+            TEST_ASSERT_EQUAL(
                 (size_t)std::count_if(res.begin(), res.end(),
                                       [](const Json& j) { return !j.is_null(); })
-                == tst.expect_not_empty_elms_count);
+				, tst.expect_not_empty_elms_count);
             if (!res.empty()) {
-                TEST_ASSERT(tst.expect_parse_res == res[0]);
+                TEST_ASSERT_EQUAL(tst.expect_parse_res, res[0]);
             }
         }
     }
@@ -224,7 +224,7 @@ void json_tests::test_case_1()
 
     std::vector<Point> points = { { 1, 2 }, { 10, 20 }, { 100, 200 } };
     std::string points_json = Json(points).dump();
-	TEST_ASSERT( points_json == "[[1,2],[10,20],[100,200]]" );
+	TEST_ASSERT_EQUAL( points_json, "[[1,2],[10,20],[100,200]]" );
 }
 
 struct Stat

@@ -566,5 +566,5 @@ void jobdispatcher_tests::test_case_prioritise_1()
 		}
 	}
 	TEST_ASSERT( didAsync );
-	TEST_ASSERT( rank < 19 ); // rank should be much smaller than 20 since job should have jump ahead of most others.
+	TEST_ASSERT( rank < 19, "rank should be much smaller than 20 since job should have jump ahead of most others." );
 }

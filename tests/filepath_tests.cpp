@@ -90,7 +90,7 @@ void filepath_tests::test_case_2()
 	TEST_ASSERT( not fs2.isFile() );
 	TEST_ASSERT( not fs2.exists() );
 	TEST_ASSERT( not fs2.empty() );
-	TEST_ASSERT( fs2 != fs );
+	TEST_ASSERT_NOT_EQUAL( fs2, fs );
 }
 
 void filepath_tests::test_case_3()
@@ -101,7 +101,7 @@ void filepath_tests::test_case_3()
 	TEST_ASSERT( fs.getBookmarkData( data ) );
 	
 	su::filepath fs2( data );
-	TEST_ASSERT( fs == fs2 );
+	TEST_ASSERT_EQUAL( fs, fs2 );
 	TEST_ASSERT_EQUAL( fs.path(), fs2.path() );
 	TEST_ASSERT_EQUAL( fs.name(), fs2.name() );
 }

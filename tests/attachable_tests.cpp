@@ -76,9 +76,9 @@ void attachable_tests::test_detach()
 	bool wasDeleted = false;
 	auto att = new CheckDelete( wasDeleted );
 	_attachable->attach( "test", att );
-	TEST_ASSERT( _attachable->get<CheckDelete>( "test" ) != nullptr );
+	TEST_ASSERT_NOT_EQUAL( _attachable->get<CheckDelete>( "test" ), nullptr );
 	_attachable->detach( "test" );
-	TEST_ASSERT( _attachable->get<CheckDelete>( "test" ) == nullptr );
+	TEST_ASSERT_EQUAL( _attachable->get<CheckDelete>( "test" ), nullptr );
 	TEST_ASSERT( wasDeleted );
 }
 
@@ -87,7 +87,7 @@ void attachable_tests::test_delete_attachable()
 	bool wasDeleted = false;
 	auto att = new CheckDelete( wasDeleted );
 	_attachable->attach( "test", att );
-	TEST_ASSERT( _attachable->get<CheckDelete>( "test" ) != nullptr );
+	TEST_ASSERT_NOT_EQUAL( _attachable->get<CheckDelete>( "test" ), nullptr );
 	delete _attachable;
 	_attachable = nullptr;
 	TEST_ASSERT( wasDeleted );
@@ -98,8 +98,8 @@ void attachable_tests::test_delete_attachment()
 	bool wasDeleted = false;
 	auto att = new CheckDelete( wasDeleted );
 	_attachable->attach( "test", att );
-	TEST_ASSERT( _attachable->get<CheckDelete>( "test" ) != nullptr );
+	TEST_ASSERT_NOT_EQUAL( _attachable->get<CheckDelete>( "test" ), nullptr );
 	delete att;
-	TEST_ASSERT( _attachable->get<CheckDelete>( "test" ) == nullptr );
+	TEST_ASSERT_EQUAL( _attachable->get<CheckDelete>( "test" ), nullptr );
 	TEST_ASSERT( wasDeleted );
 }

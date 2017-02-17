@@ -1,6 +1,7 @@
 
 #include "simple_tester.h"
 #include <iostream>
+#include <sstream>
 
 namespace
 {
@@ -17,6 +18,36 @@ void addTestCase( TestCaseAbstract *i_tg )
 	g_testCases->push_back( i_tg );
 }
 
+FailedTest::FailedTest( Type i_type, const char *i_file, int i_line, const std::string &i_text, const std::string &i_msg )
+	: _type( i_type ),
+		_file( i_file ),
+		_line( i_line ),
+		_text( i_text ),
+		_msg( i_msg )
+{
+}
+
+const char *FailedTest::what() const noexcept
+{
+	if ( _storage.empty() )
+	{
+		std::ostringstream str;
+		switch ( _type )
+		{
+			case Type::kAssert: str << "ASSERTION("; break;
+			case Type::kEqual: str << "EQUAL("; break;
+			case Type::kNotEqual: str << "NOT EQUAL("; break;
+			default: break;
+		}
+		str << _text << ")\n";
+		str << _file << ":" << _line << "\n";
+		if ( not _msg.empty() )
+			str << _msg << "\n";
+		_storage = str.str();
+	}
+	return _storage.c_str();
+}
+
 }
 
 int main()
@@ -30,22 +61,22 @@ int main()
 			std::cout << "  " << test.name() << " : ";
 			std::cout.flush();
 			
-			std::string results;
 			try
 			{
 				test();
 				std::cout << "OK";
 			}
+			catch ( su::FailedTest &ex )
+			{
+				std::cout << "TEST FAIL - " << ex.what() << std::endl;
+			}
 			catch ( std::exception &ex )
 			{
-				std::cout << "FAILED\n- \n";
-				std::cout << ex.what();
-				results = ex.what();
+				std::cout << "EXCEPTION CAUGHT - " << ex.what() << std::endl;
 			}
 			catch ( ... )
 			{
-				std::cout << "FAILED\n- unknown reason";
-				results = "unknown reason";
+				std::cout << "UNKNOWN EXCEPTION CAUGHT" << std::endl;
 			}
 			
 			std::cout << std::endl;

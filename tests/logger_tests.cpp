@@ -84,7 +84,7 @@ struct logger_tests
 		std::ifstream istr( tmpLog );
 		
 		if ( not istr )
-			TEST_ASSERT( "cannot read /tmp/sutils_tests.log" == nullptr );
+			TEST_FAIL( "cannot read /tmp/sutils_tests.log" );
 		
 		std::string line;
 
