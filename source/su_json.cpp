@@ -1875,7 +1875,103 @@ bool Json::operator==( const Json &rhs ) const
 			case Type::NUL:
 				return true;
 			case Type::NUMBER:
-				return _tag == rhs._tag and _data.all == rhs._data.all;
+				switch ( numberType() )
+				{
+					case kDouble:
+						switch ( rhs.numberType() )
+						{
+							case kDouble: return _data.d == rhs._data.d;
+							case kInt: return _data.d == rhs._data.i;
+							case kUnsignedInt: return _data.d == rhs._data.ui;
+							case kLong: return _data.d == rhs._data.l;
+							case kUnsignedLong: return _data.d == rhs._data.ul;
+							case kLongLong: return _data.d == rhs._data.ll;
+							case kUnsignedLongLong: return _data.d == rhs._data.ull;
+							default: assert( false ); break;
+						}
+						break;
+					case kInt:
+						switch ( rhs.numberType() )
+						{
+							case kDouble: return _data.i == rhs._data.d;
+							case kInt: return _data.i == rhs._data.i;
+							case kUnsignedInt: return _data.i == rhs._data.ui;
+							case kLong: return _data.i == rhs._data.l;
+							case kUnsignedLong: return _data.i == rhs._data.ul;
+							case kLongLong: return _data.i == rhs._data.ll;
+							case kUnsignedLongLong: return _data.i == rhs._data.ull;
+							default: assert( false ); break;
+						}
+						break;
+					case kUnsignedInt:
+						switch ( rhs.numberType() )
+						{
+							case kDouble: return _data.ui == rhs._data.d;
+							case kInt: return _data.ui == rhs._data.i;
+							case kUnsignedInt: return _data.ui == rhs._data.ui;
+							case kLong: return _data.ui == rhs._data.l;
+							case kUnsignedLong: return _data.ui == rhs._data.ul;
+							case kLongLong: return _data.ui == rhs._data.ll;
+							case kUnsignedLongLong: return _data.ui == rhs._data.ull;
+							default: assert( false ); break;
+						}
+						break;
+					case kLong:
+						switch ( rhs.numberType() )
+						{
+							case kDouble: return _data.l == rhs._data.d;
+							case kInt: return _data.l == rhs._data.i;
+							case kUnsignedInt: return _data.l == rhs._data.ui;
+							case kLong: return _data.l == rhs._data.l;
+							case kUnsignedLong: return _data.l == rhs._data.ul;
+							case kLongLong: return _data.l == rhs._data.ll;
+							case kUnsignedLongLong: return _data.l == rhs._data.ull;
+							default: assert( false ); break;
+						}
+						break;
+					case kUnsignedLong:
+						switch ( rhs.numberType() )
+						{
+							case kDouble: return _data.ul == rhs._data.d;
+							case kInt: return _data.ul == rhs._data.i;
+							case kUnsignedInt: return _data.ul == rhs._data.ui;
+							case kLong: return _data.ul == rhs._data.l;
+							case kUnsignedLong: return _data.ul == rhs._data.ul;
+							case kLongLong: return _data.ul == rhs._data.ll;
+							case kUnsignedLongLong: return _data.ul == rhs._data.ull;
+							default: assert( false ); break;
+						}
+						break;
+					case kLongLong:
+						switch ( rhs.numberType() )
+						{
+							case kDouble: return _data.ll == rhs._data.d;
+							case kInt: return _data.ll == rhs._data.i;
+							case kUnsignedInt: return _data.ll == rhs._data.ui;
+							case kLong: return _data.ll == rhs._data.l;
+							case kUnsignedLong: return _data.ll == rhs._data.ul;
+							case kLongLong: return _data.ll == rhs._data.ll;
+							case kUnsignedLongLong: return _data.ll == rhs._data.ull;
+							default: assert( false ); break;
+						}
+						break;
+					case kUnsignedLongLong:
+						switch ( rhs.numberType() )
+						{
+							case kDouble: return _data.ull == rhs._data.d;
+							case kInt: return _data.ull == rhs._data.i;
+							case kUnsignedInt: return _data.ull == rhs._data.ui;
+							case kLong: return _data.ull == rhs._data.l;
+							case kUnsignedLong: return _data.ull == rhs._data.ul;
+							case kLongLong: return _data.ull == rhs._data.ll;
+							case kUnsignedLongLong: return _data.ull == rhs._data.ull;
+							default: assert( false ); break;
+						}
+						break;
+					default:
+						break;
+				}
+				break;
 			case Type::BOOL:
 				return _data.b == rhs._data.b;
 			case Type::STRING:

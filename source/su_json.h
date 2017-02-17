@@ -191,15 +191,15 @@ class Json final
 	enum tag_t
 	{
 		kPtr = 0x80,
-		kDouble = 0x1,
-		kInt = 0x2,
-		kUnsignedInt = 0x3,
-		kLong = 0x4,
-		kUnsignedLong = 0x5,
-		kLongLong = 0x6,
-		kUnsignedLongLong = 0x7,
+		kDouble = 1,
+		kInt = 2,
+		kUnsignedInt = 3,
+		kLong = 4,
+		kUnsignedLong = 5,
+		kLongLong = 6,
+		kUnsignedLongLong = 7,
 		
-		kNumberTypeMask = 0xE,
+		kNumberTypeMask = 0x0F,
 	};
 	inline bool isPtr() const { return _tag&kPtr; }
 	inline int numberType() const { return _tag&kNumberTypeMask; }
