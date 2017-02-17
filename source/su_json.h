@@ -43,7 +43,11 @@ class Json final
 	Json( std::nullptr_t ) noexcept {} // NUL
 	Json( double value ); // NUMBER
 	Json( int value ); // NUMBER
-	Json( int64_t value ); // NUMBER
+	Json( unsigned int value ); // NUMBER
+	Json( long value ); // NUMBER
+	Json( unsigned long value ); // NUMBER
+	Json( long long value ); // NUMBER
+	Json( unsigned long long value ); // NUMBER
 	Json( bool value ); // BOOL
 	Json( const std::string &value ); // STRING
 	Json( std::string &&value ); // STRING
@@ -86,8 +90,7 @@ class Json final
 	// can both be applied to a NUMBER-typed object.
 	double number_value() const;
 	int int_value() const;
-	int64_t int64_value() const;
-
+	
 	// Return the enclosed value if this is a boolean, false otherwise.
 	bool bool_value() const;
 	// Return the enclosed string if this is a string, "" otherwise.
@@ -101,8 +104,6 @@ class Json final
 	double to_number_value() const;
 	// Return the enclosed value as a int or 0
 	int to_int_value() const;
-	// Return the enclosed value as a int64_t or 0
-	int64_t to_int64_value() const;
 	// Return the enclosed value as a bool or false
 	bool to_bool_value() const;
 	// Return the enclosed value as a string or empty string
@@ -165,13 +166,21 @@ class Json final
 		Storage() : all( 0 ){};
 		Storage( double v ) : all( 0 ) { d = v; };
 		Storage( int v ) : all( 0 ) { i = v; };
-		Storage( int64_t v ) : all( 0 ) { i64 = v; };
+		Storage( unsigned int v ) : all( 0 ) { ui = v; };
+		Storage( long v ) : all( 0 ) { l = v; };
+		Storage( unsigned long v ) : all( 0 ) { ul = v; };
+		Storage( long long v ) : all( 0 ) { ll = v; };
+		Storage( unsigned long long v ) : all( 0 ) { ull = v; };
 		Storage( bool v ) : all( 0 ) { b = v; };
 		Storage( details::JsonValue *v ) : all( 0 ) { p = v; };
 		uint64_t all;
-		int64_t i64;
-		double d;
 		int i;
+		unsigned int ui;
+		long l;
+		unsigned long ul;
+		long long ll;
+		unsigned long long ull;
+		double d;
 		bool b;
 		details::JsonValue *p;
 	} _data;
@@ -181,11 +190,16 @@ class Json final
 	
 	enum tag_t
 	{
-		kPtr = 0x1,
-		kDouble = 0x2,
-		kInt = 0x4,
-		kInt64 = 0x6,
-		kNumberTypeMask = 0x6,
+		kPtr = 0x80,
+		kDouble = 0x1,
+		kInt = 0x2,
+		kUnsignedInt = 0x3,
+		kLong = 0x4,
+		kUnsignedLong = 0x5,
+		kLongLong = 0x6,
+		kUnsignedLongLong = 0x7,
+		
+		kNumberTypeMask = 0xE,
 	};
 	inline bool isPtr() const { return _tag&kPtr; }
 	inline int numberType() const { return _tag&kNumberTypeMask; }
