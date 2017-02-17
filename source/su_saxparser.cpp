@@ -27,7 +27,7 @@ su::NameURI extractNameURI( const char *s )
 	if ( p != end )
 		return su::NameURI{ su::string_view( s, p-s ), su::string_view( p+1, end-(p+1) ) };
 	else
-		return su::NameURI{ su::string_view( s, end-s ) };
+		return su::NameURI{ su::string_view( s, end-s ), su::string_view() };
 }
 
 void startElement( void *userData, const char *name, const char **atts )
@@ -103,7 +103,7 @@ bool saxparser::parse()
 		_stream.read( buf, 4096 );
 		auto len = _stream.gcount();
 		isFinal = _stream.eof() or len == 0;
-		if ( XML_Parse( parser, buf, len, isFinal ) != XML_STATUS_OK )
+		if ( XML_Parse( parser, buf, (int)len, isFinal ) != XML_STATUS_OK )
 		{
 			ret = false;
 			break;

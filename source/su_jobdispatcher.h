@@ -108,7 +108,7 @@ class jobdispatcher
 			   MUST be called from the main thread.
 		*/
 		void cancel_impl( const job_ptr &i_job );
-		void cancel_with_lock_impl( std::unique_lock<std::mutex> &l, const job_ptr &i_job );
+		void cancel_with_lock_impl( const job_ptr &i_job );
 
 		/*!
 		   @brief finish a job right away.

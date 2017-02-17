@@ -9,10 +9,7 @@
 #include <intrin.h>
 #endif
 
-namespace su
-{
-namespace details
-{
+namespace {
 
 // string-to-number and number-to-string
 //  from rapidJson
@@ -199,7 +196,6 @@ struct DiyFp
 	static const int kDiySignificandSize = 64;
 	static const int kDpSignificandSize = 52;
 	static const int kDpExponentBias = 0x3FF + kDpSignificandSize;
-	static const int kDpMaxExponent = 0x7FF - kDpExponentBias;
 	static const int kDpMinExponent = -kDpExponentBias;
 	static const int kDpDenormalExponent = -kDpExponentBias + 1;
 	static const uint64_t kDpExponentMask = RAPIDJSON_UINT64_C2( 0x7FF00000, 0x00000000 );
@@ -809,9 +805,9 @@ inline double FastPath( double significand, int exp )
 	if ( exp < -308 )
 		return 0.0;
 	else if ( exp >= 0 )
-		return significand * details::Pow10( exp );
+		return significand * Pow10( exp );
 	else
-		return significand / details::Pow10( -exp );
+		return significand / Pow10( -exp );
 }
 
 inline bool StrtodFast( double d, int p, double *result )
@@ -821,7 +817,7 @@ inline bool StrtodFast( double d, int p, double *result )
 	if ( p > 22 && p < 22 + 16 )
 	{
 		// Fast Path Cases In Disguise
-		d *= details::Pow10( p - 22 );
+		d *= Pow10( p - 22 );
 		p = 22;
 	}
 
@@ -1363,6 +1359,99 @@ inline double StrtodFullPrecision( double d, int p, const char *decimals, size_t
 
 // end -----
 
+/* * * * * * * * * * * * * * * * * * * *
+ * Static globals - static-init-safe
+ */
+struct Statics
+{
+	const std::string empty_string;
+	const std::vector<su::Json> empty_array;
+	const su::flat_map<std::string,su::Json> empty_object{};
+	Statics() {}
+};
+
+const Statics &statics()
+{
+	static const Statics s{};
+	return s;
+}
+const su::Json &static_null()
+{
+	static const su::Json json_null{};
+	return json_null;
+}
+
+
+
+void dump( const std::string &value, std::string &out )
+{
+	auto new_cap = out.size() + value.size() + 2; // at least
+	if ( new_cap > out.capacity() )
+		out.reserve( new_cap );
+	out.append( 1, '"' );
+	for ( auto ch = value.begin(); ch != value.end(); ++ch )
+	{
+		if ( *ch == '\\' )
+		{
+			out.append( "\\\\", 2 );
+		}
+		else if ( *ch == '"' )
+		{
+			out.append( "\\\"", 2 );
+		}
+		else if ( *ch == '\b' )
+		{
+			out.append( "\\b", 2 );
+		}
+		else if ( *ch == '\f' )
+		{
+			out.append( "\\f", 2 );
+		}
+		else if ( *ch == '\n' )
+		{
+			out.append( "\\n", 2 );
+		}
+		else if ( *ch == '\r' )
+		{
+			out.append( "\\r", 2 );
+		}
+		else if ( *ch == '\t' )
+		{
+			out.append( "\\t", 2 );
+		}
+		else if ( static_cast<uint8_t>( *ch ) <= 0x1f )
+		{
+			char buf[8];
+			auto l = snprintf( buf, sizeof buf, "\\u%04x", *ch );
+			out.append( buf, l );
+		}
+		else if ( static_cast<uint8_t>( *ch ) == 0xe2 && static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
+				  static_cast<uint8_t>( *( ch + 2 ) ) == 0xa8 )
+		{
+			out.append( "\\u2028", 6 );
+			ch += 2;
+		}
+		else if ( static_cast<uint8_t>( *ch ) == 0xe2 && static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
+				  static_cast<uint8_t>( *( ch + 2 ) ) == 0xa9 )
+		{
+			out.append( "\\u2029", 6 );
+			ch += 2;
+		}
+		else
+		{
+			out.append( 1, *ch );
+		}
+	}
+	out.append( 1, '"' );
+}
+
+}
+
+namespace su
+{
+namespace details
+{
+
 struct JsonValue
 {
 	virtual ~JsonValue() = default;
@@ -1396,27 +1485,6 @@ struct JsonObject : JsonValue
 	JsonObject( Json::object &&value ) : value( std::move( value ) ) {}
 };
 
-/* * * * * * * * * * * * * * * * * * * *
- * Static globals - static-init-safe
- */
-struct Statics
-{
-	const std::string empty_string;
-	const std::vector<Json> empty_array;
-	const flat_map<std::string, Json> empty_object{};
-	Statics() {}
-};
-
-const Statics &statics()
-{
-	static const Statics s{};
-	return s;
-}
-const Json &static_null()
-{
-	static const Json json_null{};
-	return json_null;
-}
 }
 
 Json::~Json()
@@ -1555,13 +1623,13 @@ int Json::int_value() const
 			case kUnsignedInt:
 				return _data.ui;
 			case kLong:
-				return _data.l;
+				return static_cast<int>(_data.l);
 			case kUnsignedLong:
-				return _data.ul;
+				return static_cast<int>(_data.ul);
 			case kLongLong:
-				return _data.ll;
+				return static_cast<int>(_data.ll);
 			case kUnsignedLongLong:
-				return _data.ull;
+				return static_cast<int>(_data.ull);
 		}
 	}
 	return 0;
@@ -1578,21 +1646,21 @@ const std::string &Json::string_value() const
 {
 	if ( type() == Type::STRING )
 		return ( (details::JsonString *)_data.p )->value;
-	return details::statics().empty_string;
+	return statics().empty_string;
 }
 
 const Json::array &Json::array_items() const
 {
 	if ( type() == Type::ARRAY )
 		return ( (details::JsonArray *)_data.p )->value;
-	return details::statics().empty_array;
+	return statics().empty_array;
 }
 
 const Json::object &Json::object_items() const
 {
 	if ( type() == Type::OBJECT )
 		return ( (details::JsonObject *)_data.p )->value;
-	return details::statics().empty_object;
+	return statics().empty_object;
 }
 
 double Json::to_number_value() const
@@ -1685,7 +1753,7 @@ std::string Json::to_string_value() const
 		default:
 			break;
 	}
-	return details::statics().empty_string;
+	return statics().empty_string;
 }
 
 const Json &Json::operator[]( size_t i ) const
@@ -1695,7 +1763,7 @@ const Json &Json::operator[]( size_t i ) const
 		if ( i < ( (details::JsonArray *)_data.p )->value.size() )
 			return ( (details::JsonArray *)_data.p )->value[i];
 	}
-	return details::static_null();
+	return static_null();
 }
 
 const Json &Json::operator[]( const std::string &key ) const
@@ -1706,77 +1774,13 @@ const Json &Json::operator[]( const std::string &key ) const
 		if ( it != ( (details::JsonObject *)_data.p )->value.end() )
 			return it->second;
 	}
-	return details::static_null();
+	return static_null();
 }
 
 /* * * * * * * * * * * * * * * * * * * *
  * Serialization
  */
-namespace details
-{
-void dump( const std::string &value, std::string &out )
-{
-	auto new_cap = out.size() + value.size() + 2; // at least
-	if ( new_cap > out.capacity() )
-		out.reserve( new_cap );
-	out.append( 1, '"' );
-	for ( auto ch = value.begin(); ch != value.end(); ++ch )
-	{
-		if ( *ch == '\\' )
-		{
-			out.append( "\\\\", 2 );
-		}
-		else if ( *ch == '"' )
-		{
-			out.append( "\\\"", 2 );
-		}
-		else if ( *ch == '\b' )
-		{
-			out.append( "\\b", 2 );
-		}
-		else if ( *ch == '\f' )
-		{
-			out.append( "\\f", 2 );
-		}
-		else if ( *ch == '\n' )
-		{
-			out.append( "\\n", 2 );
-		}
-		else if ( *ch == '\r' )
-		{
-			out.append( "\\r", 2 );
-		}
-		else if ( *ch == '\t' )
-		{
-			out.append( "\\t", 2 );
-		}
-		else if ( static_cast<uint8_t>( *ch ) <= 0x1f )
-		{
-			char buf[8];
-			auto l = snprintf( buf, sizeof buf, "\\u%04x", *ch );
-			out.append( buf, l );
-		}
-		else if ( static_cast<uint8_t>( *ch ) == 0xe2 && static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
-				  static_cast<uint8_t>( *( ch + 2 ) ) == 0xa8 )
-		{
-			out.append( "\\u2028", 6 );
-			ch += 2;
-		}
-		else if ( static_cast<uint8_t>( *ch ) == 0xe2 && static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
-				  static_cast<uint8_t>( *( ch + 2 ) ) == 0xa9 )
-		{
-			out.append( "\\u2029", 6 );
-			ch += 2;
-		}
-		else
-		{
-			out.append( 1, *ch );
-		}
-	}
-	out.append( 1, '"' );
-}
 
-}
 void Json::dump( std::string &output ) const
 {
 	char buf[32];
@@ -1796,34 +1800,34 @@ void Json::dump( std::string &output ) const
 			{
 				case kDouble:
 					if ( std::isfinite( _data.d ) )
-						output.append( buf, details::numtoa( _data.d, buf ) - buf );
+						output.append( buf, numtoa( _data.d, buf ) - buf );
 					else
 						output.append( "null", 4 );
 					break;
 				case kInt:
-					output.append( buf, details::numtoa( _data.i, buf ) - buf );
+					output.append( buf, numtoa( _data.i, buf ) - buf );
 					break;
 				case kUnsignedInt:
-					output.append( buf, details::numtoa( _data.ui, buf ) - buf );
+					output.append( buf, numtoa( _data.ui, buf ) - buf );
 					break;
 				case kLong:
-					output.append( buf, details::numtoa( _data.l, buf ) - buf );
+					output.append( buf, numtoa( _data.l, buf ) - buf );
 					break;
 				case kUnsignedLong:
-					output.append( buf, details::numtoa( _data.ul, buf ) - buf );
+					output.append( buf, numtoa( _data.ul, buf ) - buf );
 					break;
 				case kLongLong:
-					output.append( buf, details::numtoa( _data.ll, buf ) - buf );
+					output.append( buf, numtoa( _data.ll, buf ) - buf );
 					break;
 				case kUnsignedLongLong:
-					output.append( buf, details::numtoa( _data.ull, buf ) - buf );
+					output.append( buf, numtoa( _data.ull, buf ) - buf );
 					break;
 				default:
 					break;
 			}
 			break;
 		case Type::STRING:
-			details::dump( ( (details::JsonString *)_data.p )->value, output );
+			::dump( ( (details::JsonString *)_data.p )->value, output );
 			break;
 		case Type::ARRAY:
 			if ( ( (details::JsonArray *)_data.p )->value.empty() )
@@ -1847,7 +1851,7 @@ void Json::dump( std::string &output ) const
 				output.append( 1, '{' );
 				for ( const auto &kv : ( (details::JsonObject *)_data.p )->value )
 				{
-					details::dump( kv.first, output );
+					::dump( kv.first, output );
 					output.append( 1, ':' );
 					kv.second.dump( output );
 					output.append( 1, ',' );
@@ -1872,7 +1876,6 @@ bool Json::operator==( const Json &rhs ) const
 				return true;
 			case Type::NUMBER:
 				return _tag == rhs._tag and _data.all == rhs._data.all;
-				break;
 			case Type::BOOL:
 				return _data.b == rhs._data.b;
 			case Type::STRING:
@@ -2622,7 +2625,7 @@ struct JsonParser final
 		if ( useDouble )
 		{
 			int p = exp + expFrac;
-			d = details::StrtodFullPrecision( d, p, decimal, length, decimalPosition, exp );
+			d = StrtodFullPrecision( d, p, decimal, length, decimalPosition, exp );
 
 			return ( minus ? -d : d );
 		}
@@ -2826,7 +2829,7 @@ std::vector<Json> Json::parse_multi( const su::string_view &input,
 	std::vector<Json> json_vec;
 	details::JsonParser parser( input, err, strategy );
 	parser_stop_pos = 0;
-	while ( parser.it != input.end() && not parser.failed )
+	while ( parser.it != input.end() and not parser.failed )
 	{
 		Json v;
 		parser.parse_json( 0, v );

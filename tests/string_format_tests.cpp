@@ -7,29 +7,14 @@
  *
  *  quick reference:
  *
- *      TEST_ASSERT( condition [, message] )
+ *      TEST_ASSERT( condition )
  *          Assertions that a condition is true.
  *
- *      TEST_FAIL( message )
- *          Fails with the specified message.
- *
- *      TEST_ASSERT_EQUAL( expected, actual [, message] )
+ *      TEST_ASSERT_EQUAL( expected, actual )
  *          Asserts that two values are equals.
  *
- *      TEST_ASSERT_NOT_EQUAL( not expected, actual [, message] )
+ *      TEST_ASSERT_NOT_EQUAL( not expected, actual )
  *          Asserts that two values are NOT equals.
- *
- *      TEST_ASSERT_EQUAL( expected, actual [, delta, message] )
- *          Asserts that two values are equals.
- *
- *      TEST_ASSERT_NOT_EQUAL( not expected, actual [, delta, message] )
- *          Asserts that two values are NOT equals.
- *
- *      TEST_ASSERT_THROW( expression, ExceptionType [, message] )
- *          Asserts that the given expression throws an exception of the specified type.
- *
- *      TEST_ASSERT_NO_THROW( expression [, message] )
- *          Asserts that the given expression does not throw any exceptions.
  */
 
 #include "simple_tester.h"
@@ -51,6 +36,7 @@ REGISTER_TESTS( string_format_tests,
 // MARK: -
 // MARK:  === test cases ===
 
+namespace {
 std::string ustring_format_using_sprintf( const char *i_format, ... )
 {
 	char buf[4096];
@@ -71,6 +57,8 @@ std::string ustring_format_using_sprintf( const char *i_format, ... )
     std::cout << "got: " << v1 << std::endl; \
   } \
   TEST_ASSERT_EQUAL( v1, v2 ); \
+}
+
 }
 
 void string_format_tests::test_case_format()

@@ -26,7 +26,7 @@ jobdispatcher::jobdispatcher( int i_nbOfWorkers )
 	if ( i_nbOfWorkers < 1 )
 	{
 		// one less than the number of cpu, no smaller than 1!
-		i_nbOfWorkers = std::max( std::thread::hardware_concurrency() - 1, unsigned(1) );
+		i_nbOfWorkers = std::max<unsigned>( std::thread::hardware_concurrency() - 1, 1 );
 	}
 	// just reserve the space, we'll lazily start the threads later
 	_threadPool.resize( i_nbOfWorkers, nullptr );
@@ -45,7 +45,7 @@ jobdispatcher::~jobdispatcher()
 	// cancel all running jobs
 	while ( not _asyncQueue.empty() )
 	{
-		cancel_with_lock_impl( l, _asyncQueue.front() );
+		cancel_with_lock_impl( _asyncQueue.front() );
 	}
 	
 	l.unlock();
@@ -97,7 +97,7 @@ void jobdispatcher::postAsync( const job_ptr &i_job )
 	std::unique_lock<std::mutex> l( _JDMutex );
 	
 	// lazily start workers as needed
-	if ( _nbOfWorkersFree == 0 and _nbOfWorkersRunning < _threadPool.size() )
+	if ( _nbOfWorkersFree == 0 and _nbOfWorkersRunning < (int)_threadPool.size() )
 	{
 		_threadPool[_nbOfWorkersRunning] = new std::thread( &jobdispatcher::workerThread, this, _nbOfWorkersRunning );
 		++_nbOfWorkersRunning;
@@ -207,10 +207,10 @@ void jobdispatcher::cancel_impl( const job_ptr &i_job )
 {
 	AssertIsMainThread();
 	std::unique_lock<std::mutex> l( _JDMutex );
-	cancel_with_lock_impl( l, i_job );
+	cancel_with_lock_impl( i_job );
 }
 
-void jobdispatcher::cancel_with_lock_impl( std::unique_lock<std::mutex> &l, const job_ptr &i_job )
+void jobdispatcher::cancel_with_lock_impl( const job_ptr &i_job )
 {
 	assert( not i_job->_cancelled.load() );
 	assert( i_job->_dispatcher == this );

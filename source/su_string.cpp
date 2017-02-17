@@ -102,7 +102,7 @@ std::string tolower( const su::string_view &s )
 	for ( auto &it : other )
 	{
 		if ( it < 126 )
-			it = std::tolower( it );
+			it = (char)std::tolower( it );
 	}
 	return other;
 }
@@ -113,7 +113,7 @@ std::string toupper( const su::string_view &s )
 	for ( auto &it : other )
 	{
 		if ( it < 126 )
-			it = std::toupper( it );
+			it = (char)std::toupper( it );
 	}
 	return other;
 }
@@ -397,7 +397,7 @@ int kanjiNumberValue( std::u16string s )
 			case kNANA:  value += 7; break;
 			case kHACHI: value += 8; break;
 			case kKYU:   value += 9; break;
-			default: throw std::out_of_range( "invalid kanji number" ); break;
+			default: throw std::out_of_range( "invalid kanji number" );
 		}
 	}
 	

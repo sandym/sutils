@@ -88,7 +88,7 @@ inline int FormatArg::cast() const
 		case kShort: return u._short;
 		case kInt: return u._int;
 		case kUnsignedShort: return u._unsignedshort;
-		case kUnsignedInt: return u._unsignedint;
+		case kUnsignedInt: return static_cast<int>(u._unsignedint);
 		default:
 			break;
 	}
@@ -100,8 +100,8 @@ inline unsigned int FormatArg::cast() const
 {
 	switch ( _which )
 	{
-		case kShort: return u._short;
-		case kInt: return u._int;
+		case kShort: return static_cast<unsigned int>(u._short);
+		case kInt: return static_cast<unsigned int>(u._int);
 		case kUnsignedShort: return u._unsignedshort;
 		case kUnsignedInt: return u._unsignedint;
 		default:
@@ -151,8 +151,8 @@ inline short FormatArg::cast() const
 	{
 		case kShort: return u._short;
 		case kUnsignedShort: return u._unsignedshort;
-		case kInt: return u._int;
-		case kUnsignedInt: return u._unsignedint;
+		case kInt: return static_cast<short>(u._int);
+		case kUnsignedInt: return static_cast<short>(u._unsignedint);
 		default:
 			break;
 	}
@@ -166,8 +166,8 @@ inline unsigned short FormatArg::cast() const
 	{
 		case kShort: return u._short;
 		case kUnsignedShort: return u._unsignedshort;
-		case kInt: return u._int;
-		case kUnsignedInt: return u._unsignedint;
+		case kInt: return static_cast<unsigned short>(u._int);
+		case kUnsignedInt: return static_cast<unsigned short>(u._unsignedint);
 		default:
 			break;
 	}
@@ -473,7 +473,6 @@ su::details::FormatSpec parseFormat( const su::string_view &i_ptr )
 							stage = kParserDone;
 							formatSpec.size = ptr - i_ptr.begin();
 							return formatSpec;
-							break;
 						default:
 							// if we already have a length, set the type to int
 							if ( formatSpec.flags&0x0F00 )
@@ -485,7 +484,6 @@ su::details::FormatSpec parseFormat( const su::string_view &i_ptr )
 							}
 							stage = kParserFailed;
 							throw std::runtime_error( "invalid format string" );
-							break;
 					}
 				}
 				break;
@@ -662,7 +660,7 @@ format_impl::format_impl( const su::string_view &i_format, const FormatArg *i_ar
 				++formatSpecIndex;
 			}
 			current = ptr;
-			if ( formatSpecIndex >= formatSpecs.size() )
+			if ( formatSpecIndex >= (int)formatSpecs.size() )
 				break; // no more args, give up
 		}
 		else
@@ -675,7 +673,7 @@ void format_impl::appendFormattedArg( const su::details::FormatSpec &i_formatSpe
 {
 	if ( i_formatSpec.valueIndex < 0 )
 		throw std::runtime_error( "missing argument" );
-	if ( i_formatSpec.valueIndex >= i_argsSize )
+	if ( i_formatSpec.valueIndex >= (int)i_argsSize )
 		throw std::out_of_range( "index out of range" );
 	
 	const su::details::FormatArg &arg = i_args[i_formatSpec.valueIndex];
@@ -683,7 +681,7 @@ void format_impl::appendFormattedArg( const su::details::FormatSpec &i_formatSpe
 	int width;
 	if ( i_formatSpec.widthIndex < 0 )
 		width = i_formatSpec.width;
-	else if ( i_formatSpec.widthIndex < i_argsSize )
+	else if ( i_formatSpec.widthIndex < (int)i_argsSize )
 		width = i_args[i_formatSpec.widthIndex].cast<int>();
 	else
 		throw std::out_of_range( "index out of range" );
@@ -691,7 +689,7 @@ void format_impl::appendFormattedArg( const su::details::FormatSpec &i_formatSpe
 	int prec;
 	if ( i_formatSpec.precIndex < 0 )
 		prec = i_formatSpec.prec;
-	else if ( i_formatSpec.precIndex < i_argsSize )
+	else if ( i_formatSpec.precIndex < (int)i_argsSize )
 		prec = i_args[i_formatSpec.precIndex].cast<int>();
 	else
 		throw std::out_of_range( "index out of range" );
@@ -944,7 +942,7 @@ void format_impl::formatDouble( double i_arg, const su::details::FormatSpec &i_f
 	for ( ;; )
 	{
 		auto req = snprintf( buffer, buffer.size(), format, i_arg );
-		if ( (req+1) <= buffer.size() )
+		if ( (req+1) <= (int)buffer.size() )
 			break;
 		buffer.realloc( buffer.size() * 2 );
 	}

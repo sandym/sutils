@@ -7,29 +7,14 @@
  *
  *  quick reference:
  *
- *      TEST_ASSERT( condition [, message] )
+ *      TEST_ASSERT( condition )
  *          Assertions that a condition is true.
  *
- *      TEST_FAIL( message )
- *          Fails with the specified message.
- *
- *      TEST_ASSERT_EQUAL( expected, actual [, message] )
+ *      TEST_ASSERT_EQUAL( expected, actual )
  *          Asserts that two values are equals.
  *
- *      TEST_ASSERT_NOT_EQUAL( not expected, actual [, message] )
+ *      TEST_ASSERT_NOT_EQUAL( not expected, actual )
  *          Asserts that two values are NOT equals.
- *
- *      TEST_ASSERT_EQUAL( expected, actual [, delta, message] )
- *          Asserts that two values are equals.
- *
- *      TEST_ASSERT_NOT_EQUAL( not expected, actual [, delta, message] )
- *          Asserts that two values are NOT equals.
- *
- *      TEST_ASSERT_THROW( expression, ExceptionType [, message] )
- *          Asserts that the given expression throws an exception of the specified type.
- *
- *      TEST_ASSERT_NO_THROW( expression [, message] )
- *          Asserts that the given expression does not throw any exceptions.
  */
 
 #include "simple_tester.h"
@@ -256,6 +241,7 @@ struct Stat
 	size_t nullCount = 0;
 };
 
+namespace {
 void getStat( const su::Json &i_json, Stat &io_stat )
 {
 	switch ( i_json.type() )
@@ -293,6 +279,7 @@ void getStat( const su::Json &i_json, Stat &io_stat )
 			io_stat.nullCount++;
 			break;
 	}
+}
 }
 
 void json_tests::test_case_2()

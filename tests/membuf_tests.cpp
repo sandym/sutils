@@ -7,29 +7,14 @@
  *
  *  quick reference:
  *
- *      TEST_ASSERT( condition [, message] )
+ *      TEST_ASSERT( condition )
  *          Assertions that a condition is true.
  *
- *      TEST_FAIL( message )
- *          Fails with the specified message.
- *
- *      TEST_ASSERT_EQUAL( expected, actual [, message] )
+ *      TEST_ASSERT_EQUAL( expected, actual )
  *          Asserts that two values are equals.
  *
- *      TEST_ASSERT_NOT_EQUAL( not expected, actual [, message] )
+ *      TEST_ASSERT_NOT_EQUAL( not expected, actual )
  *          Asserts that two values are NOT equals.
- *
- *      TEST_ASSERT_EQUAL( expected, actual [, delta, message] )
- *          Asserts that two values are equals.
- *
- *      TEST_ASSERT_NOT_EQUAL( not expected, actual [, delta, message] )
- *          Asserts that two values are NOT equals.
- *
- *      TEST_ASSERT_THROW( expression, ExceptionType [, message] )
- *          Asserts that the given expression throws an exception of the specified type.
- *
- *      TEST_ASSERT_NO_THROW( expression [, message] )
- *          Asserts that the given expression does not throw any exceptions.
  */
 
 #include "simple_tester.h"
@@ -42,7 +27,7 @@ struct membuf_tests
 	{
 		uint8_t buffer[256];
 		for ( int i = 0; i < 256; ++i )
-			buffer[i] = i;
+			buffer[i] = (uint8_t)i;
 		su::membuf buf( (const char *)buffer, (const char *)buffer + 256 );
 		std::istream istr( &buf );
 		

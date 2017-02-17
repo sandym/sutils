@@ -64,7 +64,7 @@ uuid::uuid( const std::string &i_value )
 			v[i % 2] = c >= 'a' ? c - 'a' + 10 : c - '0';
 			if ( ( i % 2 ) == 1 )
 			{
-				_uuid[j++] = ( v[0] << 4 ) | v[1];
+				_uuid[j++] = (uint8_t)(( v[0] << 4 ) | v[1]);
 				if ( j == 16 )
 					return;
 			}
@@ -73,7 +73,7 @@ uuid::uuid( const std::string &i_value )
 	}
 	// check partial byte
 	if ( ( i % 2 ) == 1 )
-		_uuid[j++] = ( v[0] << 4 );
+		_uuid[j++] = (uint8_t)(( v[0] << 4 ));
 
 	// complete with zeros
 	while ( j < 16 )
@@ -87,8 +87,8 @@ std::string uuid::string() const
 	int i = 0;
 	for ( auto c : _uuid )
 	{
-		int v1 = ( c >> 4 ) & 0x0F;
-		int v2 = c & 0x0F;
+		char v1 = ( c >> 4 ) & 0x0F;
+		char v2 = c & 0x0F;
 		uuid.push_back( v1 < 10 ? v1 + '0' : v1 + 'A' - 10 );
 		uuid.push_back( v2 < 10 ? v2 + '0' : v2 + 'A' - 10 );
 		if ( i == 3 or i == 5 or i == 7 or i == 9 )

@@ -75,7 +75,7 @@ inline bool isAbsolute( const su::string_view &i_path )
 
 CFURLRef createURLRef( const std::string i_path )
 {
-	return CFURLCreateFromFileSystemRepresentation( nullptr, (const UInt8 *)i_path.c_str(), i_path.size(), false );
+	return CFURLCreateFromFileSystemRepresentation( nullptr, (const UInt8 *)i_path.c_str(), (CFIndex)i_path.size(), false );
 }
 
 std::string CFURLToPath( CFURLRef i_url )
@@ -373,7 +373,7 @@ filepath::filepath( const BookmarkData &i_fileBookmark, const filepath *i_relati
 		size_t aliasSize = i_fileBookmark.size() - ( pathPartLen + sizeof(kAliasTag) );
 
 		cfauto<CFDataRef> bookmarkData(
-			CFDataCreate( 0, (const UInt8 *)( i_fileBookmark.data() + pathPartLen + sizeof(kAliasTag) ), aliasSize ) );
+			CFDataCreate( 0, (const UInt8 *)( i_fileBookmark.data() + pathPartLen + sizeof(kAliasTag) ), (CFIndex)aliasSize ) );
 		cfauto<CFURLRef> relativeTo( i_relativeTo != nullptr ? createURLRef( i_relativeTo->ospath() ) : nullptr );
 		cfauto<CFURLRef> url( CFURLCreateByResolvingBookmarkData( 0, bookmarkData, 0, relativeTo, nullptr, nullptr, nullptr ) );
 		_path = CFURLToPath( url );

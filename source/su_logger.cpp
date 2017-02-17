@@ -93,7 +93,6 @@ logger_thread_data::logger_thread_data()
 	assert( g_thread == nullptr );
 	t = std::thread( &logger_thread_data::func, this );
 	su::set_low_priority( t );
-	g_thread = this;
 }
 
 void logger_thread_data::dec()
@@ -442,7 +441,7 @@ logger_thread::logger_thread()
 	if ( g_thread != nullptr )
 		g_thread->inc();
 	else
-		new logger_thread_data;
+		g_thread = new logger_thread_data;
 }
 
 logger_thread::~logger_thread()
