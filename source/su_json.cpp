@@ -1445,6 +1445,24 @@ void dump( const std::string &value, std::string &out )
 	out.append( 1, '"' );
 }
 
+template<typename T,int SIZE=sizeof(T)>
+struct num_traits
+{
+};
+
+template<typename T>
+struct num_traits<T,4>
+{
+	enum { json_type = 2 };
+	inline static int32_t convert( T v ) { return static_cast<int32_t>( v ); }
+};
+template<typename T>
+struct num_traits<T,8>
+{
+	enum { json_type = 3 };
+	inline static int64_t convert( T v ) { return static_cast<int64_t>( v ); }
+};
+
 }
 
 namespace su
@@ -1547,17 +1565,17 @@ Json &Json::operator=( Json &&rhs ) noexcept
  */
 Json::Json( double value ) : _data( value ), _type( Type::NUMBER ), _tag( kDouble )
 {}
-Json::Json( int value ) : _data( value ), _type( Type::NUMBER ), _tag( kInt )
+Json::Json( int value ) : _data( num_traits<int>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<int>::json_type )
 {}
-Json::Json( unsigned int value ) : _data( value ), _type( Type::NUMBER ), _tag( kUnsignedInt )
+Json::Json( unsigned int value ) : _data( num_traits<unsigned int>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned int>::json_type )
 {}
-Json::Json( long value ) : _data( value ), _type( Type::NUMBER ), _tag( kLong )
+Json::Json( long value ) : _data( num_traits<long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<long>::json_type )
 {}
-Json::Json( unsigned long value ) : _data( value ), _type( Type::NUMBER ), _tag( kUnsignedLong )
+Json::Json( unsigned long value ) : _data( num_traits<unsigned long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned long>::json_type )
 {}
-Json::Json( long long value ) : _data( value ), _type( Type::NUMBER ), _tag( kLongLong )
+Json::Json( long long value ) : _data( num_traits<long long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<long long>::json_type )
 {}
-Json::Json( unsigned long long value ) : _data( value ), _type( Type::NUMBER ), _tag( kUnsignedLongLong )
+Json::Json( unsigned long long value ) : _data( num_traits<unsigned long long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned long long>::json_type )
 {}
 Json::Json( bool value ) : _data( value ), _type( Type::BOOL )
 {}
@@ -1593,18 +1611,11 @@ double Json::number_value() const
 		{
 			case kDouble:
 				return _data.d;
-			case kInt:
-				return _data.i;
-			case kUnsignedInt:
-				return _data.ui;
-			case kLong:
-				return _data.l;
-			case kUnsignedLong:
-				return _data.ul;
-			case kLongLong:
-				return _data.ll;
-			case kUnsignedLongLong:
-				return _data.ull;
+			case kInt32:
+				return _data.i32;
+			case kInt64:
+				return _data.i64;
+			default: assert( false ); break;
 		}
 	}
 	return 0;
@@ -1618,18 +1629,11 @@ int Json::int_value() const
 		{
 			case kDouble:
 				return static_cast<int>(_data.d);
-			case kInt:
-				return _data.i;
-			case kUnsignedInt:
-				return _data.ui;
-			case kLong:
-				return static_cast<int>(_data.l);
-			case kUnsignedLong:
-				return static_cast<int>(_data.ul);
-			case kLongLong:
-				return static_cast<int>(_data.ll);
-			case kUnsignedLongLong:
-				return static_cast<int>(_data.ull);
+			case kInt32:
+				return _data.i32;
+			case kInt64:
+				return _data.i64;
+			default: assert( false ); break;
 		}
 	}
 	return 0;
@@ -1732,18 +1736,11 @@ std::string Json::to_string_value() const
 			{
 				case kDouble:
 					return std::to_string( _data.d );
-				case kInt:
-					return std::to_string( _data.i );
-				case kUnsignedInt:
-					return std::to_string( _data.ui );
-				case kLong:
-					return std::to_string( _data.l );
-				case kUnsignedLong:
-					return std::to_string( _data.ul );
-				case kLongLong:
-					return std::to_string( _data.ll );
-				case kUnsignedLongLong:
-					return std::to_string( _data.ull );
+				case kInt32:
+					return std::to_string( _data.i32 );
+				case kInt64:
+					return std::to_string( _data.i64 );
+				default: assert( false ); break;
 			}
 			break;
 		case Type::BOOL:
@@ -1804,26 +1801,13 @@ void Json::dump( std::string &output ) const
 					else
 						output.append( "null", 4 );
 					break;
-				case kInt:
-					output.append( buf, numtoa( _data.i, buf ) - buf );
+				case kInt32:
+					output.append( buf, numtoa( _data.i32, buf ) - buf );
 					break;
-				case kUnsignedInt:
-					output.append( buf, numtoa( _data.ui, buf ) - buf );
+				case kInt64:
+					output.append( buf, numtoa( _data.i64, buf ) - buf );
 					break;
-				case kLong:
-					output.append( buf, numtoa( _data.l, buf ) - buf );
-					break;
-				case kUnsignedLong:
-					output.append( buf, numtoa( _data.ul, buf ) - buf );
-					break;
-				case kLongLong:
-					output.append( buf, numtoa( _data.ll, buf ) - buf );
-					break;
-				case kUnsignedLongLong:
-					output.append( buf, numtoa( _data.ull, buf ) - buf );
-					break;
-				default:
-					break;
+				default: assert( false ); break;
 			}
 			break;
 		case Type::STRING:
@@ -1881,95 +1865,30 @@ bool Json::operator==( const Json &rhs ) const
 						switch ( rhs.numberType() )
 						{
 							case kDouble: return _data.d == rhs._data.d;
-							case kInt: return _data.d == rhs._data.i;
-							case kUnsignedInt: return _data.d == rhs._data.ui;
-							case kLong: return _data.d == rhs._data.l;
-							case kUnsignedLong: return _data.d == rhs._data.ul;
-							case kLongLong: return _data.d == rhs._data.ll;
-							case kUnsignedLongLong: return _data.d == rhs._data.ull;
+							case kInt32: return _data.d == rhs._data.i32;
+							case kInt64: return _data.d == rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kInt:
+					case kInt32:
 						switch ( rhs.numberType() )
 						{
-							case kDouble: return _data.i == rhs._data.d;
-							case kInt: return _data.i == rhs._data.i;
-							case kUnsignedInt: return _data.i == rhs._data.ui;
-							case kLong: return _data.i == rhs._data.l;
-							case kUnsignedLong: return _data.i == rhs._data.ul;
-							case kLongLong: return _data.i == rhs._data.ll;
-							case kUnsignedLongLong: return _data.i == rhs._data.ull;
+							case kDouble: return _data.i32 == rhs._data.d;
+							case kInt32: return _data.i32 == rhs._data.i32;
+							case kInt64: return _data.i32 == rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kUnsignedInt:
+					case kInt64:
 						switch ( rhs.numberType() )
 						{
-							case kDouble: return _data.ui == rhs._data.d;
-							case kInt: return _data.ui == rhs._data.i;
-							case kUnsignedInt: return _data.ui == rhs._data.ui;
-							case kLong: return _data.ui == rhs._data.l;
-							case kUnsignedLong: return _data.ui == rhs._data.ul;
-							case kLongLong: return _data.ui == rhs._data.ll;
-							case kUnsignedLongLong: return _data.ui == rhs._data.ull;
+							case kDouble: return _data.i64 == rhs._data.d;
+							case kInt32: return _data.i64 == rhs._data.i32;
+							case kInt64: return _data.i64 == rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.l == rhs._data.d;
-							case kInt: return _data.l == rhs._data.i;
-							case kUnsignedInt: return _data.l == rhs._data.ui;
-							case kLong: return _data.l == rhs._data.l;
-							case kUnsignedLong: return _data.l == rhs._data.ul;
-							case kLongLong: return _data.l == rhs._data.ll;
-							case kUnsignedLongLong: return _data.l == rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kUnsignedLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ul == rhs._data.d;
-							case kInt: return _data.ul == rhs._data.i;
-							case kUnsignedInt: return _data.ul == rhs._data.ui;
-							case kLong: return _data.ul == rhs._data.l;
-							case kUnsignedLong: return _data.ul == rhs._data.ul;
-							case kLongLong: return _data.ul == rhs._data.ll;
-							case kUnsignedLongLong: return _data.ul == rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kLongLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ll == rhs._data.d;
-							case kInt: return _data.ll == rhs._data.i;
-							case kUnsignedInt: return _data.ll == rhs._data.ui;
-							case kLong: return _data.ll == rhs._data.l;
-							case kUnsignedLong: return _data.ll == rhs._data.ul;
-							case kLongLong: return _data.ll == rhs._data.ll;
-							case kUnsignedLongLong: return _data.ll == rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kUnsignedLongLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ull == rhs._data.d;
-							case kInt: return _data.ull == rhs._data.i;
-							case kUnsignedInt: return _data.ull == rhs._data.ui;
-							case kLong: return _data.ull == rhs._data.l;
-							case kUnsignedLong: return _data.ull == rhs._data.ul;
-							case kLongLong: return _data.ull == rhs._data.ll;
-							case kUnsignedLongLong: return _data.ull == rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					default:
-						break;
+					default: assert( false ); break;
 				}
 				break;
 			case Type::BOOL:
@@ -2000,95 +1919,30 @@ bool Json::operator<( const Json &rhs ) const
 						switch ( rhs.numberType() )
 						{
 							case kDouble: return _data.d < rhs._data.d;
-							case kInt: return _data.d < rhs._data.i;
-							case kUnsignedInt: return _data.d < rhs._data.ui;
-							case kLong: return _data.d < rhs._data.l;
-							case kUnsignedLong: return _data.d < rhs._data.ul;
-							case kLongLong: return _data.d < rhs._data.ll;
-							case kUnsignedLongLong: return _data.d < rhs._data.ull;
+							case kInt32: return _data.d < rhs._data.i32;
+							case kInt64: return _data.d < rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kInt:
+					case kInt32:
 						switch ( rhs.numberType() )
 						{
-							case kDouble: return _data.i < rhs._data.d;
-							case kInt: return _data.i < rhs._data.i;
-							case kUnsignedInt: return _data.i < rhs._data.ui;
-							case kLong: return _data.i < rhs._data.l;
-							case kUnsignedLong: return _data.i < rhs._data.ul;
-							case kLongLong: return _data.i < rhs._data.ll;
-							case kUnsignedLongLong: return _data.i < rhs._data.ull;
+							case kDouble: return _data.i32 < rhs._data.d;
+							case kInt32: return _data.i32 < rhs._data.i32;
+							case kInt64: return _data.i32 < rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kUnsignedInt:
+					case kInt64:
 						switch ( rhs.numberType() )
 						{
-							case kDouble: return _data.ui < rhs._data.d;
-							case kInt: return _data.ui < rhs._data.i;
-							case kUnsignedInt: return _data.ui < rhs._data.ui;
-							case kLong: return _data.ui < rhs._data.l;
-							case kUnsignedLong: return _data.ui < rhs._data.ul;
-							case kLongLong: return _data.ui < rhs._data.ll;
-							case kUnsignedLongLong: return _data.ui < rhs._data.ull;
+							case kDouble: return _data.i64 < rhs._data.d;
+							case kInt32: return _data.i64 < rhs._data.i32;
+							case kInt64: return _data.i64 < rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.l < rhs._data.d;
-							case kInt: return _data.l < rhs._data.i;
-							case kUnsignedInt: return _data.l < rhs._data.ui;
-							case kLong: return _data.l < rhs._data.l;
-							case kUnsignedLong: return _data.l < rhs._data.ul;
-							case kLongLong: return _data.l < rhs._data.ll;
-							case kUnsignedLongLong: return _data.l < rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kUnsignedLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ul < rhs._data.d;
-							case kInt: return _data.ul < rhs._data.i;
-							case kUnsignedInt: return _data.ul < rhs._data.ui;
-							case kLong: return _data.ul < rhs._data.l;
-							case kUnsignedLong: return _data.ul < rhs._data.ul;
-							case kLongLong: return _data.ul < rhs._data.ll;
-							case kUnsignedLongLong: return _data.ul < rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kLongLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ll < rhs._data.d;
-							case kInt: return _data.ll < rhs._data.i;
-							case kUnsignedInt: return _data.ll < rhs._data.ui;
-							case kLong: return _data.ll < rhs._data.l;
-							case kUnsignedLong: return _data.ll < rhs._data.ul;
-							case kLongLong: return _data.ll < rhs._data.ll;
-							case kUnsignedLongLong: return _data.ll < rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kUnsignedLongLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ull < rhs._data.d;
-							case kInt: return _data.ull < rhs._data.i;
-							case kUnsignedInt: return _data.ull < rhs._data.ui;
-							case kLong: return _data.ull < rhs._data.l;
-							case kUnsignedLong: return _data.ull < rhs._data.ul;
-							case kLongLong: return _data.ull < rhs._data.ll;
-							case kUnsignedLongLong: return _data.ull < rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					default:
-						break;
+					default: assert( false ); break;
 				}
 				break;
 			case Type::BOOL:
