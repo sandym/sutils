@@ -4,7 +4,7 @@ project( sutils_tests )
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set( TEST_RUNNER simple_test_runner.cpp )
+set( TEST_RUNNER simple_test_runner.cpp simple_tester.h )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../source )
 
 file( GLOB ALL_TESTS

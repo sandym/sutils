@@ -2,6 +2,7 @@
 #include "simple_tester.h"
 #include <iostream>
 #include <sstream>
+#include <chrono>
 
 namespace
 {
@@ -61,25 +62,34 @@ int main()
 			std::cout << "  " << test.name() << " : ";
 			std::cout.flush();
 			
+			std::string result;
+			int64_t duration;
 			try
 			{
+				auto start_time = std::chrono::high_resolution_clock::now();
 				test();
-				std::cout << "OK";
+				auto end_time = std::chrono::high_resolution_clock::now();
+				duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
+				std::cout << "OK (" << duration << ")";
 			}
 			catch ( su::FailedTest &ex )
 			{
-				std::cout << "TEST FAIL - " << ex.what() << std::endl;
+				result = "TEST FAIL - ";
+				result += ex.what();
 			}
 			catch ( std::exception &ex )
 			{
-				std::cout << "EXCEPTION CAUGHT - " << ex.what() << std::endl;
+				result = "EXCEPTION CAUGHT - ";
+				result += ex.what();
 			}
 			catch ( ... )
 			{
-				std::cout << "UNKNOWN EXCEPTION CAUGHT" << std::endl;
+				result = "UNKNOWN EXCEPTION CAUGHT";
 			}
+			std::cout << result << std::endl;
 			
-			std::cout << std::endl;
+			//
+			// addResultToDB( testcase->name(), test.name(), result, duration );
 		}
 	}
 	std::cout << std::endl;
