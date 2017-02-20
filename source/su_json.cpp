@@ -2013,45 +2013,62 @@ struct JsonParser final
 	std::string &err;
 	JsonParse strategy;
 	
-	std::string parse_string_result;
-
 	struct InlineString
 	{
-		char inlineStorage[256];
-		char *buffer;
-		size_t capacity = 256;
-		char *end;
+		char inlineStorage[1024];
+		char *_buffer;
+		size_t _capacity = 1024;
+		char *_end;
 		inline InlineString()
 		{
-			buffer = inlineStorage;
-			end = buffer;
+			_buffer = inlineStorage;
+			_end = _buffer;
 		}
 		~InlineString()
 		{
-			if ( buffer != inlineStorage )
-				delete [] buffer;
+			if ( _buffer != inlineStorage )
+				delete [] _buffer;
 		}
 		inline void push_back( char c )
 		{
 			auto s = size();
-			if ( s >= (capacity-2) )
+			if ( s >= (_capacity-2) )
 			{
 				// need to grow
-				capacity *= 2;
-				auto newBuffer = new char[capacity];
-				memcpy( newBuffer, buffer, s );
-				if ( buffer != inlineStorage )
-					delete [] buffer;
-				buffer = newBuffer;
-				end = buffer + s;
+				_capacity *= 2;
+				auto newBuffer = new char[_capacity];
+				memcpy( newBuffer, _buffer, s );
+				if ( _buffer != inlineStorage )
+					delete [] _buffer;
+				_buffer = newBuffer;
+				_end = _buffer + s;
 			}
-			*end = c;
-			++end;
+			*_end = c;
+			++_end;
 		}
-		inline size_t size() const { return end - buffer; }
-		inline const char *c_str() const { *end = 0; return buffer; }
+		inline size_t size() const { return _end - _buffer; }
+		inline const char *c_str() const { *_end = 0; return _buffer; }
+
+		inline const char *begin() const { return _buffer; }
+		inline const char *end() const { return _end; }
 		
-		void clear() { end = buffer; }
+		void clear() { _end = _buffer; }
+		
+		size_t capacity() const { return _capacity; }
+		void reserve( size_t l )
+		{
+			if ( l > _capacity )
+			{
+				auto s = size();
+				_capacity = std::max( l, _capacity * 2 );
+				auto newBuffer = new char[_capacity];
+				memcpy( newBuffer, _buffer, s );
+				if ( _buffer != inlineStorage )
+					delete [] _buffer;
+				_buffer = newBuffer;
+				_end = _buffer + s;
+			}
+		}
 	};
 	
 	InlineString collect;
@@ -2060,7 +2077,6 @@ struct JsonParser final
 		: str( i_in ), err( i_err ), strategy( i_strategy )
 	{
 		it = str.begin();
-		parse_string_result.reserve( 1024 );
 	}
 
 	Json fail( std::string &&msg ) { return fail( std::move( msg ), Json() ); }
@@ -2164,36 +2180,36 @@ struct JsonParser final
 		}
 	}
 
-	/* encode_utf8(pt, out)
+	/* encode_utf8(pt)
 	 *
-	 * Encode pt as UTF-8 and add it to out.
+	 * Encode pt as UTF-8 and add it to the collect string.
 	 */
-	void encode_utf8( long pt, std::string &out )
+	void encode_utf8( long pt )
 	{
 		if ( pt < 0 )
 			return;
 
 		if ( pt < 0x80 )
 		{
-			out += static_cast<char>( pt );
+			collect.push_back( static_cast<char>( pt ) );
 		}
 		else if ( pt < 0x800 )
 		{
-			out += static_cast<char>( ( pt >> 6 ) | 0xC0 );
-			out += static_cast<char>( ( pt & 0x3F ) | 0x80 );
+			collect.push_back( static_cast<char>( ( pt >> 6 ) | 0xC0 ) );
+			collect.push_back( static_cast<char>( ( pt & 0x3F ) | 0x80 ) );
 		}
 		else if ( pt < 0x10000 )
 		{
-			out += static_cast<char>( ( pt >> 12 ) | 0xE0 );
-			out += static_cast<char>( ( ( pt >> 6 ) & 0x3F ) | 0x80 );
-			out += static_cast<char>( ( pt & 0x3F ) | 0x80 );
+			collect.push_back( static_cast<char>( ( pt >> 12 ) | 0xE0 ) );
+			collect.push_back( static_cast<char>( ( ( pt >> 6 ) & 0x3F ) | 0x80 ) );
+			collect.push_back( static_cast<char>( ( pt & 0x3F ) | 0x80 ) );
 		}
 		else
 		{
-			out += static_cast<char>( ( pt >> 18 ) | 0xF0 );
-			out += static_cast<char>( ( ( pt >> 12 ) & 0x3F ) | 0x80 );
-			out += static_cast<char>( ( ( pt >> 6 ) & 0x3F ) | 0x80 );
-			out += static_cast<char>( ( pt & 0x3F ) | 0x80 );
+			collect.push_back( static_cast<char>( ( pt >> 18 ) | 0xF0 ) );
+			collect.push_back( static_cast<char>( ( ( pt >> 12 ) & 0x3F ) | 0x80 ) );
+			collect.push_back( static_cast<char>( ( ( pt >> 6 ) & 0x3F ) | 0x80 ) );
+			collect.push_back( static_cast<char>( ( pt & 0x3F ) | 0x80 ) );
 		}
 	}
 
@@ -2201,16 +2217,16 @@ struct JsonParser final
 	 *
 	 * Parse a string, starting at the current position.
 	 */
-	void parse_string( std::string &output )
+	void parse_string()
 	{
-		output.clear();
+		collect.clear();
 		
 		// pre-compute size
 		size_t extra = 0;
 		for ( auto c = it; c != str.end() and *c != '"'; ++c )
 			++extra;
-		if ( output.capacity() < extra )
-			output.reserve( extra );
+		if ( collect.capacity() < extra )
+			collect.reserve( extra );
 		
 		long last_escaped_codepoint = -1;
 		for ( ;; )
@@ -2225,7 +2241,7 @@ struct JsonParser final
 
 			if ( ch == '"' )
 			{
-				encode_utf8( last_escaped_codepoint, output );
+				encode_utf8( last_escaped_codepoint );
 				return;
 			}
 
@@ -2238,9 +2254,9 @@ struct JsonParser final
 			// The usual case: non-escaped characters
 			if ( ch != '\\' )
 			{
-				encode_utf8( last_escaped_codepoint, output );
+				encode_utf8( last_escaped_codepoint );
 				last_escaped_codepoint = -1;
-				output += ch;
+				collect.push_back( ch );
 				continue;
 			}
 
@@ -2284,12 +2300,12 @@ struct JsonParser final
 				{
 					// Reassemble the two surrogate pairs into one astral-plane character, per
 					// the UTF-16 algorithm.
-					encode_utf8( ( ( ( last_escaped_codepoint - 0xD800 ) << 10 ) | ( codepoint - 0xDC00 ) ) + 0x10000, output );
+					encode_utf8( ( ( ( last_escaped_codepoint - 0xD800 ) << 10 ) | ( codepoint - 0xDC00 ) ) + 0x10000 );
 					last_escaped_codepoint = -1;
 				}
 				else
 				{
-					encode_utf8( last_escaped_codepoint, output );
+					encode_utf8( last_escaped_codepoint );
 					last_escaped_codepoint = codepoint;
 				}
 
@@ -2297,21 +2313,21 @@ struct JsonParser final
 				continue;
 			}
 
-			encode_utf8( last_escaped_codepoint, output );
+			encode_utf8( last_escaped_codepoint );
 			last_escaped_codepoint = -1;
 
 			if ( ch == 'b' )
-				output += '\b';
+				collect.push_back( '\b' );
 			else if ( ch == 'f' )
-				output += '\f';
+				collect.push_back( '\f' );
 			else if ( ch == 'n' )
-				output += '\n';
+				collect.push_back( '\n' );
 			else if ( ch == 'r' )
-				output += '\r';
+				collect.push_back( '\r' );
 			else if ( ch == 't' )
-				output += '\t';
+				collect.push_back( '\t' );
 			else if ( ch == '"' || ch == '\\' || ch == '/' )
-				output += ch;
+				collect.push_back( ch );
 			else
 			{
 				fail( "invalid escape character " + esc( ch ) );
@@ -2658,8 +2674,8 @@ struct JsonParser final
 
 		if ( ch == '"' )
 		{
-			parse_string( parse_string_result );
-			output = parse_string_result;
+			parse_string();
+			output = std::string( collect.begin(), collect.end() );
 			return;
 		}
 
@@ -2682,10 +2698,11 @@ struct JsonParser final
 					return;
 				}
 
-				std::string object_key;
-				parse_string( object_key );
+				parse_string();
 				if ( failed )
 					return;
+
+				std::string object_key( collect.begin(), collect.end() );
 
 				ch = get_next_token();
 				if ( ch != ':' )
