@@ -2788,12 +2788,16 @@ struct JsonParser final
 			object_data.storage().assign( collect_object_data.begin() + prevSize, collect_object_data.end() );
 			collect_object_data.resize( prevSize );
 			
-			auto cmp = []( const auto &lhs, const auto &rhs )
+			std::sort( object_data.storage().begin(), object_data.storage().end(),
+						[]( const auto &lhs, const auto &rhs )
 						{
 							return lhs.first < rhs.first;
-						};
-			std::sort( object_data.storage().begin(), object_data.storage().end(), cmp );
-		    auto last = std::unique( object_data.storage().begin(), object_data.storage().end(), cmp );
+						} );
+		    auto last = std::unique( object_data.storage().begin(), object_data.storage().end(),
+						[]( const auto &lhs, const auto &rhs )
+						{
+							return lhs.first == rhs.first;
+						} );
 		    object_data.storage().erase( last, object_data.storage().end() );
 			output = std::move(object_data);
 			return;

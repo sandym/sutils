@@ -48,11 +48,13 @@ struct json_tests
 	//	declare all test cases here...
 	void test_case_1();
 	void test_case_2();
+	void test_case_3();
 };
 
 REGISTER_TESTS( json_tests,
 			   TEST_CASE(json_tests,test_case_1),
-			   TEST_CASE(json_tests,test_case_2) );
+			   TEST_CASE(json_tests,test_case_2),
+			   TEST_CASE(json_tests,test_case_3) );
 
 // MARK: -
 // MARK:  === test cases ===
@@ -333,4 +335,30 @@ void json_tests::test_case_2()
 	TEST_ASSERT_EQUAL( stat.elementCount, 167170 );
 	TEST_ASSERT_EQUAL( stat.stringLength, 90 );
 	
+}
+
+void json_tests::test_case_3()
+{
+	std::string err;
+	Stat stat;
+	
+	const char *roundtrip10 = R"END({"a":null,"foo":"bar"})END";
+	
+	auto json = su::Json::parse( roundtrip10, err );
+	TEST_ASSERT( err.empty() );
+	stat = Stat();
+	getStat( json, stat );
+	TEST_ASSERT_EQUAL( stat.objectCount, 1 );
+	TEST_ASSERT_EQUAL( stat.arrayCount, 0 );
+	TEST_ASSERT_EQUAL( stat.numberCount, 0 );
+	TEST_ASSERT_EQUAL( stat.stringCount, 3 );
+	TEST_ASSERT_EQUAL( stat.trueCount, 0 );
+	TEST_ASSERT_EQUAL( stat.falseCount, 0 );
+	TEST_ASSERT_EQUAL( stat.nullCount, 1 );
+	TEST_ASSERT_EQUAL( stat.memberCount, 2 );
+	TEST_ASSERT_EQUAL( stat.elementCount, 0 );
+	TEST_ASSERT_EQUAL( stat.stringLength, 7 );
+	
+	auto s = json.dump();
+	TEST_ASSERT_EQUAL( s, roundtrip10 );
 }
