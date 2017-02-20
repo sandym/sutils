@@ -89,7 +89,8 @@ class Json final
 	// distinguish between integer and non-integer numbers - number_value() and int_value()
 	// can both be applied to a NUMBER-typed object.
 	double number_value() const;
-	int int_value() const;
+	int32_t int_value() const;
+	int64_t int64_value() const;
 	
 	// Return the enclosed value if this is a boolean, false otherwise.
 	bool bool_value() const;
@@ -103,7 +104,8 @@ class Json final
 	// Return the enclosed value as a double or 0
 	double to_number_value() const;
 	// Return the enclosed value as a int or 0
-	int to_int_value() const;
+	int32_t to_int_value() const;
+	int64_t to_int64_value() const;
 	// Return the enclosed value as a bool or false
 	bool to_bool_value() const;
 	// Return the enclosed value as a string or empty string

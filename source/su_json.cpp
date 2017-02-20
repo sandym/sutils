@@ -1627,25 +1627,43 @@ double Json::number_value() const
 				return _data.i32;
 			case kInt64:
 				return _data.i64;
-			default: assert( false ); break;
+			default: break;
 		}
 	}
 	return 0;
 }
 
-int Json::int_value() const
+int32_t Json::int_value() const
 {
 	if ( type() == Type::NUMBER )
 	{
 		switch ( numberType( _tag ) )
 		{
 			case kDouble:
-				return static_cast<int>(_data.d);
+				return static_cast<int32_t>(_data.d);
 			case kInt32:
 				return _data.i32;
 			case kInt64:
 				return _data.i64;
-			default: assert( false ); break;
+			default: break;
+		}
+	}
+	return 0;
+}
+
+int64_t Json::int64_value() const
+{
+	if ( type() == Type::NUMBER )
+	{
+		switch ( numberType( _tag ) )
+		{
+			case kDouble:
+				return static_cast<int64_t>(_data.d);
+			case kInt32:
+				return _data.i32;
+			case kInt64:
+				return _data.i64;
+			default: break;
 		}
 	}
 	return 0;
@@ -1701,7 +1719,7 @@ double Json::to_number_value() const
 	}
 	return 0;
 }
-int Json::to_int_value() const
+int32_t Json::to_int_value() const
 {
 	switch ( type() )
 	{
@@ -1713,6 +1731,28 @@ int Json::to_int_value() const
 			try
 			{
 				return std::stoi( string_value() );
+			}
+			catch ( ... )
+			{
+			}
+			break;
+		default:
+			break;
+	}
+	return 0;
+}
+int64_t Json::to_int64_value() const
+{
+	switch ( type() )
+	{
+		case Type::NUMBER:
+			return int64_value();
+		case Type::BOOL:
+			return bool_value() ? 0 : 1;
+		case Type::STRING:
+			try
+			{
+				return std::stoll( string_value() );
 			}
 			catch ( ... )
 			{
