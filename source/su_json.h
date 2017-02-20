@@ -176,21 +176,9 @@ class Json final
 		bool b;
 		details::JsonValue *p;
 	} _data;
-	static_assert( sizeof( Storage ) == 8, "" );
+	static_assert( sizeof( Storage ) == sizeof(uint64_t), "" );
 	Type _type{ Type::NUL };
 	uint8_t _tag{0};
-	
-	enum tag_t
-	{
-		kPtr = 0x80,
-		kDouble = 1,
-		kInt32 = 2,
-		kInt64 = 3,
-		
-		kNumberTypeMask = 0x03,
-	};
-	inline bool isPtr() const { return _tag&kPtr; }
-	inline int numberType() const { return _tag&kNumberTypeMask; }
 };
 }
 
