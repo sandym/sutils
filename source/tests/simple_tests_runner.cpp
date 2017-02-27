@@ -7,13 +7,13 @@
 
 namespace
 {
-std::vector<su::TestCaseAbstract *> *g_testCases;
+std::vector<su::TestSuiteAbstract *> *g_testSuites;
 }
 
 namespace su
 {
 
-SingleTest::SingleTest( const std::string &i_name, const func_t &i_test )
+TestCase::TestCase( const std::string &i_name, const func_t &i_test )
 	: _name( i_name ), _test( i_test )
 {
 	if ( _name.compare( 0, 6, "timed_" ) == 0 )
@@ -24,17 +24,17 @@ SingleTest::SingleTest( const std::string &i_name, const func_t &i_test )
 	std::replace( _name.begin(), _name.end(), '_', ' ' );
 }
 
-TestCaseAbstract::TestCaseAbstract( const std::string &i_name )
+TestSuiteAbstract::TestSuiteAbstract( const std::string &i_name )
 	: _name( i_name )
 {
 	std::replace( _name.begin(), _name.end(), '_', ' ' );
 }
 
-void addTestCase( TestCaseAbstract *i_tg )
+void addTestSuite( TestSuiteAbstract *i_tg )
 {
-	if ( g_testCases == nullptr )
-		g_testCases = new std::vector<su::TestCaseAbstract *>;
-	g_testCases->push_back( i_tg );
+	if ( g_testSuites == nullptr )
+		g_testSuites = new std::vector<su::TestSuiteAbstract *>;
+	g_testSuites->push_back( i_tg );
 }
 
 FailedTest::FailedTest( Type i_type, const char *i_file, int i_line, const std::string &i_text, const std::string &i_msg )
@@ -73,10 +73,10 @@ int main()
 {
 	int total = 0;
 	int failure = 0;
-	for ( auto testcase : *g_testCases )
+	for ( auto testSuite : *g_testSuites )
 	{
-		std::cout << "Test Case : " << testcase->name() << std::endl;
-		auto tests = testcase->getTests();
+		std::cout << "Test Case : " << testSuite->name() << std::endl;
+		auto tests = testSuite->getTests();
 		for ( auto test : tests )
 		{
 			++total;
@@ -116,7 +116,7 @@ int main()
 			std::cout << result << std::endl;
 			
 			//
-			// addResultToDB( testcase->name(), test.name(), result, duration );
+			// addResultToDB( testSuite->name(), test.name(), result, duration );
 		}
 	}
 	std::cout << "success: " << (total-failure) << "/" << total << std::endl;

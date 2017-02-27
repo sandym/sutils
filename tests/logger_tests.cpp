@@ -109,7 +109,7 @@ struct logger_tests
 	}
 };
 
-REGISTER_TESTS( logger_tests,
+REGISTER_TEST_SUITE( logger_tests,
 	TEST_CASE(logger_tests,test_case_1),
 	TEST_CASE(logger_tests,test_case_2),
 	TEST_CASE(logger_tests,test_case_3),

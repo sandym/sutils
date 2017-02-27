@@ -32,7 +32,7 @@ struct string_tests
 	void test_case_levenshteinDistance();
 };
 
-REGISTER_TESTS( string_tests,
+REGISTER_TEST_SUITE( string_tests,
 				TEST_CASE(string_tests,test_case_convert),
 				TEST_CASE(string_tests,test_case_upper_lower),
 				TEST_CASE(string_tests,test_case_trimSpaces),

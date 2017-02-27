@@ -124,6 +124,6 @@ this is text
 	}
 };
 
-REGISTER_TESTS( xml_tests, TEST_CASE(xml_tests,timed_test_case_1) );
+REGISTER_TEST_SUITE( xml_tests, TEST_CASE(xml_tests,timed_test_case_1) );
 
 #endif

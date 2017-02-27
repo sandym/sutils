@@ -38,4 +38,4 @@ struct teebuf_tests
 
 };
 
-REGISTER_TESTS( teebuf_tests, TEST_CASE(teebuf_tests,test_case_1) );
+REGISTER_TEST_SUITE( teebuf_tests, TEST_CASE(teebuf_tests,test_case_1) );

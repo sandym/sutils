@@ -51,7 +51,7 @@ struct json_tests
 	void timed_test_case_3();
 };
 
-REGISTER_TESTS( json_tests,
+REGISTER_TEST_SUITE( json_tests,
 			   TEST_CASE(json_tests,timed_test_case_1),
 			   TEST_CASE(json_tests,timed_test_case_2),
 			   TEST_CASE(json_tests,timed_test_case_3) );

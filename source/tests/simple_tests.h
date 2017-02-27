@@ -12,12 +12,12 @@
 namespace su
 {
 
-class SingleTest
+class TestCase
 {
 	public:
 		typedef std::function<void ()> func_t;
 		
-		SingleTest( const std::string &i_name, const func_t &i_test );
+		TestCase( const std::string &i_name, const func_t &i_test );
 	
 		//! run the test
 		inline void operator()() { _test(); }
@@ -31,38 +31,38 @@ class SingleTest
 		func_t _test;
 };
 
-class TestCaseAbstract
+class TestSuiteAbstract
 {
 	public:
-		TestCaseAbstract( const TestCaseAbstract & ) = delete;
-		TestCaseAbstract &operator=( const TestCaseAbstract & ) = delete;
-		virtual ~TestCaseAbstract() = default;
+		TestSuiteAbstract( const TestSuiteAbstract & ) = delete;
+		TestSuiteAbstract &operator=( const TestSuiteAbstract & ) = delete;
+		virtual ~TestSuiteAbstract() = default;
 		
 		inline const std::string &name() const { return _name; }
 		
-		virtual std::vector<SingleTest> getTests() = 0;
+		virtual std::vector<TestCase> getTests() = 0;
 		
 	protected:
-		TestCaseAbstract( const std::string &i_name );
+		TestSuiteAbstract( const std::string &i_name );
 		
 		std::string _name;
 };
 
-void addTestCase( TestCaseAbstract *i_tg );
-const std::vector<TestCaseAbstract *> &getTestSuite();
+void addTestSuite( TestSuiteAbstract *i_tg );
+const std::vector<TestSuiteAbstract *> &getTestSuite();
 
 template<class T>
-class TestCase : public TestCaseAbstract
+class TestSuite : public TestSuiteAbstract
 {
 public:
 	template<class ...ARGS>
-	TestCase( const std::string &i_name, ARGS... args )
-		: TestCaseAbstract( i_name )
+	TestSuite( const std::string &i_name, ARGS... args )
+		: TestSuiteAbstract( i_name )
 	{
 		registerTestCases( args... );
-		addTestCase( this );
+		addTestSuite( this );
 	}
-	~TestCase() = default;
+	~TestSuite() = default;
 	void registerTestCases( void (T::*i_method)(), const std::string &i_name )
 	{
 		_tests.push_back( TestCaseData{ i_method, i_name } );
@@ -75,9 +75,21 @@ public:
 		registerTestCases( args... );
 	}
 	
-	virtual std::vector<SingleTest> getTests()
+	template<typename FUNC>
+	void registerTestCases( const FUNC &i_dynamicRegistry )
 	{
-		std::vector<SingleTest> result;
+		_dynamicRegistry = i_dynamicRegistry;
+	}
+	
+	virtual std::vector<TestCase> getTests()
+	{
+		if ( _dynamicRegistry )
+		{
+			_dynamicRegistry( *this );
+			_dynamicRegistry = nullptr;
+		}
+		
+		std::vector<TestCase> result;
 		for ( auto it : _tests )
 		{
 			auto methodPtr = it.method;
@@ -91,6 +103,7 @@ public:
 	}
 	
 private:
+	std::function<void (TestSuite<T>&)> _dynamicRegistry;
 	struct TestCaseData { void (T::*method)(); std::string name; };
 	std::vector<TestCaseData> _tests;
 };
@@ -162,7 +175,7 @@ inline void Assert_not_equal( const char *i_file, int i_line, const std::string 
 
 }
 
-#define REGISTER_TESTS(T,...) su::TestCase<T> g_##T##_registration(#T,__VA_ARGS__)
+#define REGISTER_TEST_SUITE(T,...) su::TestSuite<T> g_##T##_registration(#T,__VA_ARGS__)
 #define TEST_CASE(C,N) &C::N,#N
 
 #define TEST_FAIL(...) su::Fail(__FILE__,__LINE__, __VA_ARGS__ )

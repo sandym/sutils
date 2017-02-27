@@ -30,7 +30,7 @@ struct string_format_tests
 	void test_case_format();
 };
 
-REGISTER_TESTS( string_format_tests,
+REGISTER_TEST_SUITE( string_format_tests,
 				TEST_CASE(string_format_tests,test_case_format) );
 
 // MARK: -

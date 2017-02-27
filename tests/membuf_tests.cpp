@@ -49,4 +49,4 @@ struct membuf_tests
 
 };
 
-REGISTER_TESTS( membuf_tests, TEST_CASE(membuf_tests,test_case_1) );
+REGISTER_TEST_SUITE( membuf_tests, TEST_CASE(membuf_tests,test_case_1) );

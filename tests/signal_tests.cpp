@@ -39,4 +39,4 @@ struct signal_tests
 
 };
 
-REGISTER_TESTS( signal_tests, TEST_CASE(signal_tests,test_case_1) );
+REGISTER_TEST_SUITE( signal_tests, TEST_CASE(signal_tests,test_case_1) );

@@ -29,7 +29,7 @@ struct endian_tests
 	void test_case_8bytes();
 };
 
-REGISTER_TESTS( endian_tests,
+REGISTER_TEST_SUITE( endian_tests,
 	TEST_CASE(endian_tests,test_case_1byte),
 	TEST_CASE(endian_tests,test_case_2bytes),
 	TEST_CASE(endian_tests,test_case_4bytes),

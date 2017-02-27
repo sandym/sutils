@@ -42,6 +42,6 @@ struct thread_debug_tests
 	}
 };
 
-REGISTER_TESTS( thread_debug_tests,
+REGISTER_TEST_SUITE( thread_debug_tests,
 	TEST_CASE(thread_debug_tests,test_case_inMainThread),
 	TEST_CASE(thread_debug_tests,test_case_not_inMainThread) );

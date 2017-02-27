@@ -47,7 +47,7 @@ struct jobdispatcher_tests
 		bool _needIdleTime;
 };
 
-REGISTER_TESTS( jobdispatcher_tests,
+REGISTER_TEST_SUITE( jobdispatcher_tests,
 			   TEST_CASE(jobdispatcher_tests,test_case_async_completion),
 			   TEST_CASE(jobdispatcher_tests,test_case_no_async_completion),
 			   TEST_CASE(jobdispatcher_tests,test_case_cancel_1),
