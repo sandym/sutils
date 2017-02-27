@@ -17,17 +17,17 @@ class SingleTest
 	public:
 		typedef std::function<void ()> func_t;
 		
-		SingleTest( const std::string &i_name, const func_t &i_test )
-			: _name( i_name ), _test( i_test ){}
+		SingleTest( const std::string &i_name, const func_t &i_test );
 	
 		//! run the test
 		inline void operator()() { _test(); }
 		
 		inline const std::string &name() const { return _name; }
-		inline bool isTest() const { return _name.find( "test_" ) == 0; }
-		
+		inline bool timed() const { return _timed; }
+	
 	private:
 		std::string _name;
+		bool _timed = false;
 		func_t _test;
 };
 
@@ -43,7 +43,7 @@ class TestCaseAbstract
 		virtual std::vector<SingleTest> getTests() = 0;
 		
 	protected:
-		TestCaseAbstract( const std::string &i_name ) : _name( i_name ){}
+		TestCaseAbstract( const std::string &i_name );
 		
 		std::string _name;
 };

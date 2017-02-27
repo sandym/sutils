@@ -1548,13 +1548,9 @@ Json &Json::operator=( const Json &rhs ) noexcept
 }
 Json::Json( Json &&rhs ) noexcept
 {
-	_type = rhs._type;
-	_tag = rhs._tag;
-	_data.all = rhs._data.all;
-
-	rhs._type = Type::NUL;
-	rhs._tag = 0;
-	rhs._data.all = 0;
+	_type = std::exchange( rhs._type, Type::NUL );
+	_tag = std::exchange( rhs._tag, 0 );
+	_data.all = std::exchange( rhs._data.all, 0 );
 }
 Json &Json::operator=( Json &&rhs ) noexcept
 {

@@ -17,7 +17,7 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "simple_tester.h"
+#include "tests/simple_tests.h"
 #include "su_saxparser.h"
 #ifndef SU_NO_EXPAT
 
@@ -93,7 +93,7 @@ class MyParser : public su::saxparser
 
 struct xml_tests
 {
-	void test_case_1()
+	void timed_test_case_1()
 	{
 		const char *xmlPtr = R"(<?xml version="1.0" encoding="UTF-8"?>
 <instructionals module="Qt">
@@ -124,6 +124,6 @@ this is text
 	}
 };
 
-REGISTER_TESTS( xml_tests, TEST_CASE(xml_tests,test_case_1) );
+REGISTER_TESTS( xml_tests, TEST_CASE(xml_tests,timed_test_case_1) );
 
 #endif

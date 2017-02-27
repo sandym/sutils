@@ -1,7 +1,8 @@
 
-#include "simple_tester.h"
+#include "tests/simple_tests.h"
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #include <chrono>
 
 namespace
@@ -11,6 +12,23 @@ std::vector<su::TestCaseAbstract *> *g_testCases;
 
 namespace su
 {
+
+SingleTest::SingleTest( const std::string &i_name, const func_t &i_test )
+	: _name( i_name ), _test( i_test )
+{
+	if ( _name.compare( 0, 6, "timed_" ) == 0 )
+	{
+		_name.erase( 0, 6 );
+		_timed = true;
+	}
+	std::replace( _name.begin(), _name.end(), '_', ' ' );
+}
+
+TestCaseAbstract::TestCaseAbstract( const std::string &i_name )
+	: _name( i_name )
+{
+	std::replace( _name.begin(), _name.end(), '_', ' ' );
+}
 
 void addTestCase( TestCaseAbstract *i_tg )
 {
@@ -53,12 +71,16 @@ const char *FailedTest::what() const noexcept
 
 int main()
 {
+	int total = 0;
+	int failure = 0;
 	for ( auto testcase : *g_testCases )
 	{
 		std::cout << "Test Case : " << testcase->name() << std::endl;
 		auto tests = testcase->getTests();
 		for ( auto test : tests )
 		{
+			++total;
+			
 			std::cout << "  " << test.name() << " : ";
 			std::cout.flush();
 			
@@ -70,21 +92,26 @@ int main()
 				test();
 				auto end_time = std::chrono::high_resolution_clock::now();
 				duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
-				std::cout << "OK (" << duration << ")";
+				std::cout << "OK";
+				if ( test.timed() )
+					std::cout << " (" << duration << "ns)";
 			}
 			catch ( su::FailedTest &ex )
 			{
 				result = "TEST FAIL - ";
 				result += ex.what();
+				++failure;
 			}
 			catch ( std::exception &ex )
 			{
 				result = "EXCEPTION CAUGHT - ";
 				result += ex.what();
+				++failure;
 			}
 			catch ( ... )
 			{
 				result = "UNKNOWN EXCEPTION CAUGHT";
+				++failure;
 			}
 			std::cout << result << std::endl;
 			
@@ -92,5 +119,8 @@ int main()
 			// addResultToDB( testcase->name(), test.name(), result, duration );
 		}
 	}
+	std::cout << "success: " << (total-failure) << "/" << total << std::endl;
+	if ( failure == 0 )
+		std::cout << "All good!" << std::endl;
 	std::cout << std::endl;
 }
