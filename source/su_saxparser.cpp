@@ -12,7 +12,7 @@
 
 #include "su_saxparser.h"
 
-#ifndef SU_NO_EXPAT
+#ifdef HAS_EXPAT
 #include <expat.h>
 #include <cstring>
 #include <iostream>

@@ -48,9 +48,16 @@ add_definitions( -DGIT_REVISION=${GIT_REVISION} )
 find_library( EXPAT_LIBRARY expat )
 if(EXPAT_LIBRARY)
 	target_link_libraries( sutils_tests ${EXPAT_LIBRARY} )
-else()
-	add_definitions( -DSU_NO_EXPAT )
+	add_definitions( -DHAS_EXPAT )
 endif()
+
+find_library( SQLITE3_LIBRARY sqlite3 )
+if(SQLITE3_LIBRARY)
+	target_link_libraries( sutils_tests ${SQLITE3_LIBRARY} )
+	add_definitions( -DHAS_SQLITE3 )
+endif()
+
+
 
 find_package( Threads )
 target_link_libraries( sutils_tests ${CMAKE_THREAD_LIBS_INIT} )
