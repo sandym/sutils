@@ -29,9 +29,12 @@
 using namespace su;
 using std::string;
 
+// MSVC does not like those big strings
+#if !UPLATFORM_WIN
 #include "data/twitter.json"
 #include "data/citm_catalog.json"
 #include "data/canada.json"
+#endif
 
 // Check that Json has the properties we want.
 #define CHECK_TRAIT(x) static_assert(std::x::value, #x)
@@ -286,7 +289,8 @@ void json_tests::test_case_2()
 {
 	std::string err;
 	Stat stat;
-	
+
+#if !UPLATFORM_WIN
 	auto json = su::Json::parse( kTwitter, err );
 	TEST_ASSERT( err.empty() );
 	getStat( json, stat );
@@ -332,5 +336,5 @@ void json_tests::test_case_2()
 	TEST_ASSERT_EQUAL( stat.memberCount, 8 );
 	TEST_ASSERT_EQUAL( stat.elementCount, 167170 );
 	TEST_ASSERT_EQUAL( stat.stringLength, 90 );
-	
+#endif
 }
