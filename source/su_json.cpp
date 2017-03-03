@@ -1445,6 +1445,36 @@ void dump( const std::string &value, std::string &out )
 	out.append( 1, '"' );
 }
 
+enum tag_t
+{
+	kPtr = 0x80,
+	kDouble = 1,
+	kInt32 = 2,
+	kInt64 = 3,
+	
+	kNumberTypeMask = 0x03,
+};
+inline bool isPtr( uint8_t tag ) { return tag&kPtr; }
+inline int numberType( uint8_t tag ) { return tag&kNumberTypeMask; }
+
+template<typename T,int SIZE=sizeof(T)>
+struct num_traits
+{
+};
+
+template<typename T>
+struct num_traits<T,4>
+{
+	enum { json_type = kInt32 };
+	inline static int32_t convert( T v ) { return static_cast<int32_t>( v ); }
+};
+template<typename T>
+struct num_traits<T,8>
+{
+	enum { json_type = kInt64 };
+	inline static int64_t convert( T v ) { return static_cast<int64_t>( v ); }
+};
+
 }
 
 namespace su
@@ -1489,7 +1519,7 @@ struct JsonObject : JsonValue
 
 Json::~Json()
 {
-	if ( isPtr() )
+	if ( isPtr( _tag ) )
 		_data.p->dec();
 }
 
@@ -1498,7 +1528,7 @@ Json::Json( const Json &rhs ) noexcept
 	_type = rhs._type;
 	_tag = rhs._tag;
 	_data.all = rhs._data.all;
-	if ( isPtr() )
+	if ( isPtr( _tag ) )
 		_data.p->inc();
 }
 
@@ -1506,9 +1536,9 @@ Json &Json::operator=( const Json &rhs ) noexcept
 {
 	if ( this != &rhs )
 	{
-		if ( rhs.isPtr() )
+		if ( isPtr( rhs._tag ) )
 			rhs._data.p->inc();
-		if ( isPtr() )
+		if ( isPtr( _tag ) )
 			_data.p->dec();
 		_type = rhs._type;
 		_tag = rhs._tag;
@@ -1518,13 +1548,9 @@ Json &Json::operator=( const Json &rhs ) noexcept
 }
 Json::Json( Json &&rhs ) noexcept
 {
-	_type = rhs._type;
-	_tag = rhs._tag;
-	_data.all = rhs._data.all;
-
-	rhs._type = Type::NUL;
-	rhs._tag = 0;
-	rhs._data.all = 0;
+	_type = std::exchange( rhs._type, Type::NUL );
+	_tag = std::exchange( rhs._tag, 0 );
+	_data.all = std::exchange( rhs._data.all, 0 );
 }
 Json &Json::operator=( Json &&rhs ) noexcept
 {
@@ -1547,17 +1573,17 @@ Json &Json::operator=( Json &&rhs ) noexcept
  */
 Json::Json( double value ) : _data( value ), _type( Type::NUMBER ), _tag( kDouble )
 {}
-Json::Json( int value ) : _data( value ), _type( Type::NUMBER ), _tag( kInt )
+Json::Json( int value ) : _data( num_traits<int>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<int>::json_type )
 {}
-Json::Json( unsigned int value ) : _data( value ), _type( Type::NUMBER ), _tag( kUnsignedInt )
+Json::Json( unsigned int value ) : _data( num_traits<unsigned int>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned int>::json_type )
 {}
-Json::Json( long value ) : _data( value ), _type( Type::NUMBER ), _tag( kLong )
+Json::Json( long value ) : _data( num_traits<long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<long>::json_type )
 {}
-Json::Json( unsigned long value ) : _data( value ), _type( Type::NUMBER ), _tag( kUnsignedLong )
+Json::Json( unsigned long value ) : _data( num_traits<unsigned long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned long>::json_type )
 {}
-Json::Json( long long value ) : _data( value ), _type( Type::NUMBER ), _tag( kLongLong )
+Json::Json( long long value ) : _data( num_traits<long long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<long long>::json_type )
 {}
-Json::Json( unsigned long long value ) : _data( value ), _type( Type::NUMBER ), _tag( kUnsignedLongLong )
+Json::Json( unsigned long long value ) : _data( num_traits<unsigned long long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned long long>::json_type )
 {}
 Json::Json( bool value ) : _data( value ), _type( Type::BOOL )
 {}
@@ -1578,7 +1604,7 @@ Json::Json( Json::object &&values ) : _data( new details::JsonObject( std::move(
 
 void Json::clear()
 {
-	if ( isPtr() )
+	if ( isPtr( _tag ) )
 		_data.p->dec();
 	_type = Type::NUL;
 	_tag = 0;
@@ -1589,47 +1615,51 @@ double Json::number_value() const
 {
 	if ( type() == Type::NUMBER )
 	{
-		switch ( numberType() )
+		switch ( numberType( _tag ) )
 		{
 			case kDouble:
 				return _data.d;
-			case kInt:
-				return _data.i;
-			case kUnsignedInt:
-				return _data.ui;
-			case kLong:
-				return _data.l;
-			case kUnsignedLong:
-				return _data.ul;
-			case kLongLong:
-				return _data.ll;
-			case kUnsignedLongLong:
-				return _data.ull;
+			case kInt32:
+				return _data.i32;
+			case kInt64:
+				return _data.i64;
+			default: break;
 		}
 	}
 	return 0;
 }
 
-int Json::int_value() const
+int32_t Json::int_value() const
 {
 	if ( type() == Type::NUMBER )
 	{
-		switch ( numberType() )
+		switch ( numberType( _tag ) )
 		{
 			case kDouble:
-				return static_cast<int>(_data.d);
-			case kInt:
-				return _data.i;
-			case kUnsignedInt:
-				return _data.ui;
-			case kLong:
-				return static_cast<int>(_data.l);
-			case kUnsignedLong:
-				return static_cast<int>(_data.ul);
-			case kLongLong:
-				return static_cast<int>(_data.ll);
-			case kUnsignedLongLong:
-				return static_cast<int>(_data.ull);
+				return static_cast<int32_t>(_data.d);
+			case kInt32:
+				return _data.i32;
+			case kInt64:
+				return _data.i64;
+			default: break;
+		}
+	}
+	return 0;
+}
+
+int64_t Json::int64_value() const
+{
+	if ( type() == Type::NUMBER )
+	{
+		switch ( numberType( _tag ) )
+		{
+			case kDouble:
+				return static_cast<int64_t>(_data.d);
+			case kInt32:
+				return _data.i32;
+			case kInt64:
+				return _data.i64;
+			default: break;
 		}
 	}
 	return 0;
@@ -1685,7 +1715,7 @@ double Json::to_number_value() const
 	}
 	return 0;
 }
-int Json::to_int_value() const
+int32_t Json::to_int_value() const
 {
 	switch ( type() )
 	{
@@ -1697,6 +1727,28 @@ int Json::to_int_value() const
 			try
 			{
 				return std::stoi( string_value() );
+			}
+			catch ( ... )
+			{
+			}
+			break;
+		default:
+			break;
+	}
+	return 0;
+}
+int64_t Json::to_int64_value() const
+{
+	switch ( type() )
+	{
+		case Type::NUMBER:
+			return int64_value();
+		case Type::BOOL:
+			return bool_value() ? 0 : 1;
+		case Type::STRING:
+			try
+			{
+				return std::stoll( string_value() );
 			}
 			catch ( ... )
 			{
@@ -1728,22 +1780,15 @@ std::string Json::to_string_value() const
 	switch ( type() )
 	{
 		case Type::NUMBER:
-			switch ( numberType() )
+			switch ( numberType( _tag ) )
 			{
 				case kDouble:
 					return std::to_string( _data.d );
-				case kInt:
-					return std::to_string( _data.i );
-				case kUnsignedInt:
-					return std::to_string( _data.ui );
-				case kLong:
-					return std::to_string( _data.l );
-				case kUnsignedLong:
-					return std::to_string( _data.ul );
-				case kLongLong:
-					return std::to_string( _data.ll );
-				case kUnsignedLongLong:
-					return std::to_string( _data.ull );
+				case kInt32:
+					return std::to_string( _data.i32 );
+				case kInt64:
+					return std::to_string( _data.i64 );
+				default: assert( false ); break;
 			}
 			break;
 		case Type::BOOL:
@@ -1796,7 +1841,7 @@ void Json::dump( std::string &output ) const
 				output.append( "false", 5 );
 			break;
 		case Type::NUMBER:
-			switch ( numberType() )
+			switch ( numberType( _tag ) )
 			{
 				case kDouble:
 					if ( std::isfinite( _data.d ) )
@@ -1804,26 +1849,13 @@ void Json::dump( std::string &output ) const
 					else
 						output.append( "null", 4 );
 					break;
-				case kInt:
-					output.append( buf, numtoa( _data.i, buf ) - buf );
+				case kInt32:
+					output.append( buf, numtoa( _data.i32, buf ) - buf );
 					break;
-				case kUnsignedInt:
-					output.append( buf, numtoa( _data.ui, buf ) - buf );
+				case kInt64:
+					output.append( buf, numtoa( _data.i64, buf ) - buf );
 					break;
-				case kLong:
-					output.append( buf, numtoa( _data.l, buf ) - buf );
-					break;
-				case kUnsignedLong:
-					output.append( buf, numtoa( _data.ul, buf ) - buf );
-					break;
-				case kLongLong:
-					output.append( buf, numtoa( _data.ll, buf ) - buf );
-					break;
-				case kUnsignedLongLong:
-					output.append( buf, numtoa( _data.ull, buf ) - buf );
-					break;
-				default:
-					break;
+				default: assert( false ); break;
 			}
 			break;
 		case Type::STRING:
@@ -1875,101 +1907,36 @@ bool Json::operator==( const Json &rhs ) const
 			case Type::NUL:
 				return true;
 			case Type::NUMBER:
-				switch ( numberType() )
+				switch ( numberType( _tag ) )
 				{
 					case kDouble:
-						switch ( rhs.numberType() )
+						switch ( numberType( rhs._tag ) )
 						{
 							case kDouble: return _data.d == rhs._data.d;
-							case kInt: return _data.d == rhs._data.i;
-							case kUnsignedInt: return _data.d == rhs._data.ui;
-							case kLong: return _data.d == rhs._data.l;
-							case kUnsignedLong: return _data.d == rhs._data.ul;
-							case kLongLong: return _data.d == rhs._data.ll;
-							case kUnsignedLongLong: return _data.d == rhs._data.ull;
+							case kInt32: return _data.d == rhs._data.i32;
+							case kInt64: return _data.d == rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kInt:
-						switch ( rhs.numberType() )
+					case kInt32:
+						switch ( numberType( rhs._tag ) )
 						{
-							case kDouble: return _data.i == rhs._data.d;
-							case kInt: return _data.i == rhs._data.i;
-							case kUnsignedInt: return _data.i == rhs._data.ui;
-							case kLong: return _data.i == rhs._data.l;
-							case kUnsignedLong: return _data.i == rhs._data.ul;
-							case kLongLong: return _data.i == rhs._data.ll;
-							case kUnsignedLongLong: return _data.i == rhs._data.ull;
+							case kDouble: return _data.i32 == rhs._data.d;
+							case kInt32: return _data.i32 == rhs._data.i32;
+							case kInt64: return _data.i32 == rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kUnsignedInt:
-						switch ( rhs.numberType() )
+					case kInt64:
+						switch ( numberType( rhs._tag ) )
 						{
-							case kDouble: return _data.ui == rhs._data.d;
-							case kInt: return _data.ui == rhs._data.i;
-							case kUnsignedInt: return _data.ui == rhs._data.ui;
-							case kLong: return _data.ui == rhs._data.l;
-							case kUnsignedLong: return _data.ui == rhs._data.ul;
-							case kLongLong: return _data.ui == rhs._data.ll;
-							case kUnsignedLongLong: return _data.ui == rhs._data.ull;
+							case kDouble: return _data.i64 == rhs._data.d;
+							case kInt32: return _data.i64 == rhs._data.i32;
+							case kInt64: return _data.i64 == rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.l == rhs._data.d;
-							case kInt: return _data.l == rhs._data.i;
-							case kUnsignedInt: return _data.l == rhs._data.ui;
-							case kLong: return _data.l == rhs._data.l;
-							case kUnsignedLong: return _data.l == rhs._data.ul;
-							case kLongLong: return _data.l == rhs._data.ll;
-							case kUnsignedLongLong: return _data.l == rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kUnsignedLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ul == rhs._data.d;
-							case kInt: return _data.ul == rhs._data.i;
-							case kUnsignedInt: return _data.ul == rhs._data.ui;
-							case kLong: return _data.ul == rhs._data.l;
-							case kUnsignedLong: return _data.ul == rhs._data.ul;
-							case kLongLong: return _data.ul == rhs._data.ll;
-							case kUnsignedLongLong: return _data.ul == rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kLongLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ll == rhs._data.d;
-							case kInt: return _data.ll == rhs._data.i;
-							case kUnsignedInt: return _data.ll == rhs._data.ui;
-							case kLong: return _data.ll == rhs._data.l;
-							case kUnsignedLong: return _data.ll == rhs._data.ul;
-							case kLongLong: return _data.ll == rhs._data.ll;
-							case kUnsignedLongLong: return _data.ll == rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kUnsignedLongLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ull == rhs._data.d;
-							case kInt: return _data.ull == rhs._data.i;
-							case kUnsignedInt: return _data.ull == rhs._data.ui;
-							case kLong: return _data.ull == rhs._data.l;
-							case kUnsignedLong: return _data.ull == rhs._data.ul;
-							case kLongLong: return _data.ull == rhs._data.ll;
-							case kUnsignedLongLong: return _data.ull == rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					default:
-						break;
+					default: assert( false ); break;
 				}
 				break;
 			case Type::BOOL:
@@ -1994,101 +1961,36 @@ bool Json::operator<( const Json &rhs ) const
 			case Type::NUL:
 				return true;
 			case Type::NUMBER:
-				switch ( numberType() )
+				switch ( numberType( _tag ) )
 				{
 					case kDouble:
-						switch ( rhs.numberType() )
+						switch ( numberType( rhs._tag ) )
 						{
 							case kDouble: return _data.d < rhs._data.d;
-							case kInt: return _data.d < rhs._data.i;
-							case kUnsignedInt: return _data.d < rhs._data.ui;
-							case kLong: return _data.d < rhs._data.l;
-							case kUnsignedLong: return _data.d < rhs._data.ul;
-							case kLongLong: return _data.d < rhs._data.ll;
-							case kUnsignedLongLong: return _data.d < rhs._data.ull;
+							case kInt32: return _data.d < rhs._data.i32;
+							case kInt64: return _data.d < rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kInt:
-						switch ( rhs.numberType() )
+					case kInt32:
+						switch ( numberType( rhs._tag ) )
 						{
-							case kDouble: return _data.i < rhs._data.d;
-							case kInt: return _data.i < rhs._data.i;
-							case kUnsignedInt: return _data.i < rhs._data.ui;
-							case kLong: return _data.i < rhs._data.l;
-							case kUnsignedLong: return _data.i < rhs._data.ul;
-							case kLongLong: return _data.i < rhs._data.ll;
-							case kUnsignedLongLong: return _data.i < rhs._data.ull;
+							case kDouble: return _data.i32 < rhs._data.d;
+							case kInt32: return _data.i32 < rhs._data.i32;
+							case kInt64: return _data.i32 < rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kUnsignedInt:
-						switch ( rhs.numberType() )
+					case kInt64:
+						switch ( numberType( rhs._tag ) )
 						{
-							case kDouble: return _data.ui < rhs._data.d;
-							case kInt: return _data.ui < rhs._data.i;
-							case kUnsignedInt: return _data.ui < rhs._data.ui;
-							case kLong: return _data.ui < rhs._data.l;
-							case kUnsignedLong: return _data.ui < rhs._data.ul;
-							case kLongLong: return _data.ui < rhs._data.ll;
-							case kUnsignedLongLong: return _data.ui < rhs._data.ull;
+							case kDouble: return _data.i64 < rhs._data.d;
+							case kInt32: return _data.i64 < rhs._data.i32;
+							case kInt64: return _data.i64 < rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.l < rhs._data.d;
-							case kInt: return _data.l < rhs._data.i;
-							case kUnsignedInt: return _data.l < rhs._data.ui;
-							case kLong: return _data.l < rhs._data.l;
-							case kUnsignedLong: return _data.l < rhs._data.ul;
-							case kLongLong: return _data.l < rhs._data.ll;
-							case kUnsignedLongLong: return _data.l < rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kUnsignedLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ul < rhs._data.d;
-							case kInt: return _data.ul < rhs._data.i;
-							case kUnsignedInt: return _data.ul < rhs._data.ui;
-							case kLong: return _data.ul < rhs._data.l;
-							case kUnsignedLong: return _data.ul < rhs._data.ul;
-							case kLongLong: return _data.ul < rhs._data.ll;
-							case kUnsignedLongLong: return _data.ul < rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kLongLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ll < rhs._data.d;
-							case kInt: return _data.ll < rhs._data.i;
-							case kUnsignedInt: return _data.ll < rhs._data.ui;
-							case kLong: return _data.ll < rhs._data.l;
-							case kUnsignedLong: return _data.ll < rhs._data.ul;
-							case kLongLong: return _data.ll < rhs._data.ll;
-							case kUnsignedLongLong: return _data.ll < rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					case kUnsignedLongLong:
-						switch ( rhs.numberType() )
-						{
-							case kDouble: return _data.ull < rhs._data.d;
-							case kInt: return _data.ull < rhs._data.i;
-							case kUnsignedInt: return _data.ull < rhs._data.ui;
-							case kLong: return _data.ull < rhs._data.l;
-							case kUnsignedLong: return _data.ull < rhs._data.ul;
-							case kLongLong: return _data.ull < rhs._data.ll;
-							case kUnsignedLongLong: return _data.ull < rhs._data.ull;
-							default: assert( false ); break;
-						}
-						break;
-					default:
-						break;
+					default: assert( false ); break;
 				}
 				break;
 			case Type::BOOL:
@@ -2159,54 +2061,74 @@ struct JsonParser final
 	std::string &err;
 	JsonParse strategy;
 	
-	std::string parse_string_result;
-
 	struct InlineString
 	{
-		char inlineStorage[256];
-		char *buffer;
-		size_t capacity = 256;
-		char *end;
+		char inlineStorage[1024];
+		char *_buffer;
+		size_t _capacity = 1024;
+		char *_end;
 		inline InlineString()
 		{
-			buffer = inlineStorage;
-			end = buffer;
+			_buffer = inlineStorage;
+			_end = _buffer;
 		}
 		~InlineString()
 		{
-			if ( buffer != inlineStorage )
-				delete [] buffer;
+			if ( _buffer != inlineStorage )
+				delete [] _buffer;
 		}
 		inline void push_back( char c )
 		{
 			auto s = size();
-			if ( s >= (capacity-2) )
+			if ( s >= (_capacity-2) )
 			{
 				// need to grow
-				capacity *= 2;
-				auto newBuffer = new char[capacity];
-				memcpy( newBuffer, buffer, s );
-				if ( buffer != inlineStorage )
-					delete [] buffer;
-				buffer = newBuffer;
-				end = buffer + s;
+				_capacity *= 2;
+				auto newBuffer = new char[_capacity];
+				memcpy( newBuffer, _buffer, s );
+				if ( _buffer != inlineStorage )
+					delete [] _buffer;
+				_buffer = newBuffer;
+				_end = _buffer + s;
 			}
-			*end = c;
-			++end;
+			*_end = c;
+			++_end;
 		}
-		inline size_t size() const { return end - buffer; }
-		inline const char *c_str() const { *end = 0; return buffer; }
+		inline size_t size() const { return _end - _buffer; }
+		inline const char *c_str() const { *_end = 0; return _buffer; }
+
+		inline const char *begin() const { return _buffer; }
+		inline const char *end() const { return _end; }
 		
-		void clear() { end = buffer; }
+		void clear() { _end = _buffer; }
+		
+		size_t capacity() const { return _capacity; }
+		void reserve( size_t l )
+		{
+			if ( l > _capacity )
+			{
+				auto s = size();
+				_capacity = std::max( l, _capacity * 2 );
+				auto newBuffer = new char[_capacity];
+				memcpy( newBuffer, _buffer, s );
+				if ( _buffer != inlineStorage )
+					delete [] _buffer;
+				_buffer = newBuffer;
+				_end = _buffer + s;
+			}
+		}
 	};
 	
-	InlineString collect;
+	InlineString collect_string;
+	std::vector<Json> collect_array_data;
+	std::vector<std::pair<std::string,Json>> collect_object_data;
 
 	JsonParser( const su::string_view &i_in, std::string &i_err, JsonParse i_strategy )
 		: str( i_in ), err( i_err ), strategy( i_strategy )
 	{
 		it = str.begin();
-		parse_string_result.reserve( 1024 );
+		collect_array_data.reserve( 64 );
+		collect_object_data.reserve( 64 );
 	}
 
 	Json fail( std::string &&msg ) { return fail( std::move( msg ), Json() ); }
@@ -2310,36 +2232,36 @@ struct JsonParser final
 		}
 	}
 
-	/* encode_utf8(pt, out)
+	/* encode_utf8(pt)
 	 *
-	 * Encode pt as UTF-8 and add it to out.
+	 * Encode pt as UTF-8 and add it to the collect string.
 	 */
-	void encode_utf8( long pt, std::string &out )
+	void encode_utf8( long pt )
 	{
 		if ( pt < 0 )
 			return;
 
 		if ( pt < 0x80 )
 		{
-			out += static_cast<char>( pt );
+			collect_string.push_back( static_cast<char>( pt ) );
 		}
 		else if ( pt < 0x800 )
 		{
-			out += static_cast<char>( ( pt >> 6 ) | 0xC0 );
-			out += static_cast<char>( ( pt & 0x3F ) | 0x80 );
+			collect_string.push_back( static_cast<char>( ( pt >> 6 ) | 0xC0 ) );
+			collect_string.push_back( static_cast<char>( ( pt & 0x3F ) | 0x80 ) );
 		}
 		else if ( pt < 0x10000 )
 		{
-			out += static_cast<char>( ( pt >> 12 ) | 0xE0 );
-			out += static_cast<char>( ( ( pt >> 6 ) & 0x3F ) | 0x80 );
-			out += static_cast<char>( ( pt & 0x3F ) | 0x80 );
+			collect_string.push_back( static_cast<char>( ( pt >> 12 ) | 0xE0 ) );
+			collect_string.push_back( static_cast<char>( ( ( pt >> 6 ) & 0x3F ) | 0x80 ) );
+			collect_string.push_back( static_cast<char>( ( pt & 0x3F ) | 0x80 ) );
 		}
 		else
 		{
-			out += static_cast<char>( ( pt >> 18 ) | 0xF0 );
-			out += static_cast<char>( ( ( pt >> 12 ) & 0x3F ) | 0x80 );
-			out += static_cast<char>( ( ( pt >> 6 ) & 0x3F ) | 0x80 );
-			out += static_cast<char>( ( pt & 0x3F ) | 0x80 );
+			collect_string.push_back( static_cast<char>( ( pt >> 18 ) | 0xF0 ) );
+			collect_string.push_back( static_cast<char>( ( ( pt >> 12 ) & 0x3F ) | 0x80 ) );
+			collect_string.push_back( static_cast<char>( ( ( pt >> 6 ) & 0x3F ) | 0x80 ) );
+			collect_string.push_back( static_cast<char>( ( pt & 0x3F ) | 0x80 ) );
 		}
 	}
 
@@ -2347,16 +2269,16 @@ struct JsonParser final
 	 *
 	 * Parse a string, starting at the current position.
 	 */
-	void parse_string( std::string &output )
+	void parse_string()
 	{
-		output.clear();
+		collect_string.clear();
 		
 		// pre-compute size
 		size_t extra = 0;
 		for ( auto c = it; c != str.end() and *c != '"'; ++c )
 			++extra;
-		if ( output.capacity() < extra )
-			output.reserve( extra );
+		if ( collect_string.capacity() < extra )
+			collect_string.reserve( extra );
 		
 		long last_escaped_codepoint = -1;
 		for ( ;; )
@@ -2371,7 +2293,7 @@ struct JsonParser final
 
 			if ( ch == '"' )
 			{
-				encode_utf8( last_escaped_codepoint, output );
+				encode_utf8( last_escaped_codepoint );
 				return;
 			}
 
@@ -2384,9 +2306,9 @@ struct JsonParser final
 			// The usual case: non-escaped characters
 			if ( ch != '\\' )
 			{
-				encode_utf8( last_escaped_codepoint, output );
+				encode_utf8( last_escaped_codepoint );
 				last_escaped_codepoint = -1;
-				output += ch;
+				collect_string.push_back( ch );
 				continue;
 			}
 
@@ -2430,12 +2352,12 @@ struct JsonParser final
 				{
 					// Reassemble the two surrogate pairs into one astral-plane character, per
 					// the UTF-16 algorithm.
-					encode_utf8( ( ( ( last_escaped_codepoint - 0xD800 ) << 10 ) | ( codepoint - 0xDC00 ) ) + 0x10000, output );
+					encode_utf8( ( ( ( last_escaped_codepoint - 0xD800 ) << 10 ) | ( codepoint - 0xDC00 ) ) + 0x10000 );
 					last_escaped_codepoint = -1;
 				}
 				else
 				{
-					encode_utf8( last_escaped_codepoint, output );
+					encode_utf8( last_escaped_codepoint );
 					last_escaped_codepoint = codepoint;
 				}
 
@@ -2443,21 +2365,21 @@ struct JsonParser final
 				continue;
 			}
 
-			encode_utf8( last_escaped_codepoint, output );
+			encode_utf8( last_escaped_codepoint );
 			last_escaped_codepoint = -1;
 
 			if ( ch == 'b' )
-				output += '\b';
+				collect_string.push_back( '\b' );
 			else if ( ch == 'f' )
-				output += '\f';
+				collect_string.push_back( '\f' );
 			else if ( ch == 'n' )
-				output += '\n';
+				collect_string.push_back( '\n' );
 			else if ( ch == 'r' )
-				output += '\r';
+				collect_string.push_back( '\r' );
 			else if ( ch == 't' )
-				output += '\t';
+				collect_string.push_back( '\t' );
 			else if ( ch == '"' || ch == '\\' || ch == '/' )
-				output += ch;
+				collect_string.push_back( ch );
 			else
 			{
 				fail( "invalid escape character " + esc( ch ) );
@@ -2480,7 +2402,7 @@ struct JsonParser final
 			++it;
 		}
 
-		collect.clear();
+		collect_string.clear();
 
 		// Parse int: zero / ( digit1-9 *DIGIT )
 		unsigned i = 0;
@@ -2490,13 +2412,13 @@ struct JsonParser final
 		if ( RAPIDJSON_UNLIKELY( *it == '0' ) )
 		{
 			i = 0;
-			collect.push_back( *it );
+			collect_string.push_back( *it );
 			++it;
 		}
 		else if ( RAPIDJSON_LIKELY( *it >= '1' && *it <= '9' ) )
 		{
 			i = static_cast<unsigned>( *it - '0' );
-			collect.push_back( *it );
+			collect_string.push_back( *it );
 			++it;
 
 			if ( minus )
@@ -2513,7 +2435,7 @@ struct JsonParser final
 						}
 					}
 					i = i * 10 + static_cast<unsigned>( *it - '0' );
-					collect.push_back( *it );
+					collect_string.push_back( *it );
 					++it;
 					significandDigit++;
 				}
@@ -2532,7 +2454,7 @@ struct JsonParser final
 						}
 					}
 					i = i * 10 + static_cast<unsigned>( *it - '0' );
-					collect.push_back( *it );
+					collect_string.push_back( *it );
 					++it;
 					significandDigit++;
 				}
@@ -2558,7 +2480,7 @@ struct JsonParser final
 							break;
 						}
 					i64 = i64 * 10 + static_cast<unsigned>( *it - '0' );
-					collect.push_back( *it );
+					collect_string.push_back( *it );
 					++it;
 					significandDigit++;
 				}
@@ -2576,7 +2498,7 @@ struct JsonParser final
 							break;
 						}
 					i64 = i64 * 10 + static_cast<unsigned>( *it - '0' );
-					collect.push_back( *it );
+					collect_string.push_back( *it );
 					++it;
 					significandDigit++;
 				}
@@ -2591,7 +2513,7 @@ struct JsonParser final
 				if ( RAPIDJSON_UNLIKELY( d >= 1.7976931348623157e307 ) ) // DBL_MAX / 10.0
 					fail( "number is too big" );
 				d = d * 10 + ( *it - '0' );
-				collect.push_back( *it );
+				collect_string.push_back( *it );
 				++it;
 			}
 		}
@@ -2602,7 +2524,7 @@ struct JsonParser final
 		if ( *it == '.' )
 		{
 			++it;
-			decimalPosition = collect.size();
+			decimalPosition = collect_string.size();
 
 			if ( RAPIDJSON_UNLIKELY( not ( *it >= '0' && *it <= '9' ) ) )
 				fail( "missing fraction for number" );
@@ -2621,7 +2543,7 @@ struct JsonParser final
 					else
 					{
 						i64 = i64 * 10 + static_cast<unsigned>( *it - '0' );
-						collect.push_back( *it );
+						collect_string.push_back( *it );
 						++it;
 						--expFrac;
 						if ( i64 != 0 )
@@ -2642,7 +2564,7 @@ struct JsonParser final
 				if ( significandDigit < 17 )
 				{
 					d = d * 10.0 + ( *it - '0' );
-					collect.push_back( *it );
+					collect_string.push_back( *it );
 					++it;
 					--expFrac;
 					if ( RAPIDJSON_LIKELY( d > 0.0 ) )
@@ -2650,13 +2572,13 @@ struct JsonParser final
 				}
 				else
 				{
-					collect.push_back( *it );
+					collect_string.push_back( *it );
 					++it;
 				}
 			}
 		}
 		else
-			decimalPosition = collect.size(); // decimal position at the end of integer.
+			decimalPosition = collect_string.size(); // decimal position at the end of integer.
 
 		// Parse exp = e [ minus / plus ] 1*DIGIT
 		int exp = 0;
@@ -2715,8 +2637,8 @@ struct JsonParser final
 		}
 
 		// Finish parsing, handle according to the type of number.
-		size_t length = collect.size();
-		const char *decimal = collect.c_str(); // Pop stack no matter if it will be used or not.
+		size_t length = collect_string.size();
+		const char *decimal = collect_string.c_str(); // Pop stack no matter if it will be used or not.
 
 		if ( useDouble )
 		{
@@ -2804,22 +2726,22 @@ struct JsonParser final
 
 		if ( ch == '"' )
 		{
-			parse_string( parse_string_result );
-			output = parse_string_result;
+			parse_string();
+			output = std::string( collect_string.begin(), collect_string.end() );
 			return;
 		}
 
 		if ( ch == '{' )
 		{
-			flat_map<std::string, Json> object_data;
 			ch = get_next_token();
 			if ( ch == '}' )
 			{
-				output = std::move(object_data);
+				output = flat_map<std::string, Json>();
 				return;
 			}
-			//object_data.reserve( 16 );
-
+			
+			auto prevSize = collect_object_data.size();
+			
 			for ( ;; )
 			{
 				if ( ch != '"' )
@@ -2828,10 +2750,11 @@ struct JsonParser final
 					return;
 				}
 
-				std::string object_key;
-				parse_string( object_key );
+				parse_string();
 				if ( failed )
 					return;
+
+				std::string object_key( collect_string.begin(), collect_string.end() );
 
 				ch = get_next_token();
 				if ( ch != ':' )
@@ -2842,7 +2765,7 @@ struct JsonParser final
 				
 				Json v;
 				parse_json( depth + 1, v );
-				object_data.emplace( std::move(object_key), std::move(v) );
+				collect_object_data.emplace_back( std::move(object_key), std::move(v) );
 				if ( failed )
 					return;
 
@@ -2857,22 +2780,36 @@ struct JsonParser final
 
 				ch = get_next_token();
 			}
+			flat_map<std::string,Json> object_data;
+			object_data.storage().assign( collect_object_data.begin() + prevSize, collect_object_data.end() );
+			collect_object_data.resize( prevSize );
+			
+			std::sort( object_data.storage().begin(), object_data.storage().end(),
+						[]( const auto &lhs, const auto &rhs )
+						{
+							return lhs.first < rhs.first;
+						} );
+		    auto last = std::unique( object_data.storage().begin(), object_data.storage().end(),
+						[]( const auto &lhs, const auto &rhs )
+						{
+							return lhs.first == rhs.first;
+						} );
+		    object_data.storage().erase( last, object_data.storage().end() );
 			output = std::move(object_data);
 			return;
 		}
 
 		if ( ch == '[' )
 		{
-			std::vector<Json> array_data;
-			
 			ch = get_next_token();
 			if ( ch == ']' )
 			{
-				output = std::move(array_data);
+				output = std::vector<Json>();
 				return;
 			}
-			//array_data.reserve( 16 );
-
+			
+			auto prevSize = collect_array_data.size();
+			
 			for ( ;; )
 			{
 				--it;
@@ -2880,7 +2817,7 @@ struct JsonParser final
 				parse_json( depth + 1, v );
 				if ( failed )
 					return;
-				array_data.push_back( std::move(v) );
+				collect_array_data.push_back( std::move(v) );
 
 				ch = get_next_token();
 				if ( ch == ']' )
@@ -2894,7 +2831,8 @@ struct JsonParser final
 				ch = get_next_token();
 				(void)ch;
 			}
-			output = std::move(array_data);
+			output = std::vector<Json>( collect_array_data.begin() + prevSize, collect_array_data.end() );
+			collect_array_data.resize( prevSize );
 			return;
 		}
 

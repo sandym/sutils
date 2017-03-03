@@ -17,7 +17,7 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "simple_tester.h"
+#include "tests/simple_tests.h"
 #include "su_is_regular.h"
 
 struct not_default_constructible
@@ -48,8 +48,12 @@ struct is_regular_tests
 		TEST_ASSERT( not su::is_regular<not_default_constructible>::value );
 		TEST_ASSERT( not su::is_regular<not_copy_constructible>::value );
 	}
+	
+	static void registerDynamicTests( su::TestSuite<is_regular_tests> &io_testSuite )
+	{
+		io_testSuite.registerTestCases( &is_regular_tests::test_case_1, "test_case_1" );
+		io_testSuite.registerTestCases( &is_regular_tests::test_case_2, "test_case_2" );
+	}
 };
 
-REGISTER_TESTS( is_regular_tests,
-	TEST_CASE(is_regular_tests,test_case_1),
-	TEST_CASE(is_regular_tests,test_case_2) );
+REGISTER_TEST_SUITE( is_regular_tests, &is_regular_tests::registerDynamicTests );

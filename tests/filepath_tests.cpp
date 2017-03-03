@@ -17,7 +17,7 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "simple_tester.h"
+#include "tests/simple_tests.h"
 #include "su_filepath.h"
 #include "su_logger.h"
 #include <ciso646>
@@ -33,7 +33,7 @@ struct filepath_tests
 	void test_case_6();
 };
 
-REGISTER_TESTS( filepath_tests,
+REGISTER_TEST_SUITE( filepath_tests,
 					TEST_CASE(filepath_tests,test_case_1),
 					TEST_CASE(filepath_tests,test_case_2),
 					TEST_CASE(filepath_tests,test_case_3),

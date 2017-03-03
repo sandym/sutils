@@ -17,13 +17,13 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "simple_tester.h"
+#include "tests/simple_tests.h"
 #include "su_uuid.h"
 #include <ciso646>
 
 struct uuid_tests
 {
-	void test_case_1()
+	void timed_test_case_1()
 	{
 		auto u1 = su::uuid::create();
 		auto u2 = su::uuid::create();
@@ -47,4 +47,4 @@ struct uuid_tests
 	}
 };
 
-REGISTER_TESTS( uuid_tests, TEST_CASE(uuid_tests,test_case_1) );
+REGISTER_TEST_SUITE( uuid_tests, TEST_CASE(uuid_tests,timed_test_case_1) );

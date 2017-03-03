@@ -17,7 +17,7 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "simple_tester.h"
+#include "tests/simple_tests.h"
 #include "su_version.h"
 #include <ciso646>
 
@@ -46,6 +46,6 @@ struct version_tests
 
 };
 
-REGISTER_TESTS( version_tests,
+REGISTER_TEST_SUITE( version_tests,
 	TEST_CASE(version_tests,test_case_1),
 	TEST_CASE(version_tests,test_case_2) );

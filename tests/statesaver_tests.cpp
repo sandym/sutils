@@ -17,7 +17,7 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "simple_tester.h"
+#include "tests/simple_tests.h"
 #include "su_statesaver.h"
 
 struct statesaver_tests
@@ -43,6 +43,6 @@ struct statesaver_tests
 
 };
 
-REGISTER_TESTS( statesaver_tests, 
+REGISTER_TEST_SUITE( statesaver_tests, 
 	TEST_CASE(statesaver_tests,test_case_1),
 	TEST_CASE(statesaver_tests,test_case_2) );

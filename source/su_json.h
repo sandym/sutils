@@ -89,7 +89,8 @@ class Json final
 	// distinguish between integer and non-integer numbers - number_value() and int_value()
 	// can both be applied to a NUMBER-typed object.
 	double number_value() const;
-	int int_value() const;
+	int32_t int_value() const;
+	int64_t int64_value() const;
 	
 	// Return the enclosed value if this is a boolean, false otherwise.
 	bool bool_value() const;
@@ -103,7 +104,8 @@ class Json final
 	// Return the enclosed value as a double or 0
 	double to_number_value() const;
 	// Return the enclosed value as a int or 0
-	int to_int_value() const;
+	int32_t to_int_value() const;
+	int64_t to_int64_value() const;
 	// Return the enclosed value as a bool or false
 	bool to_bool_value() const;
 	// Return the enclosed value as a string or empty string
@@ -165,44 +167,20 @@ class Json final
 	{
 		Storage() : all( 0 ){};
 		Storage( double v ) : all( 0 ) { d = v; };
-		Storage( int v ) : all( 0 ) { i = v; };
-		Storage( unsigned int v ) : all( 0 ) { ui = v; };
-		Storage( long v ) : all( 0 ) { l = v; };
-		Storage( unsigned long v ) : all( 0 ) { ul = v; };
-		Storage( long long v ) : all( 0 ) { ll = v; };
-		Storage( unsigned long long v ) : all( 0 ) { ull = v; };
+		Storage( int32_t v ) : all( 0 ) { i32 = v; };
+		Storage( int64_t v ) : all( 0 ) { i64 = v; };
 		Storage( bool v ) : all( 0 ) { b = v; };
 		Storage( details::JsonValue *v ) : all( 0 ) { p = v; };
 		uint64_t all;
-		int i;
-		unsigned int ui;
-		long l;
-		unsigned long ul;
-		long long ll;
-		unsigned long long ull;
+		int32_t i32;
+		int64_t i64;
 		double d;
 		bool b;
 		details::JsonValue *p;
 	} _data;
-	static_assert( sizeof( Storage ) == 8, "" );
+	static_assert( sizeof( Storage ) == sizeof(uint64_t), "" );
 	Type _type{ Type::NUL };
 	uint8_t _tag{0};
-	
-	enum tag_t
-	{
-		kPtr = 0x80,
-		kDouble = 1,
-		kInt = 2,
-		kUnsignedInt = 3,
-		kLong = 4,
-		kUnsignedLong = 5,
-		kLongLong = 6,
-		kUnsignedLongLong = 7,
-		
-		kNumberTypeMask = 0x0F,
-	};
-	inline bool isPtr() const { return _tag&kPtr; }
-	inline int numberType() const { return _tag&kNumberTypeMask; }
 };
 }
 

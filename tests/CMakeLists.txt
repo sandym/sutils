@@ -4,7 +4,7 @@ project( sutils_tests )
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set( TEST_RUNNER simple_test_runner.cpp )
+set( TEST_RUNNER ../source/tests/simple_tests_runner.cpp ../source/tests/simple_tests.h )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../source )
 
 file( GLOB ALL_TESTS
@@ -52,9 +52,16 @@ endif()
 find_library( EXPAT_LIBRARY expat )
 if(EXPAT_LIBRARY)
 	target_link_libraries( sutils_tests ${EXPAT_LIBRARY} )
-else()
-	add_definitions( -DSU_NO_EXPAT )
+	add_definitions( -DHAS_EXPAT )
 endif()
+
+find_library( SQLITE3_LIBRARY sqlite3 )
+if(SQLITE3_LIBRARY)
+	target_link_libraries( sutils_tests ${SQLITE3_LIBRARY} )
+	add_definitions( -DHAS_SQLITE3 )
+endif()
+
+
 
 find_package( Threads )
 target_link_libraries( sutils_tests ${CMAKE_THREAD_LIBS_INIT} )

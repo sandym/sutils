@@ -17,7 +17,7 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "simple_tester.h"
+#include "tests/simple_tests.h"
 #include "su_jobdispatcher.h"
 #include "su_job.h"
 #include "su_thread.h"
@@ -47,7 +47,7 @@ struct jobdispatcher_tests
 		bool _needIdleTime;
 };
 
-REGISTER_TESTS( jobdispatcher_tests,
+REGISTER_TEST_SUITE( jobdispatcher_tests,
 			   TEST_CASE(jobdispatcher_tests,test_case_async_completion),
 			   TEST_CASE(jobdispatcher_tests,test_case_no_async_completion),
 			   TEST_CASE(jobdispatcher_tests,test_case_cancel_1),

@@ -17,7 +17,7 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "simple_tester.h"
+#include "tests/simple_tests.h"
 #include "su_json.h"
 #include <list>
 #include <set>
@@ -49,20 +49,22 @@ CHECK_TRAIT(is_nothrow_destructible<Json>);
 struct json_tests
 {
 	//	declare all test cases here...
-	void test_case_1();
-	void test_case_2();
+	void timed_test_case_1();
+	void timed_test_case_2();
+	void timed_test_case_3();
 };
 
-REGISTER_TESTS( json_tests,
-			   TEST_CASE(json_tests,test_case_1),
-			   TEST_CASE(json_tests,test_case_2) );
+REGISTER_TEST_SUITE( json_tests,
+			   TEST_CASE(json_tests,timed_test_case_1),
+			   TEST_CASE(json_tests,timed_test_case_2),
+			   TEST_CASE(json_tests,timed_test_case_3) );
 
 // MARK: -
 // MARK:  === test cases ===
 
 #define SJSON_ENABLE_DR1467_CANARY 0
 
-void json_tests::test_case_1()
+void json_tests::timed_test_case_1()
 {
     const string simple_test =
         R"({"k1":"v1", "k2":42, "k3":["a",123,true,false,null]})";
@@ -285,7 +287,7 @@ void getStat( const su::Json &i_json, Stat &io_stat )
 }
 }
 
-void json_tests::test_case_2()
+void json_tests::timed_test_case_2()
 {
 	std::string err;
 	Stat stat;
@@ -337,4 +339,30 @@ void json_tests::test_case_2()
 	TEST_ASSERT_EQUAL( stat.elementCount, 167170 );
 	TEST_ASSERT_EQUAL( stat.stringLength, 90 );
 #endif
+}
+
+void json_tests::timed_test_case_3()
+{
+	std::string err;
+	Stat stat;
+	
+	const char *roundtrip10 = R"END({"a":null,"foo":"bar"})END";
+	
+	auto json = su::Json::parse( roundtrip10, err );
+	TEST_ASSERT( err.empty() );
+	stat = Stat();
+	getStat( json, stat );
+	TEST_ASSERT_EQUAL( stat.objectCount, 1 );
+	TEST_ASSERT_EQUAL( stat.arrayCount, 0 );
+	TEST_ASSERT_EQUAL( stat.numberCount, 0 );
+	TEST_ASSERT_EQUAL( stat.stringCount, 3 );
+	TEST_ASSERT_EQUAL( stat.trueCount, 0 );
+	TEST_ASSERT_EQUAL( stat.falseCount, 0 );
+	TEST_ASSERT_EQUAL( stat.nullCount, 1 );
+	TEST_ASSERT_EQUAL( stat.memberCount, 2 );
+	TEST_ASSERT_EQUAL( stat.elementCount, 0 );
+	TEST_ASSERT_EQUAL( stat.stringLength, 7 );
+	
+	auto s = json.dump();
+	TEST_ASSERT_EQUAL( s, roundtrip10 );
 }

@@ -17,7 +17,7 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "simple_tester.h"
+#include "tests/simple_tests.h"
 #include "su_signal.h"
 
 struct signal_tests
@@ -39,4 +39,4 @@ struct signal_tests
 
 };
 
-REGISTER_TESTS( signal_tests, TEST_CASE(signal_tests,test_case_1) );
+REGISTER_TEST_SUITE( signal_tests, TEST_CASE(signal_tests,test_case_1) );
