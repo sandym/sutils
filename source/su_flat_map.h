@@ -29,21 +29,21 @@ class flat_map
 {
   public:
 	// types:
-	using vector_type = std::vector<std::pair<Key, T>>;
+	using storage_type = std::vector<std::pair<Key, T>>;
 	using key_type = Key;
 	using mapped_type = T;
-	using value_type = typename vector_type::value_type;
-	using reference = typename vector_type::reference;
-	using const_reference = typename vector_type::const_reference;
-	using pointer = typename vector_type::pointer;
-	using const_pointer = typename vector_type::const_pointer;
-	using size_type = typename vector_type::size_type;
-	using difference_type = typename vector_type::difference_type;
+	using value_type = typename storage_type::value_type;
+	using reference = typename storage_type::reference;
+	using const_reference = typename storage_type::const_reference;
+	using pointer = typename storage_type::pointer;
+	using const_pointer = typename storage_type::const_pointer;
+	using size_type = typename storage_type::size_type;
+	using difference_type = typename storage_type::difference_type;
 
-	using iterator = typename vector_type::iterator;
-	using const_iterator = typename vector_type::const_iterator;
-	using reverse_iterator = typename vector_type::reverse_iterator;
-	using const_reverse_iterator = typename vector_type::const_reverse_iterator;
+	using iterator = typename storage_type::iterator;
+	using const_iterator = typename storage_type::const_iterator;
+	using reverse_iterator = typename storage_type::reverse_iterator;
+	using const_reverse_iterator = typename storage_type::const_reverse_iterator;
 
 	flat_map() = default;
 	flat_map( const std::initializer_list<std::pair<Key,T>> &il )
@@ -141,8 +141,8 @@ class flat_map
 	inline void erase( iterator it ) { _flatlist.erase( it ); }
 	inline void erase( const key_type &k ) { erase( lower_bound( k ) ); }
 	inline void swap( flat_map<Key, T, CMP> &i_other ) { _flatlist.swap( i_other._flatlist ); }
-	inline const vector_type &storage() const { return _flatlist; }
-	inline vector_type &storage() { return _flatlist; }
+	inline const storage_type &storage() const { return _flatlist; }
+	inline storage_type &storage() { return _flatlist; }
 
 	bool operator<( const flat_map &rhs ) const
 	{
@@ -153,7 +153,7 @@ class flat_map
 		return _flatlist == rhs._flatlist;
 	}
   private:
-	vector_type _flatlist;
+	storage_type _flatlist;
 
 	static inline bool key_less2( const value_type &a, const key_type &b ) { return CMP()( a.first, b ); }
 	static inline bool key_equal( const key_type &a, const key_type &b ) { return not CMP()( a, b ) and not CMP()( b, a ); }
