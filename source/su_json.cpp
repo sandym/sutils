@@ -2787,7 +2787,7 @@ struct JsonParser final
 			object_data.storage().assign( collect_object_data.begin() + prevSize, collect_object_data.end() );
 			collect_object_data.resize( prevSize );
 			
-			typedef flat_map<std::string,Json>::vector_type::value_type storage_value;
+			typedef flat_map<std::string,Json>::storage_type::value_type storage_value;
 			std::sort( object_data.storage().begin(), object_data.storage().end(),
 						[]( const storage_value &lhs, const storage_value &rhs )
 						{

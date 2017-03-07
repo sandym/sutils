@@ -28,17 +28,17 @@ class flat_set
 {
   public:
 	// types:
-	using vector_type = std::vector<T>;
-	using value_type = typename vector_type::value_type;
-	using reference = typename vector_type::reference;
-	using const_reference = typename vector_type::const_reference;
-	using pointer = typename vector_type::pointer;
-	using const_pointer = typename vector_type::const_pointer;
-	using size_type = typename vector_type::size_type;
-	using difference_type = typename vector_type::difference_type;
+	using storage_type = std::vector<T>;
+	using value_type = typename storage_type::value_type;
+	using reference = typename storage_type::reference;
+	using const_reference = typename storage_type::const_reference;
+	using pointer = typename storage_type::pointer;
+	using const_pointer = typename storage_type::const_pointer;
+	using size_type = typename storage_type::size_type;
+	using difference_type = typename storage_type::difference_type;
 
-	using const_iterator = typename vector_type::const_iterator;
-	using const_reverse_iterator = typename vector_type::const_reverse_iterator;
+	using const_iterator = typename storage_type::const_iterator;
+	using const_reverse_iterator = typename storage_type::const_reverse_iterator;
 
 	flat_set() {}
 	~flat_set() {}
@@ -68,10 +68,10 @@ class flat_set
 
 	inline void erase( const_iterator it ) { _flatlist.erase( it ); }
 	inline void swap( flat_set<T, CMP> &i_other ) { _flatlist.swap( i_other._flatlist ); }
-	inline const vector_type &storage() const { return _flatlist; }
-	inline vector_type &storage() { return _flatlist; }
+	inline const storage_type &storage() const { return _flatlist; }
+	inline storage_type &storage() { return _flatlist; }
   private:
-	vector_type _flatlist;
+	storage_type _flatlist;
 
 	static inline bool value_less( const value_type &a, const value_type &b ) { return CMP()( a, b ); }
 	static inline bool value_equal( const value_type &a, const value_type &b ) { return not CMP()( a, b ) and not CMP()( b, a ); }
