@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <chrono>
 #include <map>
+#include <string.h>
+#include <ciso646>
 
 #ifdef HAS_SQLITE3
 #include <sqlite3.h>
@@ -130,6 +132,7 @@ void SimpleTestDB::addResult( const std::string &i_testSuiteName, const std::str
 
 int64_t SimpleTestDB::mostRecentDuration( const std::string &i_testSuiteName, const std::string &i_testName )
 {
+#ifdef HAS_SQLITE3
 	try
 	{
 		std::string cmd( "SELECT duration FROM test_cases WHERE " );
@@ -146,6 +149,7 @@ int64_t SimpleTestDB::mostRecentDuration( const std::string &i_testSuiteName, co
 	{
 		std::cerr << "inserting in database failed: " << ex.what() << std::endl;
 	}
+#endif
 	return std::numeric_limits<int64_t>::max();
 }
 

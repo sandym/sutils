@@ -19,7 +19,8 @@
 
 #include "tests/simple_tests.h"
 #include "su_saxparser.h"
-#ifndef SU_NO_EXPAT
+
+#ifdef HAS_EXPAT
 
 #include <sstream>
 #include <cctype>
