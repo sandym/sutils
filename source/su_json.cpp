@@ -1548,9 +1548,12 @@ Json &Json::operator=( const Json &rhs ) noexcept
 }
 Json::Json( Json &&rhs ) noexcept
 {
-	_type = std::exchange( rhs._type, Type::NUL );
-	_tag = std::exchange( rhs._tag, 0 );
-	_data.all = std::exchange( rhs._data.all, 0 );
+	_type = rhs._type;
+	rhs._type = Type::NUL;
+	_tag = rhs._tag;
+	rhs._tag = 0;
+	_data.all = rhs._data.all;
+	rhs._data.all = 0;
 }
 Json &Json::operator=( Json &&rhs ) noexcept
 {
@@ -2784,13 +2787,14 @@ struct JsonParser final
 			object_data.storage().assign( collect_object_data.begin() + prevSize, collect_object_data.end() );
 			collect_object_data.resize( prevSize );
 			
+			typedef flat_map<std::string,Json>::vector_type::value_type storage_value;
 			std::sort( object_data.storage().begin(), object_data.storage().end(),
-						[]( const auto &lhs, const auto &rhs )
+						[]( const storage_value &lhs, const storage_value &rhs )
 						{
 							return lhs.first < rhs.first;
 						} );
 		    auto last = std::unique( object_data.storage().begin(), object_data.storage().end(),
-						[]( const auto &lhs, const auto &rhs )
+						[]( const storage_value &lhs, const storage_value &rhs )
 						{
 							return lhs.first == rhs.first;
 						} );

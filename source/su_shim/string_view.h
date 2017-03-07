@@ -3,7 +3,9 @@
 #define H_SU_SHIM_STRING_VIEW
 
 #include <string>
+#include <string.h>
 #include <algorithm>
+#include <cstddef>
 
 namespace su
 {
@@ -22,7 +24,7 @@ class basic_string_view
 //	typedef reverse_iterator<const_iterator> const_reverse_iterator;
 //	typedef const_reverse_iterator reverse_iterator;
 	typedef size_t size_type;
-	typedef ptrdiff_t difference_type;
+	typedef std::ptrdiff_t difference_type;
 	static constexpr size_type npos = size_type(-1);
 
 	basic_string_view() noexcept = default;

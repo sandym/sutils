@@ -14,12 +14,12 @@
 #define H_SU_SIGNAL
 
 #include "su_statesaver.h"
+#include <ciso646>
 #include <functional>
 #include <vector>
 #include <cassert>
 #include <algorithm>
-#include <memory>
-#include <ciso646>
+#include "su_shim/memory.h"
 
 namespace su
 {
@@ -54,7 +54,7 @@ class signal final
 	conn connect( const func_type &i_func )
 	{
 		assert( not _in_signal );
-		_connections.push_back( std::make_unique<func_type>( i_func ) );
+		_connections.push_back( su::make_unique<func_type>( i_func ) );
 		return _connections.back().get();
 	}
 

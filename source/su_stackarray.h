@@ -14,7 +14,7 @@
 #define H_SU_STACKARRAY
 
 #include <cstddef>
-#include <memory>
+#include "su_shim/memory.h"
 
 namespace su
 {
@@ -30,7 +30,7 @@ class stackarray final
 	{
 		if ( size() > S )
 		{
-			_heapArray = std::make_unique<T[]>( size() );
+			_heapArray = <T[]>( size() );
 			_array = _heapArray.get();
 		}
 		else
@@ -42,7 +42,7 @@ class stackarray final
 			_array = _stackArray;
 		else
 		{
-			_heapArray = std::make_unique<T[]>( size() );
+			_heapArray = <T[]>( size() );
 			_array = _heapArray.get();
 		}
 		std::copy( i_other.data(), i_other.data() + size(), data() );
@@ -99,7 +99,7 @@ class stackarray final
 
 			if ( _size > S )
 			{
-				_heapArray = std::make_unique<T[]>( _size );
+				_heapArray = su::make_unique<T[]>( _size );
 				_array = _heapArray.get();
 			}
 			else
