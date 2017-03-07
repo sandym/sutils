@@ -1622,7 +1622,7 @@ double Json::number_value() const
 			case kInt32:
 				return _data.i32;
 			case kInt64:
-				return _data.i64;
+				return static_cast<double>( _data.i64 );
 			default: break;
 		}
 	}
@@ -1640,7 +1640,7 @@ int32_t Json::int_value() const
 			case kInt32:
 				return _data.i32;
 			case kInt64:
-				return _data.i64;
+				return static_cast<int32_t>(_data.i64);
 			default: break;
 		}
 	}

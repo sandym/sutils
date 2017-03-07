@@ -14,12 +14,12 @@
 #define H_SU_SIGNAL
 
 #include "su_statesaver.h"
+#include <ciso646>
 #include <functional>
 #include <vector>
 #include <cassert>
 #include <algorithm>
 #include <memory>
-#include <ciso646>
 
 namespace su
 {

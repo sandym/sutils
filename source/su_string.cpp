@@ -13,13 +13,13 @@
 #include "su_string.h"
 #include "cfauto.h"
 #include "su_flat_map.h"
+#include <ciso646>
 #include <stack>
 #include <locale>
 #include <cassert>
 #include <cstring>
 #include <cctype>
 #include <codecvt>
-#include <ciso646>
 
 namespace su
 {

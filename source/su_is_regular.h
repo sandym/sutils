@@ -13,8 +13,8 @@
 #ifndef H_SU_IS_REGULAR
 #define H_SU_IS_REGULAR
 
-#include <type_traits>
 #include <ciso646>
+#include <type_traits>
 
 namespace su
 {

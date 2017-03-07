@@ -1,12 +1,12 @@
 
 #include "tests/simple_tests.h"
+#include <ciso646>
 #include <iostream>
 #include <sstream>
 #include <algorithm>
 #include <chrono>
 #include <map>
 #include <string.h>
-#include <ciso646>
 
 #ifdef HAS_SQLITE3
 #include <sqlite3.h>

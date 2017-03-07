@@ -28,12 +28,12 @@
 #ifndef H_SU_LOGGER
 #define H_SU_LOGGER
 
+#include <ciso646>
 #include <iosfwd>
 #include <memory>
 #include <string>
 #include <thread>
 #include <vector>
-#include <ciso646>
 #include "su_always_inline.h"
 
 namespace su

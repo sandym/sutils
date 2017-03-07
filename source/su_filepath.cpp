@@ -14,9 +14,9 @@
 #include "su_string.h"
 #include "cfauto.h"
 #include "su_logger.h"
+#include <ciso646>
 #include <string.h>
 #include <cassert>
-#include <ciso646>
 #include <map>
 
 #if !UPLATFORM_WIN

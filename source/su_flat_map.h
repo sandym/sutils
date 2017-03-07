@@ -14,10 +14,10 @@
 #ifndef H_SU_FLAT_MAP
 #define H_SU_FLAT_MAP
 
+#include <ciso646>
 #include <vector>
 #include <algorithm>
 #include <functional>
-#include <ciso646>
 
 namespace su
 {
