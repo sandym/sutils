@@ -16,7 +16,7 @@ namespace su
 {
 attachable::~attachable()
 {
-	std::for_each( _attachments.begin(), _attachments.end(), []( auto v )
+	std::for_each( _attachments.begin(), _attachments.end(), []( su::flat_map<std::string, attachment *>::value_type& v )
 		{
 			v.second->_attachable = nullptr;
 			delete v.second;

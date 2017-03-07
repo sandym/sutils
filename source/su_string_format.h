@@ -45,7 +45,7 @@ struct FormatArg
 	FormatArg( const std::string &v ) : _which( kString ), _string( v ){}
 	FormatArg( const su::string_view &v ) : _which( kString ), _string( v ){}
 
-	template<typename T,typename = std::enable_if_t<not std::is_base_of<std::string,T>::value>>
+	template<typename T,typename = typename std::enable_if<not std::is_base_of<std::string,T>::value>::type>
 	FormatArg( const T &v ) : _which( kOther ){ u._other = new any<T>( &v ); }
 	FormatArg( FormatArg &&i_other ) noexcept : _which( i_other._which )
 	{

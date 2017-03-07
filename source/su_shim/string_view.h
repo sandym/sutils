@@ -2,10 +2,6 @@
 #ifndef H_SU_SHIM_STRING_VIEW
 #define H_SU_SHIM_STRING_VIEW
 
-#include "su_platform.h"
-
-#if UPLATFORM_WIN
-
 #include <string>
 #include <algorithm>
 
@@ -219,21 +215,5 @@ using string_view = basic_string_view<char>;
 using u16string_view = basic_string_view<char16_t>;
 
 }
-
-typedef intptr_t ssize_t;
-
-#else
-
-#include <experimental/string_view>
-
-namespace su
-{
-using string_view = std::experimental::string_view;
-using u16string_view = std::experimental::u16string_view;
-template<typename CHAR>
-using basic_string_view = std::experimental::basic_string_view<CHAR>;
-}
-
-#endif
 
 #endif
