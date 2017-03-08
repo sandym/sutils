@@ -1,0 +1,13 @@
+tests/.ninja_*
+tests/CMakeCache.txt
+tests/CMakeFiles
+tests/CMakeScripts
+tests/*.ninja
+tests/cmake_install.cmake
+tests/sutils_tests
+tests/Debug
+tests/Release
+tests/DerivedData
+tests/sutils_tests.build
+tests/sutils_tests.xcodeproj
+tests/Makefile
