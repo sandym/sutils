@@ -159,11 +159,11 @@ int ucompare_nocase( const su::string_view &lhs, const su::string_view &rhs )
 
 int ucompare_numerically( const su::string_view &lhs, const su::string_view &rhs )
 {
-	ssize_t la = lhs.length(), lb = rhs.length();
-	ssize_t shortest = std::min( la, lb );
+	size_t la = lhs.length(), lb = rhs.length();
+	size_t shortest = std::min( la, lb );
 	const char *pa = lhs.data();
 	const char *pb = rhs.data();
-	ssize_t i = 0;
+	size_t i = 0;
 	
 	// skip common
 	while ( i < shortest and pa[i] == pb[i] )
@@ -204,11 +204,11 @@ int ucompare_numerically( const su::string_view &lhs, const su::string_view &rhs
 
 int ucompare_nocase_numerically( const su::string_view &lhs, const su::string_view &rhs )
 {
-	ssize_t la = lhs.length(), lb = rhs.length();
-	ssize_t shortest = std::min( la, lb );
+	size_t la = lhs.length(), lb = rhs.length();
+	size_t shortest = std::min( la, lb );
 	const char *pa = lhs.data();
 	const char *pb = rhs.data();
-	ssize_t i = 0;
+	size_t i = 0;
 	
 	// skip common
 	while ( i < shortest and std::tolower( pa[i] ) == std::tolower( pb[i] ) )

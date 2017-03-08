@@ -1,3 +1,4 @@
+.vscode
 tests/.ninja_*
 tests/CMakeCache.txt
 tests/CMakeFiles
