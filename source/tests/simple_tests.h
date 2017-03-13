@@ -1,6 +1,16 @@
+//
+//  simple_tests.h
+//  sutils
+//
+//  Created by Sandy Martel on 12/03/10.
+//  Copyright (c) 2015年 Sandy Martel. All rights reserved.
+//
+// Permission to use, copy, modify, distribute, and sell this software for any purpose is hereby
+// granted without fee. The sotware is provided "AS-IS" and without warranty of any kind, express,
+// implied or otherwise.
 
-#ifndef H_TESTER
-#define H_TESTER
+#ifndef H_SIMPLE_TESTS
+#define H_SIMPLE_TESTS
 
 #include <cassert>
 #include <type_traits>
@@ -12,45 +22,50 @@
 namespace su
 {
 
+/*!
+	A single test
+ 		If name start with "timed_", time regression for the test
+		will be tracked.
+*/
 class TestCase
 {
-	public:
-		typedef std::function<void ()> func_t;
-		
-		TestCase( const std::string &i_name, const func_t &i_test );
+public:
+	TestCase( const std::string &i_name, const std::function<void ()> &i_test )
+		: _name( i_name ), _test( i_test ){}
+
+	//! run the test
+	inline void operator()() { _test(); }
 	
-		//! run the test
-		inline void operator()() { _test(); }
-		
-		inline const std::string &name() const { return _name; }
-		inline bool timed() const { return _timed; }
-	
-	private:
-		std::string _name;
-		bool _timed = false;
-		func_t _test;
+	inline const std::string &name() const { return _name; }
+	inline bool timed() const { return _name.compare( 0, 6, "timed_" ) == 0; }
+
+private:
+	std::string _name;
+	std::function<void ()> _test;
 };
 
+//! Abstract base for test suite
 class TestSuiteAbstract
 {
-	public:
-		TestSuiteAbstract( const TestSuiteAbstract & ) = delete;
-		TestSuiteAbstract &operator=( const TestSuiteAbstract & ) = delete;
-		virtual ~TestSuiteAbstract() = default;
-		
-		inline const std::string &name() const { return _name; }
-		
-		virtual std::vector<TestCase> getTests() = 0;
-		
-	protected:
-		TestSuiteAbstract( const std::string &i_name );
-		
-		std::string _name;
+public:
+	TestSuiteAbstract( const TestSuiteAbstract & ) = delete;
+	TestSuiteAbstract &operator=( const TestSuiteAbstract & ) = delete;
+	virtual ~TestSuiteAbstract() = default;
+	
+	inline const std::string &name() const { return _name; }
+	
+	virtual std::vector<TestCase> getTests() = 0;
+	
+protected:
+	TestSuiteAbstract( const std::string &i_name ) : _name( i_name ){}
+	
+	std::string _name;
 };
 
 void addTestSuite( TestSuiteAbstract *i_tg );
 const std::vector<TestSuiteAbstract *> &getTestSuite();
 
+//! A test suite
 template<class T>
 class TestSuite : public TestSuiteAbstract
 {
@@ -85,11 +100,13 @@ public:
 	{
 		if ( _dynamicRegistry )
 		{
+			// there are dynamoc tests to be registered.
 			_dynamicRegistry( *this );
-			_dynamicRegistry = nullptr;
+			_dynamicRegistry = nullptr; // do it only once
 		}
 		
 		std::vector<TestCase> result;
+		result.reserve( _tests.size() );
 		for ( auto it : _tests )
 		{
 			auto methodPtr = it.method;

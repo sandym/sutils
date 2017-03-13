@@ -19,7 +19,16 @@ namespace su
 {
 
 template<class MAP>
-inline MAP::value_type value_or( const MAP &i_map, const MAP::key_type &k, const MAP::value_type &i_default = MAP::value_type() )
+inline MAP::value_type value( const MAP &i_map, const MAP::key_type &k )
+{
+	auto it = i_map.find( k );
+	if ( it != i_map.end() )
+		return it->second;
+	return {};
+}
+
+template<class MAP>
+inline MAP::value_type value_or( const MAP &i_map, const MAP::key_type &k, const MAP::value_type &i_default )
 {
 	auto it = i_map.find( k );
 	if ( it != i_map.end() )
@@ -28,7 +37,20 @@ inline MAP::value_type value_or( const MAP &i_map, const MAP::key_type &k, const
 }
 
 template<class MAP>
-inline MAP::value_type take( MAP &i_map, const MAP::key_type &k, const MAP::value_type &i_default = MAP::value_type() )
+inline MAP::value_type take( MAP &i_map, const MAP::key_type &k )
+{
+	auto it = i_map.find( k );
+	if ( it != i_map.end() )
+	{
+		auto v = std::move(it->second);
+		i_map.erase( it );
+		return v;
+	}
+	return {};
+}
+
+template<class MAP>
+inline MAP::value_type take_or( MAP &i_map, const MAP::key_type &k, const MAP::value_type &i_default )
 {
 	auto it = i_map.find( k );
 	if ( it != i_map.end() )

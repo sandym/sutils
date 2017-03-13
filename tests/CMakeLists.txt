@@ -39,14 +39,18 @@ source_group( "tests" FILES
 add_definitions( -DBUILD_VERSION=1,2,3,4 )
 execute_process( COMMAND svn info --show-item revision
 					OUTPUT_VARIABLE SVN_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
-if( DEFINED ${SVN_REVISION})
+if(SVN_REVISION)
 add_definitions( -DSVN_REVISION=${SVN_REVISION} )
+else()
+message("no svn revision")
 endif()
 
 execute_process( COMMAND git rev-parse HEAD
 					OUTPUT_VARIABLE GIT_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
-if( DEFINED ${GIT_REVISION})
+if(GIT_REVISION)
 add_definitions( -DGIT_REVISION=${GIT_REVISION} )
+else()
+message("no git revision")
 endif()
 
 find_library( EXPAT_LIBRARY expat )
