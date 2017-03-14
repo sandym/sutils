@@ -33,25 +33,25 @@ struct NameURI
 */
 class saxparser
 {
-	public:
-		saxparser( std::istream &i_stream );
+public:
+	saxparser( std::istream &i_stream );
 
-		saxparser( const saxparser & ) = delete;
-		saxparser &operator=( const saxparser & ) = delete;
+	saxparser( const saxparser & ) = delete;
+	saxparser &operator=( const saxparser & ) = delete;
 
-		virtual ~saxparser();
-		
-		virtual bool parse();
-		
-		virtual void startDocument() = 0;
-		virtual void endDocument() = 0;
-		virtual bool startElement( const NameURI &i_nameURI,
-										const flat_map<NameURI,su::string_view> &i_attribs ) = 0;
-		virtual bool endElement( const NameURI &i_nameURI ) = 0;
-		virtual bool characters( const su::string_view &i_text ) = 0;
-		
-	private:
-		std::istream &_stream;
+	virtual ~saxparser();
+	
+	virtual bool parse();
+	
+	virtual void startDocument();
+	virtual void endDocument();
+	virtual bool startElement( const NameURI &i_nameURI,
+									const flat_map<NameURI,su::string_view> &i_attribs );
+	virtual bool endElement( const NameURI &i_nameURI );
+	virtual bool characters( const su::string_view &i_text );
+	
+private:
+	std::istream &_stream;
 };
 
 }
