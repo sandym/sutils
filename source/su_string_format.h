@@ -10,7 +10,7 @@
  * implied or otherwise.
  */
 /*!
- 	@header ustring.h
+ 	@header su_string.h
 	Define a multiplatform unicode string class and some localisation utilities.
 */
 
