@@ -37,7 +37,8 @@ source_group( "tests" FILES
 			)
 
 add_definitions( -DBUILD_VERSION=1,2,3,4 )
-execute_process( COMMAND svn info --show-item revision "${CMAKE_CURRENT_SOURCE_DIR}"
+execute_process( COMMAND svn info --show-item revision
+					WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 					OUTPUT_VARIABLE SVN_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
 if(SVN_REVISION)
 add_definitions( -DSVN_REVISION=${SVN_REVISION} )
@@ -45,7 +46,8 @@ else()
 message("no svn revision")
 endif()
 
-execute_process( COMMAND cd "${CMAKE_CURRENT_SOURCE_DIR}" && git rev-parse HEAD
+execute_process( COMMAND git rev-parse HEAD
+					WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 					OUTPUT_VARIABLE GIT_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
 if(GIT_REVISION)
 add_definitions( -DGIT_REVISION=${GIT_REVISION} )

@@ -43,7 +43,7 @@ std::string format( const su::string_view &i_format )
 }
 
 namespace details {
-	
+
 struct FormatSpec
 {
 	char type = 0; // d, i, x, s, f, c, etc
@@ -548,6 +548,24 @@ int count_bin_digits( INTEGER n )
 	return count;
 }
 
+void appendIntegerSimple( char *&io_ptr, int i_arg )
+{
+	unsigned int abs_value = i_arg;
+	if ( i_arg < 0 )
+	{
+		*io_ptr++ = '-';
+		abs_value = 0 - i_arg;
+	}
+	auto num_digits = count_dec_digits( abs_value );
+	io_ptr += num_digits;
+	auto ptr = io_ptr - 1;
+	do
+	{
+		*ptr-- = (abs_value%10) + '0';
+	}
+	while ( (abs_value /= 10) != 0 );
+}
+
 }
 
 namespace su { namespace details {
@@ -906,45 +924,48 @@ void format_impl::formatInteger( T i_arg, const su::details::FormatSpec &i_forma
 
 void format_impl::formatDouble( double i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec )
 {
-	char flags[6];
-	int i = 0;
-	if ( i_formatSpec.flags&kLeftAdjustFlag )
-		flags[i++] = '-';
-	if ( i_formatSpec.flags&kPlusFlag )
-		flags[i++] = '+';
-	if ( i_formatSpec.flags&kSharpFlag )
-		flags[i++] = '#';
-	if ( i_formatSpec.flags&kSpaceFlag )
-		flags[i++] = ' ';
-	if ( i_formatSpec.flags&kZeroFlag )
-		flags[i++] = '0';
-	
-	flags[i++] = 0;
-	
 	char format[32];
+	char *ptr = format;
+	*ptr++ = '%';
+	if ( i_formatSpec.flags&kLeftAdjustFlag )
+		*ptr++ = '-';
+	if ( i_formatSpec.flags&kPlusFlag )
+		*ptr++ = '+';
+	if ( i_formatSpec.flags&kSharpFlag )
+		*ptr++ = '#';
+	if ( i_formatSpec.flags&kSpaceFlag )
+		*ptr++ = ' ';
+	if ( i_formatSpec.flags&kZeroFlag )
+		*ptr++ = '0';
+	
 	if ( width == -1 )
 	{
-		if ( prec == -1 )
-			snprintf( format, 32, "%%%s%c", flags, i_formatSpec.type );
-		else
-			snprintf( format, 32, "%%%s.%d%c", flags, prec, i_formatSpec.type );
+		if ( prec != -1 )
+		{
+			*ptr++ = '.';
+			appendIntegerSimple( ptr, prec );
+		}
 	}
 	else if ( prec == -1 )
 	{
-		snprintf( format, 32, "%%%s%d%c", flags, width, i_formatSpec.type );
+		appendIntegerSimple( ptr, width );
 	}
 	else
 	{
-		snprintf( format, 32, "%%%s%d.%d%c", flags, width, prec, i_formatSpec.type );
+		appendIntegerSimple( ptr, width );
+		*ptr++ = '.';
+		appendIntegerSimple( ptr, prec );
 	}
+	*ptr++ = i_formatSpec.type;
+	*ptr++ = 0;
 	
 	stackarray<char,64> buffer;
 	for ( ;; )
 	{
 		auto req = snprintf( buffer, buffer.size(), format, i_arg );
-		if ( (req+1) <= (int)buffer.size() )
+		if ( req < (int)buffer.size() )
 			break;
-		buffer.realloc( buffer.size() * 2 );
+		buffer.realloc( std::max<size_t>( req+1, buffer.size() * 2 ) );
 	}
 	
 	result.append( buffer );
