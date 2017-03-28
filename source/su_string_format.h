@@ -10,15 +10,15 @@
  * implied or otherwise.
  */
 /*!
- 	@header ustring.h
+ 	@header su_string.h
 	Define a multiplatform unicode string class and some localisation utilities.
 */
 
 #ifndef H_SU_STRING_FORMAT
 #define H_SU_STRING_FORMAT
 
-#include <string>
 #include <ciso646>
+#include <string>
 #include "su_shim/string_view.h"
 #include "su_always_inline.h"
 

@@ -13,8 +13,8 @@
 #ifndef H_SU_TEEBUF
 #define H_SU_TEEBUF
 
-#include <iostream>
 #include <ciso646>
+#include <iostream>
 #include <algorithm>
 
 namespace su

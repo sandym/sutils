@@ -15,12 +15,12 @@
 #include "su_platform.h"
 #include "su_flat_map.h"
 #include "su_thread.h"
+#include <ciso646>
 #include <iostream>
 #include <ctime>
 #include <condition_variable>
 #include <cassert>
 #include <string.h>
-#include <ciso646>
 
 namespace
 {

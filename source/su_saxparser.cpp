@@ -25,22 +25,20 @@ su::NameURI extractNameURI( const char *s )
 	auto end = s + std::strlen( s );
 	auto p = std::find( s, end, 0x0C );
 	if ( p != end )
-		return su::NameURI{ su::string_view( s, p-s ), su::string_view( p+1, end-(p+1) ) };
+		return su::NameURI{ su::string_view( p+1, end-(p+1) ), su::string_view( s, p-s ) };
 	else
 		return su::NameURI{ su::string_view( s, end-s ), su::string_view() };
 }
 
 void startElement( void *userData, const char *name, const char **atts )
 {
-	XML_Parser parser = (XML_Parser)userData;
-	su::saxparser *_this = (su::saxparser *)XML_GetUserData( parser );
+	auto parser = static_cast<XML_Parser>( userData );
+	auto _this = static_cast<su::saxparser *>( XML_GetUserData( parser ) );
 	
 	su::flat_map<su::NameURI,su::string_view> attribs;
 	
 	for ( int i = 0; atts[i] != nullptr; i += 2 )
-	{
 		attribs[extractNameURI(atts[i])] = atts[i+1];
-	}
 
 	auto n = extractNameURI( name );
 	if ( not _this->startElement( n, attribs ) )
@@ -48,8 +46,8 @@ void startElement( void *userData, const char *name, const char **atts )
 }
 void endElement( void *userData, const char *name )
 {
-	XML_Parser parser = (XML_Parser)userData;
-	su::saxparser *_this = (su::saxparser *)XML_GetUserData( parser );
+	auto parser = static_cast<XML_Parser>( userData );
+	auto _this = static_cast<su::saxparser *>( XML_GetUserData( parser ) );
 
 	auto n = extractNameURI( name );
 	if ( not _this->endElement( n ) )
@@ -57,8 +55,8 @@ void endElement( void *userData, const char *name )
 }
 void characters( void *userData, const char *s, int len )
 {
-	XML_Parser parser = (XML_Parser)userData;
-	su::saxparser *_this = (su::saxparser *)XML_GetUserData( parser );
+	auto parser = static_cast<XML_Parser>( userData );
+	auto _this = static_cast<su::saxparser *>( XML_GetUserData( parser ) );
 
 	if ( not _this->characters( su::string_view( s, len ) ) )
 		XML_StopParser( parser, false );
@@ -116,6 +114,30 @@ bool saxparser::parse()
 	XML_ParserFree( parser );
 
 	return ret;
+}
+
+void saxparser::startDocument()
+{
+}
+
+void saxparser::endDocument()
+{
+}
+
+bool saxparser::startElement( const NameURI &i_nameURI,
+									const flat_map<NameURI,su::string_view> &i_attribs )
+{
+	return true;
+}
+
+bool saxparser::endElement( const NameURI &i_nameURI )
+{
+	return true;
+}
+
+bool saxparser::characters( const su::string_view &i_text )
+{
+	return true;
 }
 
 }

@@ -13,8 +13,8 @@
 #include "su_uuid.h"
 #include "su_platform.h"
 #include "cfauto.h"
-#include <cctype>
 #include <ciso646>
+#include <cctype>
 #if UPLATFORM_LINUX
 #include <uuid/uuid.h>
 #endif

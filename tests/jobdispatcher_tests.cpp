@@ -21,8 +21,8 @@
 #include "su_jobdispatcher.h"
 #include "su_job.h"
 #include "su_thread.h"
-#include <cassert>
 #include <ciso646>
+#include <cassert>
 
 class MyDispatcher;
 

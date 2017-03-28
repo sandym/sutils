@@ -13,8 +13,8 @@
 #ifndef H_SU_VERSION
 #define H_SU_VERSION
 
-#include <string>
 #include <ciso646>
+#include <string>
 #include "su_shim/string_view.h"
 
 namespace su
