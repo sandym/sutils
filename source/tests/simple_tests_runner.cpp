@@ -37,12 +37,14 @@ void checkTTYColourSupport()
 {
 #if !UPLATFORM_WIN
 	g_supportColour = isatty(1);
+#if !U_PLATFORM_LINUX
 	if ( g_supportColour )
 	{
 		auto n = ttyname(1);
 		if ( n and n[strlen(n)-1] != '1' )
 			g_supportColour = false;
 	}
+#endif
 #endif
 }
 
