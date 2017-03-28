@@ -77,7 +77,7 @@ struct convert_utf
 		
 		OUT s;
 		typename tt::output_char_type buf[512];
-		auto src = (const typename tt::input_char_type *)i_s.data();
+		auto src = reinterpret_cast<const typename tt::input_char_type *>( i_s.data() );
 		auto srcEnd = src + i_s.size();
 		typename tt::output_char_type *targetStart = buf;
 		while ( src < srcEnd )
@@ -86,7 +86,7 @@ struct convert_utf
 			auto result = tt::convert( &src, srcEnd, &targetStart, buf + 512, strictConversion );
 			if ( result == sourceIllegal or result == sourceExhausted )
 				break;
-			s.append( (const typename OUT::value_type *)buf, targetStart - buf );
+			s.append( reinterpret_cast<const typename OUT::value_type *>( buf ), targetStart - buf );
 			targetStart = buf;
 		}
 		return s;
@@ -97,7 +97,7 @@ struct convert_utf<IN,OUT,2,2>
 {
 	static inline OUT convert(const IN &i_s)
 	{
-		OUT s( (const OUT::value_type *)i_s.data(), i_s.size() );
+		OUT s( reinterpret_cast<const typename OUT::value_type *>( i_s.data() ), i_s.size() );
 		return s;
 	}
 };
