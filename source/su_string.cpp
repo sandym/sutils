@@ -92,6 +92,15 @@ struct convert_utf
 		return s;
 	}
 };
+template<typename IN, typename OUT>
+struct convert_utf<IN,OUT,2,2>
+{
+	static inline OUT convert(const IN &i_s)
+	{
+		OUT s( (const OUT::value_type *)i_s.data(), i_s.size() );
+		return s;
+	}
+};
 
 }
 

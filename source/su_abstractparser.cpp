@@ -13,6 +13,7 @@
 #include "su_abstractparser.h"
 #include "su_endian.h"
 #include "ConvertUTF.h"
+#include <cctype>
 
 namespace su
 {
