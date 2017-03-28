@@ -12,7 +12,7 @@
 
 #include "su_abstractparser.h"
 #include "su_endian.h"
-#include <codecvt>
+#include "ConvertUTF.h"
 
 namespace su
 {
@@ -161,15 +161,18 @@ char abstractparserbase::nextChar()
 		else
 			c16 = little_to_native<char16_t>( c16 );
 		
-		std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> conversion;
-		auto buf = conversion.to_bytes( c16 );
-		if ( buf.empty() )
+		auto sourceStart = (const UTF16 *)&c16;
+		auto sourceEnd = sourceStart + 1;
+		UTF8 buffer[6];
+		UTF8 *targetStart = buffer;
+		auto targetEnd = targetStart + 6;
+		if ( ConvertUTF16toUTF8( &sourceStart, sourceEnd, &targetStart, targetEnd, lenientConversion ) == sourceIllegal )
 			throw std::runtime_error( "invalid utf-16 file" );
 		
-		size_t nb = buf.size();
+		auto nb = targetStart - buffer;
 		while ( nb > 1 )
-			putBackChar( buf[--nb] );
-		c = buf[0];
+			putBackChar( buffer[--nb] );
+		c = buffer[0];
 	}
 	
 	return c;

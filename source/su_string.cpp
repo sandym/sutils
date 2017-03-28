@@ -13,68 +13,118 @@
 #include "su_string.h"
 #include "cfauto.h"
 #include "su_flat_map.h"
+#include "ConvertUTF.h"
 #include <stack>
-#include <locale>
 #include <cassert>
 #include <cstring>
 #include <cctype>
-#include <codecvt>
 #include <ciso646>
 
-namespace su
+namespace {
+
+template<int IN_SIZE,int OUT_SIZE>
+struct utf_type_traits;
+
+template<>
+struct utf_type_traits<4,1>
 {
+	using input_char_type = UTF32;
+	using output_char_type = UTF8;
+	constexpr static auto convert = ConvertUTF32toUTF8;
+};
+template<>
+struct utf_type_traits<2,1>
+{
+	using input_char_type = UTF16;
+	using output_char_type = UTF8;
+	constexpr static auto convert = ConvertUTF16toUTF8;
+};
+template<>
+struct utf_type_traits<1,4>
+{
+	using input_char_type = UTF8;
+	using output_char_type = UTF32;
+	constexpr static auto convert = ConvertUTF8toUTF32;
+};
+template<>
+struct utf_type_traits<2,4>
+{
+	using input_char_type = UTF16;
+	using output_char_type = UTF32;
+	constexpr static auto convert = ConvertUTF16toUTF32;
+};
+template<>
+struct utf_type_traits<1,2>
+{
+	using input_char_type = UTF8;
+	using output_char_type = UTF16;
+	constexpr static auto convert = ConvertUTF8toUTF16;
+};
+template<>
+struct utf_type_traits<4,2>
+{
+	using input_char_type = UTF32;
+	using output_char_type = UTF16;
+	constexpr static auto convert = ConvertUTF32toUTF16;
+};
+
+template<typename IN,typename OUT,int IN_SIZE=sizeof(typename IN::value_type),int OUT_SIZE=sizeof(typename OUT::value_type)>
+struct convert_utf
+{
+	static inline OUT convert( const IN &i_s )
+	{
+		using tt = utf_type_traits<IN_SIZE,OUT_SIZE>;
+		
+		OUT s;
+		typename tt::output_char_type buf[512];
+		auto src = (const typename tt::input_char_type *)i_s.data();
+		auto srcEnd = src + i_s.size();
+		typename tt::output_char_type *targetStart = buf;
+		while ( src < srcEnd )
+		{
+			// Convert a block. Just bail out if we get an error.
+			auto result = tt::convert( &src, srcEnd, &targetStart, buf + 512, strictConversion );
+			if ( result == sourceIllegal or result == sourceExhausted )
+				break;
+			s.append( (const typename OUT::value_type *)buf, targetStart - buf );
+			targetStart = buf;
+		}
+		return s;
+	}
+};
+
+}
+
+namespace su {
 
 std::string to_string( const std::wstring &s )
 {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> conv;
-    return conv.to_bytes( s );
+    return convert_utf<std::wstring,std::string>::convert( s );
 }
 
 std::string to_string( const std::u16string &s )
 {
-#if UPLATFORM_WIN
-	static_assert(sizeof(wchar_t) == sizeof(char16_t), "");
-	std::wstring w;
-	w.reserve(s.size());
-	for (auto it : s)
-		w.push_back(it);
-	return to_string( w );
-#else
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> conversion;
-    return conversion.to_bytes( s );
-#endif
+    return convert_utf<std::u16string,std::string>::convert( s );
 }
 
 std::wstring to_wstring( const su::string_view &s )
 {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> conv;
-    return conv.from_bytes( s.begin(), s.end() );
+    return convert_utf<su::string_view,std::wstring>::convert( s );
 }
 
 std::wstring to_wstring( const std::u16string &s )
 {
-	return to_wstring( to_string( s ) );
+    return convert_utf<std::u16string,std::wstring>::convert( s );
 }
 
 std::u16string to_u16string( const su::string_view &s )
 {
-#if UPLATFORM_WIN
-	static_assert(sizeof(wchar_t) == sizeof(char16_t), "");
-	auto w = to_wstring(s);
-	std::u16string s16;
-	s16.reserve(w.size());
-	for (auto it : w)
-		s16.push_back(it);
-	return s16;
-#else
-	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> conversion;
-    return conversion.from_bytes( s.begin(), s.end() );
-#endif
+    return convert_utf<su::string_view,std::u16string>::convert( s );
 }
 
 std::u16string to_u16string( const std::wstring &s )
 {
-	return to_u16string( to_string( s ) );
+    return convert_utf<std::wstring,std::u16string>::convert( s );
 }
 
 #if UPLATFORM_MAC || UPLATFORM_IOS
