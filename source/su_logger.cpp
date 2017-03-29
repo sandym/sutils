@@ -103,8 +103,8 @@ void logger_thread_data::dec()
 		// push kill message
 		std::unique_lock<su::spinlock> l( queueSpinLock );
 		logQueues[nullptr].push_back( su::LogEvent( -1, {} ) );
-		queueCond.notify_one();
 		l.unlock();
+		queueCond.notify_one();
 		
 		// and wait
 		t.join();
@@ -128,6 +128,7 @@ void logger_thread_data::push( su::LoggerBase *i_logger, su::LogEvent &&i_event 
 {
 	std::unique_lock<su::spinlock> l( queueSpinLock );
 	logQueues[i_logger].push_back( std::move(i_event) );
+	l.unlock();
 	queueCond.notify_one();
 }
 
@@ -141,13 +142,11 @@ void logger_thread_data::flush( su::LoggerBase *i_toRemove )
 			queueCond.wait( l );
 	}
 	l.unlock();
-	if ( i_toRemove != nullptr )
-	{
-		std::unique_lock<su::spinlock> l( queueSpinLock );
-		auto it = logQueues.find( i_toRemove );
-		if ( it != logQueues.end() )
-			logQueues.erase( it );
-	}
+
+	std::unique_lock<su::spinlock> sl( queueSpinLock );
+	auto it = logQueues.find( i_toRemove );
+	if ( it != logQueues.end() )
+		logQueues.erase( it );
 }
 
 void logger_thread_data::func()
@@ -207,27 +206,30 @@ LogEvent::LogEvent( int i_level, su::source_location &&i_sl )
 {
 }
 
-void LogEvent::ensure_capacity( size_t s )
+void LogEvent::ensure_extra_capacity( size_t extra )
 {
-	if ( s > _capacity )
+	auto currentSize = _ptr - _buffer;
+	auto newSize = currentSize + extra;
+	if ( newSize > _capacity )
 	{
-		auto newCap = std::max( s, _capacity * 2 );
+		auto newCap = std::max( newSize, _capacity * 2 );
 		auto newBuffer = new char[newCap];
-		memcpy( newBuffer, buffer(), _size );
+		memcpy( newBuffer, _buffer, currentSize );
 		_capacity = newCap;
 		_heapBuffer.reset( newBuffer );
+		_buffer = newBuffer;
+		_ptr = _buffer + currentSize;
 	}
 }
 
 template<typename T>
 void LogEvent::encode( const T &v )
 {
-	ensure_capacity( _size + 1 + sizeof( v ) );
-	auto buf = buffer();
-	*reinterpret_cast<LogEventType*>(buf+_size) = TypeToEnum<T>::value;
-	++_size;
-	*reinterpret_cast<T*>(buf+_size) = v;
-	_size += sizeof( v );
+	ensure_extra_capacity( 1 + sizeof( v ) );
+	*reinterpret_cast<LogEventType*>(_ptr) = TypeToEnum<T>::value;
+	++_ptr;
+	*reinterpret_cast<T*>(_ptr) = v;
+	_ptr += sizeof( v );
 }
 
 LogEvent &LogEvent::operator<<( bool v ) { encode( v ); return *this; }
@@ -245,22 +247,20 @@ LogEvent &LogEvent::operator<<( double v ) { encode( v ); return *this; }
 
 void LogEvent::encode_string_data( const char *i_data, size_t s )
 {
-	ensure_capacity( _size + sizeof( LogEventType ) + s + 1 );
-	auto buf = buffer();
-	*reinterpret_cast<LogEventType*>(buf+_size) = LogEventType::kStringData;
-	_size += sizeof( LogEventType );
-	memcpy( buf + _size, i_data, s + 1 );
-	_size += s + 1;
+	ensure_extra_capacity( sizeof( LogEventType ) + s + 1 );
+	*reinterpret_cast<LogEventType*>(_ptr) = LogEventType::kStringData;
+	_ptr += sizeof( LogEventType );
+	memcpy( _ptr, i_data, s + 1 );
+	_ptr += s + 1;
 }
 
 void LogEvent::encode_string_literal( const char *i_data )
 {
-	ensure_capacity( _size + sizeof( LogEventType ) + sizeof( const char * ) );
-	auto buf = buffer();
-	*reinterpret_cast<LogEventType*>(buf+_size) = LogEventType::kStringLiteral;
-	_size += sizeof( LogEventType );
-	*reinterpret_cast<const char **>(buf+_size) = i_data;
-	_size += sizeof( const char * );
+	ensure_extra_capacity( sizeof( LogEventType ) + sizeof( const char * ) );
+	*reinterpret_cast<LogEventType*>(_ptr) = LogEventType::kStringLiteral;
+	_ptr += sizeof( LogEventType );
+	*reinterpret_cast<const char **>(_ptr) = i_data;
+	_ptr += sizeof( const char * );
 }
 
 void LogEvent::dump( const std::string &i_ss, std::ostream &ostr ) const
@@ -331,8 +331,8 @@ void LogEvent::dump( const std::string &i_ss, std::ostream &ostr ) const
 	else
 		ostr << " ";
 	
-	auto ptr = buffer();
-	auto end = ptr + _size;
+	auto ptr = _buffer;
+	auto end = _ptr;
 	while ( ptr < end )
 	{
 		auto t = *reinterpret_cast<const LogEventType*>(ptr);
@@ -425,7 +425,6 @@ LoggerBase::~LoggerBase()
 		_ostr.flush();
 	}
 }
-
 
 bool LoggerBase::operator==( LogEvent &i_event )
 {
