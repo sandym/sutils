@@ -26,8 +26,7 @@ source_group( "sutils" FILES
 find_library( EXPAT_LIBRARY expat )
 if(EXPAT_LIBRARY)
 	target_link_libraries( sutils ${EXPAT_LIBRARY} )
-else()
-	add_definitions( -DSU_NO_EXPAT )
+	add_definitions( -DHAS_EXPAT )
 endif()
 
 find_package( Threads )
