@@ -25,6 +25,27 @@ public:
 	mempool() = default;
 	mempool( const mempool & ) = delete;
 	mempool &operator=( const mempool & ) = delete;
+	mempool( mempool &&rhs )
+	{
+		_head = std::exchange( rhs._head, nullptr );
+		_current = std::exchange( rhs._current, SIZE );
+	}
+	mempool &operator=( mempool &&rhs )
+	{
+		if ( this != &rhs )
+		{
+			while ( _head != nullptr )
+			{
+				auto ptr = _head;
+				_head = _head->next;
+				delete ptr;
+			}
+			
+			_head = std::exchange( rhs._head, nullptr );
+			_current = std::exchange( rhs._current, SIZE );
+		}
+		return *this;
+	}
 	
 	~mempool()
 	{
@@ -36,8 +57,8 @@ public:
 		}
 	}
 	
-	template<typename T>
-	std::enable_if_t<std::is_trivially_destructible<T>::value,T> *alloc()
+	template<typename T,typename... Args>
+	std::enable_if_t<std::is_trivially_destructible<T>::value,T*> alloc( Args... args )
 	{
 		// can't allocate element larger than SIZE
 		static_assert( sizeof(T) <= SIZE, "" );
@@ -53,7 +74,7 @@ public:
 			_head = newBlock;
 			_current = 0;
 		}
-		auto ptr = reinterpret_cast<T*>(_head->buffer + _current);
+		auto ptr = new (_head->buffer + _current) T( args... );
 		_current += sizeof(T);
 		return ptr;
 	}
