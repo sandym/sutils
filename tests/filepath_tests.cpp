@@ -115,7 +115,7 @@ void filepath_tests::test_case_4()
 	TEST_ASSERT( not fs.empty() );
 	TEST_ASSERT( not fs.exists() );
 	TEST_ASSERT_EQUAL( fs.name(), su::string_view("123_testing.ext") );
-	TEST_ASSERT_EQUAL( fs.name(false), su::string_view("123_testing") );
+	TEST_ASSERT_EQUAL( fs.stem(), su::string_view("123_testing") );
 	TEST_ASSERT_EQUAL( fs.extension(), su::string_view("ext") );
 	fs.setExtension( "pdf" );
 	TEST_ASSERT_EQUAL( fs.extension(), su::string_view("pdf") );

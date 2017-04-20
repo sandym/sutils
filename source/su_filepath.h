@@ -82,7 +82,8 @@ class filepath final
 
 	inline const std::string &path() const { return _path; }
 	
-	std::string name( bool i_withExtension = true ) const;
+	std::string name() const;
+	std::string stem() const;
 	std::string extension() const;
 	void setExtension( const su::string_view &i_ext );
 

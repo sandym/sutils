@@ -467,7 +467,7 @@ bool filepath::getBookmarkData( BookmarkData &o_data, const filepath *i_relative
 	return true;
 }
 
-std::string filepath::name( bool i_withExtension ) const
+std::string filepath::name() const
 {
 	su::string_view the_name;
 	if ( _path.size() > k_minimumAbsolutePathLength )
@@ -475,11 +475,19 @@ std::string filepath::name( bool i_withExtension ) const
 		auto pos = _path.find_last_of( k_separators );
 		the_name = su::string_view( _path ).substr( pos + 1 );
 	}
-	if ( not i_withExtension )
+	return the_name.to_string();
+}
+
+std::string filepath::stem() const
+{
+	su::string_view the_name;
+	if ( _path.size() > k_minimumAbsolutePathLength )
 	{
-		auto pos = the_name.find_last_of( '.' );
-		the_name = the_name.substr( 0, pos );
+		auto pos = _path.find_last_of( k_separators );
+		the_name = su::string_view( _path ).substr( pos + 1 );
 	}
+	auto pos = the_name.find_last_of( '.' );
+	the_name = the_name.substr( 0, pos );
 	return the_name.to_string();
 }
 
@@ -492,7 +500,7 @@ std::string filepath::extension() const
 
 void filepath::setExtension( const su::string_view &i_ext )
 {
-	auto filename = name( false );
+	auto filename = stem();
 	if ( not i_ext.empty() )
 	{
 		filename.append( 1, '.' );

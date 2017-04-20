@@ -34,7 +34,7 @@ logger_file::logger_file( std::ostream &i_sink, const filepath &i_path, bool i_t
 				auto ext = i_path.extension();
 				if ( not ext.empty() )
 					ext.insert( 0, "." );
-				auto newName = i_path.name( false );
+				auto newName = i_path.stem();
 				newName += "_";
 				struct tm gmtm;
 				char isoTime[32] = "";
