@@ -46,7 +46,7 @@ struct FormatArg
 	FormatArg( const su::string_view &v ) : _which( kString ), _string( v ){}
 
 	template<typename T,typename = std::enable_if_t<not std::is_base_of<std::string,T>::value>>
-	FormatArg( const T &v ) : _which( kOther ){ u._other = new any<T>( &v ); }
+	FormatArg( const T &v ) : _which( kOther ){ u._other = new any<T>( v ); }
 	FormatArg( FormatArg &&i_other ) noexcept : _which( i_other._which )
 	{
 		u = i_other.u;
@@ -63,47 +63,47 @@ struct FormatArg
 	// to deal with string and others
 	std::string to_string() const;
 	
-	private:
-		struct any_base
-		{
-			virtual ~any_base() = default;
-			virtual std::string to_string() const = 0;
-		};
-	
-		enum arg_type
-		{
-			kShort, kInt, kLong, kLongLong,
-			kUnsignedShort, kUnsignedInt, kUnsignedLong, kUnsignedLongLong,
-			kSize, kPtrDiff,
-			kDouble, kChar, kPtr, kString, kOther
-		} _which;
-		union
-		{
-			short _short;
-			int _int;
-			long _long;
-			long long _longlong;
-			unsigned short _unsignedshort;
-			unsigned int _unsignedint;
-			unsigned long _unsignedlong;
-			unsigned long long _unsignedlonglong;
-			size_t _size_t;
-			std::ptrdiff_t _ptrdiff_t;
-			double _double;
-			char _char;
-			const void *_ptr;
-			any_base *_other;
-		} u;
-		su::string_view _string;
-	
-		template<typename T>
-		struct any : public any_base
-		{
-			any( const T *i_value ) : value( i_value ){}
-			virtual ~any() = default;
-			virtual std::string to_string() const { return std::to_string( *value ); }
-			const T *value;
-		};
+private:
+	struct any_base
+	{
+		virtual ~any_base() = default;
+		virtual std::string to_string() const = 0;
+	};
+
+	enum arg_type
+	{
+		kShort, kInt, kLong, kLongLong,
+		kUnsignedShort, kUnsignedInt, kUnsignedLong, kUnsignedLongLong,
+		kSize, kPtrDiff,
+		kDouble, kChar, kPtr, kString, kOther
+	} _which;
+	union
+	{
+		short _short;
+		int _int;
+		long _long;
+		long long _longlong;
+		unsigned short _unsignedshort;
+		unsigned int _unsignedint;
+		unsigned long _unsignedlong;
+		unsigned long long _unsignedlonglong;
+		size_t _size_t;
+		std::ptrdiff_t _ptrdiff_t;
+		double _double;
+		char _char;
+		const void *_ptr;
+		any_base *_other;
+	} u;
+	su::string_view _string;
+
+	template<typename T>
+	struct any : public any_base
+	{
+		any( const T &i_value ) : value( i_value ){}
+		virtual ~any() = default;
+		virtual std::string to_string() const { using namespace std; return to_string( *value ); }
+		const T &value;
+	};
 };
 
 struct format_impl
@@ -112,12 +112,12 @@ struct format_impl
 
 	std::string result;
 	
-	private:
-		void appendFormattedArg( const su::details::FormatSpec &i_formatSpec, const su::details::FormatArg *i_args, size_t i_argsSize );
-		template<typename T>
-		void formatInteger( T i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec );
-		char *prepare_append_integer( int num_digits, int flags, int width, int prec, const char *prefix, int prefix_size );
-		void formatDouble( double i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec );
+private:
+	void appendFormattedArg( const su::details::FormatSpec &i_formatSpec, const su::details::FormatArg *i_args, size_t i_argsSize );
+	template<typename T>
+	void formatInteger( T i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec );
+	char *prepare_append_integer( int num_digits, int flags, int width, int prec, const char *prefix, int prefix_size );
+	void formatDouble( double i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec );
 };
 }
 

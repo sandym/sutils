@@ -85,20 +85,18 @@ class LogEvent final
 	const static int kInlineBufferSize = 128;
 	
 	// event serialisation
-	char _inlineBuffer[kInlineBufferSize];
-	std::unique_ptr<char []> _heapBuffer;
-	size_t _capacity = kInlineBufferSize;
-	size_t _size = 0;
+	char _inlineBuffer[kInlineBufferSize]; //!< initial buffer, stack allocated
+	char *_buffer = _inlineBuffer; //!< ptr to the buffer in use
+	char *_ptr = _buffer; //!< current position in the buffer
+	std::unique_ptr<char []> _heapBuffer; //!< if more space is needed, heap allocated
+	size_t _capacity = kInlineBufferSize; //!< current capacity
 	
-	void ensure_capacity( size_t s );
+	void ensure_extra_capacity( size_t extra );
 	
 	void encode_string_data( const char *i_data, size_t s );
 	void encode_string_literal( const char *i_data );
 	template<typename T>
 	void encode( const T &v );
-	
-	inline char *buffer() { return _capacity > kInlineBufferSize ? _heapBuffer.get() : _inlineBuffer; }
-	inline const char *buffer() const { return _capacity > kInlineBufferSize ? _heapBuffer.get() : _inlineBuffer; }
 	
 	// info
 	int _level;
