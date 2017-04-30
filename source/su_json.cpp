@@ -1448,14 +1448,8 @@ void dump( const std::string &value, std::string &out )
 enum tag_t
 {
 	kPtr = 0x80,
-	kDouble = 1,
-	kInt32 = 2,
-	kInt64 = 3,
-	
-	kNumberTypeMask = 0x03,
 };
 inline bool isPtr( uint8_t tag ) { return tag&kPtr; }
-inline int numberType( uint8_t tag ) { return tag&kNumberTypeMask; }
 
 template<typename T,int SIZE=sizeof(T)>
 struct num_traits
@@ -1465,13 +1459,13 @@ struct num_traits
 template<typename T>
 struct num_traits<T,4>
 {
-	enum { json_type = kInt32 };
+	static const uint8_t number_type = uint8_t(su::Json::NumberType::INTEGER);
 	inline static int32_t convert( T v ) { return static_cast<int32_t>( v ); }
 };
 template<typename T>
 struct num_traits<T,8>
 {
-	enum { json_type = kInt64 };
+	static const uint8_t number_type = uint8_t(su::Json::NumberType::INTEGER64);
 	inline static int64_t convert( T v ) { return static_cast<int64_t>( v ); }
 };
 
@@ -1571,19 +1565,19 @@ Json &Json::operator=( Json &&rhs ) noexcept
 /* * * * * * * * * * * * * * * * * * * *
  * Constructors
  */
-Json::Json( double value ) : _data( value ), _type( Type::NUMBER ), _tag( kDouble )
+Json::Json( double value ) : _data( value ), _type( Type::NUMBER ), _tag( uint8_t(Json::NumberType::DOUBLE) )
 {}
-Json::Json( int value ) : _data( num_traits<int>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<int>::json_type )
+Json::Json( int value ) : _data( num_traits<int>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<int>::number_type )
 {}
-Json::Json( unsigned int value ) : _data( num_traits<unsigned int>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned int>::json_type )
+Json::Json( unsigned int value ) : _data( num_traits<unsigned int>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned int>::number_type )
 {}
-Json::Json( long value ) : _data( num_traits<long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<long>::json_type )
+Json::Json( long value ) : _data( num_traits<long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<long>::number_type )
 {}
-Json::Json( unsigned long value ) : _data( num_traits<unsigned long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned long>::json_type )
+Json::Json( unsigned long value ) : _data( num_traits<unsigned long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned long>::number_type )
 {}
-Json::Json( long long value ) : _data( num_traits<long long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<long long>::json_type )
+Json::Json( long long value ) : _data( num_traits<long long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<long long>::number_type )
 {}
-Json::Json( unsigned long long value ) : _data( num_traits<unsigned long long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned long long>::json_type )
+Json::Json( unsigned long long value ) : _data( num_traits<unsigned long long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned long long>::number_type )
 {}
 Json::Json( bool value ) : _data( value ), _type( Type::BOOL )
 {}
@@ -1615,13 +1609,13 @@ double Json::number_value() const
 {
 	if ( type() == Type::NUMBER )
 	{
-		switch ( numberType( _tag ) )
+		switch ( number_type() )
 		{
-			case kDouble:
+			case Json::NumberType::DOUBLE:
 				return _data.d;
-			case kInt32:
+			case Json::NumberType::INTEGER:
 				return _data.i32;
-			case kInt64:
+			case Json::NumberType::INTEGER64:
 				return static_cast<double>( _data.i64 );
 			default: break;
 		}
@@ -1633,13 +1627,13 @@ int32_t Json::int_value() const
 {
 	if ( type() == Type::NUMBER )
 	{
-		switch ( numberType( _tag ) )
+		switch ( number_type() )
 		{
-			case kDouble:
+			case Json::NumberType::DOUBLE:
 				return static_cast<int32_t>(_data.d);
-			case kInt32:
+			case Json::NumberType::INTEGER:
 				return _data.i32;
-			case kInt64:
+			case Json::NumberType::INTEGER64:
 				return static_cast<int32_t>(_data.i64);
 			default: break;
 		}
@@ -1651,13 +1645,13 @@ int64_t Json::int64_value() const
 {
 	if ( type() == Type::NUMBER )
 	{
-		switch ( numberType( _tag ) )
+		switch ( number_type() )
 		{
-			case kDouble:
+			case Json::NumberType::DOUBLE:
 				return static_cast<int64_t>(_data.d);
-			case kInt32:
+			case Json::NumberType::INTEGER:
 				return _data.i32;
-			case kInt64:
+			case Json::NumberType::INTEGER64:
 				return _data.i64;
 			default: break;
 		}
@@ -1780,13 +1774,13 @@ std::string Json::to_string_value() const
 	switch ( type() )
 	{
 		case Type::NUMBER:
-			switch ( numberType( _tag ) )
+			switch ( number_type() )
 			{
-				case kDouble:
+				case Json::NumberType::DOUBLE:
 					return std::to_string( _data.d );
-				case kInt32:
+				case Json::NumberType::INTEGER:
 					return std::to_string( _data.i32 );
-				case kInt64:
+				case Json::NumberType::INTEGER64:
 					return std::to_string( _data.i64 );
 				default: assert( false ); break;
 			}
@@ -1841,18 +1835,18 @@ void Json::dump( std::string &output ) const
 				output.append( "false", 5 );
 			break;
 		case Type::NUMBER:
-			switch ( numberType( _tag ) )
+			switch ( number_type() )
 			{
-				case kDouble:
+				case Json::NumberType::DOUBLE:
 					if ( std::isfinite( _data.d ) )
 						output.append( buf, numtoa( _data.d, buf ) - buf );
 					else
 						output.append( "null", 4 );
 					break;
-				case kInt32:
+				case Json::NumberType::INTEGER:
 					output.append( buf, numtoa( _data.i32, buf ) - buf );
 					break;
-				case kInt64:
+				case Json::NumberType::INTEGER64:
 					output.append( buf, numtoa( _data.i64, buf ) - buf );
 					break;
 				default: assert( false ); break;
@@ -1907,32 +1901,32 @@ bool Json::operator==( const Json &rhs ) const
 			case Type::NUL:
 				return true;
 			case Type::NUMBER:
-				switch ( numberType( _tag ) )
+				switch ( number_type() )
 				{
-					case kDouble:
-						switch ( numberType( rhs._tag ) )
+					case Json::NumberType::DOUBLE:
+						switch ( rhs.number_type() )
 						{
-							case kDouble: return _data.d == rhs._data.d;
-							case kInt32: return _data.d == rhs._data.i32;
-							case kInt64: return _data.d == rhs._data.i64;
+							case Json::NumberType::DOUBLE: return _data.d == rhs._data.d;
+							case Json::NumberType::INTEGER: return _data.d == rhs._data.i32;
+							case Json::NumberType::INTEGER64: return _data.d == rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kInt32:
-						switch ( numberType( rhs._tag ) )
+					case Json::NumberType::INTEGER:
+						switch ( rhs.number_type() )
 						{
-							case kDouble: return _data.i32 == rhs._data.d;
-							case kInt32: return _data.i32 == rhs._data.i32;
-							case kInt64: return _data.i32 == rhs._data.i64;
+							case Json::NumberType::DOUBLE: return _data.i32 == rhs._data.d;
+							case Json::NumberType::INTEGER: return _data.i32 == rhs._data.i32;
+							case Json::NumberType::INTEGER64: return _data.i32 == rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kInt64:
-						switch ( numberType( rhs._tag ) )
+					case Json::NumberType::INTEGER64:
+						switch ( rhs.number_type() )
 						{
-							case kDouble: return _data.i64 == rhs._data.d;
-							case kInt32: return _data.i64 == rhs._data.i32;
-							case kInt64: return _data.i64 == rhs._data.i64;
+							case Json::NumberType::DOUBLE: return _data.i64 == rhs._data.d;
+							case Json::NumberType::INTEGER: return _data.i64 == rhs._data.i32;
+							case Json::NumberType::INTEGER64: return _data.i64 == rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
@@ -1961,32 +1955,32 @@ bool Json::operator<( const Json &rhs ) const
 			case Type::NUL:
 				return true;
 			case Type::NUMBER:
-				switch ( numberType( _tag ) )
+				switch ( number_type() )
 				{
-					case kDouble:
-						switch ( numberType( rhs._tag ) )
+					case Json::NumberType::DOUBLE:
+						switch ( rhs.number_type() )
 						{
-							case kDouble: return _data.d < rhs._data.d;
-							case kInt32: return _data.d < rhs._data.i32;
-							case kInt64: return _data.d < rhs._data.i64;
+							case Json::NumberType::DOUBLE: return _data.d < rhs._data.d;
+							case Json::NumberType::INTEGER: return _data.d < rhs._data.i32;
+							case Json::NumberType::INTEGER64: return _data.d < rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kInt32:
-						switch ( numberType( rhs._tag ) )
+					case Json::NumberType::INTEGER:
+						switch ( rhs.number_type() )
 						{
-							case kDouble: return _data.i32 < rhs._data.d;
-							case kInt32: return _data.i32 < rhs._data.i32;
-							case kInt64: return _data.i32 < rhs._data.i64;
+							case Json::NumberType::DOUBLE: return _data.i32 < rhs._data.d;
+							case Json::NumberType::INTEGER: return _data.i32 < rhs._data.i32;
+							case Json::NumberType::INTEGER64: return _data.i32 < rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
-					case kInt64:
-						switch ( numberType( rhs._tag ) )
+					case Json::NumberType::INTEGER64:
+						switch ( rhs.number_type() )
 						{
-							case kDouble: return _data.i64 < rhs._data.d;
-							case kInt32: return _data.i64 < rhs._data.i32;
-							case kInt64: return _data.i64 < rhs._data.i64;
+							case Json::NumberType::DOUBLE: return _data.i64 < rhs._data.d;
+							case Json::NumberType::INTEGER: return _data.i64 < rhs._data.i32;
+							case Json::NumberType::INTEGER64: return _data.i64 < rhs._data.i64;
 							default: assert( false ); break;
 						}
 						break;
