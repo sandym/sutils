@@ -1479,9 +1479,9 @@ struct JsonValue
 {
 	virtual ~JsonValue() = default;
 
-	size_t refCount{1};
-	inline void inc() { ++refCount; }
-	inline void dec()
+	mutable size_t refCount{1};
+	inline void inc() const { ++refCount; }
+	inline void dec() const
 	{
 		--refCount;
 		if ( refCount == 0 )

@@ -172,18 +172,18 @@ class Json final
   private:
 	union Storage
 	{
-		Storage() : all( 0 ){};
-		Storage( double v ) : all( 0 ) { d = v; };
-		Storage( int32_t v ) : all( 0 ) { i32 = v; };
-		Storage( int64_t v ) : all( 0 ) { i64 = v; };
-		Storage( bool v ) : all( 0 ) { b = v; };
-		Storage( details::JsonValue *v ) : all( 0 ) { p = v; };
+		Storage() : all( 0 ){}
+		Storage( double v ) : d( v ){}
+		Storage( int32_t v ) : i32( 0 ){}
+		Storage( int64_t v ) : i64( 0 ){}
+		Storage( bool v ) : b( 0 ){}
+		Storage( details::JsonValue *v ) : p( v ){}
 		uint64_t all;
-		int32_t i32;
-		int64_t i64;
-		double d;
-		bool b;
-		details::JsonValue *p; // ref counted
+		const int32_t i32;
+		const int64_t i64;
+		const double d;
+		const bool b;
+		const details::JsonValue * const p; // ref counted
 	} _data;
 	static_assert( sizeof( Storage ) == sizeof(uint64_t), "" );
 	Type _type{ Type::NUL };
