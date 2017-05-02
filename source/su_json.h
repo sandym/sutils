@@ -22,7 +22,7 @@ class Json final
 {
   public:
 	// Types
-	enum class Type : int8_t
+	enum class Type
 	{
 		NUL, BOOL, NUMBER, STRING, ARRAY, OBJECT
 	};
@@ -86,7 +86,7 @@ class Json final
 	bool is_array() const { return type() == Type::ARRAY; }
 	bool is_object() const { return type() == Type::OBJECT; }
 
-	enum class NumberType : int8_t { NOTANUMBER, INTEGER, INTEGER64, DOUBLE };
+	enum class NumberType { NOTANUMBER, INTEGER, INTEGER64, DOUBLE };
 	NumberType number_type() const { return _numberType; }
 	bool is_int() const { return number_type() == NumberType::INTEGER; }
 	bool is_int64() const { return number_type() == NumberType::INTEGER64; }
@@ -177,7 +177,7 @@ class Json final
 		Storage( int32_t v ) : i32( 0 ){}
 		Storage( int64_t v ) : i64( 0 ){}
 		Storage( bool v ) : b( 0 ){}
-		Storage( details::JsonValue *v ) : p( v ){}
+		Storage( const details::JsonValue * const v ) : p( v ){}
 		uint64_t all;
 		const int32_t i32;
 		const int64_t i64;
@@ -189,6 +189,7 @@ class Json final
 	Type _type{ Type::NUL };
 	NumberType _numberType{ NumberType::NOTANUMBER };
 };
+
 }
 
 #endif
