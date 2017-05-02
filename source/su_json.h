@@ -22,7 +22,7 @@ class Json final
 {
   public:
 	// Types
-	enum class Type : uint8_t
+	enum class Type : int8_t
 	{
 		NUL, BOOL, NUMBER, STRING, ARRAY, OBJECT
 	};
@@ -86,8 +86,8 @@ class Json final
 	bool is_array() const { return type() == Type::ARRAY; }
 	bool is_object() const { return type() == Type::OBJECT; }
 
-	enum class NumberType { INTEGER, INTEGER64, DOUBLE };
-	NumberType number_type() const { return NumberType(_tag&3); }
+	enum class NumberType : int8_t { NOTANUMBER, INTEGER, INTEGER64, DOUBLE };
+	NumberType number_type() const { return _numberType; }
 	bool is_int() const { return number_type() == NumberType::INTEGER; }
 	bool is_int64() const { return number_type() == NumberType::INTEGER64; }
 	bool is_double() const { return number_type() == NumberType::DOUBLE; }
@@ -183,11 +183,11 @@ class Json final
 		int64_t i64;
 		double d;
 		bool b;
-		details::JsonValue *p;
+		details::JsonValue *p; // ref counted
 	} _data;
 	static_assert( sizeof( Storage ) == sizeof(uint64_t), "" );
 	Type _type{ Type::NUL };
-	uint8_t _tag{0};
+	NumberType _numberType{ NumberType::NOTANUMBER };
 };
 }
 

@@ -1445,11 +1445,10 @@ void dump( const std::string &value, std::string &out )
 	out.append( 1, '"' );
 }
 
-enum tag_t
+inline bool isPtr( su::Json::Type type )
 {
-	kPtr = 0x80,
-};
-inline bool isPtr( uint8_t tag ) { return tag&kPtr; }
+	return type == su::Json::Type::STRING or type == su::Json::Type::ARRAY or type == su::Json::Type::OBJECT;
+}
 
 template<typename T,int SIZE=sizeof(T)>
 struct num_traits
@@ -1459,13 +1458,13 @@ struct num_traits
 template<typename T>
 struct num_traits<T,4>
 {
-	static const uint8_t number_type = uint8_t(su::Json::NumberType::INTEGER);
+	static const su::Json::NumberType number_type = su::Json::NumberType::INTEGER;
 	inline static int32_t convert( T v ) { return static_cast<int32_t>( v ); }
 };
 template<typename T>
 struct num_traits<T,8>
 {
-	static const uint8_t number_type = uint8_t(su::Json::NumberType::INTEGER64);
+	static const su::Json::NumberType number_type = su::Json::NumberType::INTEGER64;
 	inline static int64_t convert( T v ) { return static_cast<int64_t>( v ); }
 };
 
@@ -1513,16 +1512,16 @@ struct JsonObject : JsonValue
 
 Json::~Json()
 {
-	if ( isPtr( _tag ) )
+	if ( isPtr( _type ) )
 		_data.p->dec();
 }
 
 Json::Json( const Json &rhs ) noexcept
 {
 	_type = rhs._type;
-	_tag = rhs._tag;
+	_numberType = rhs._numberType;
 	_data.all = rhs._data.all;
-	if ( isPtr( _tag ) )
+	if ( isPtr( _type ) )
 		_data.p->inc();
 }
 
@@ -1530,12 +1529,12 @@ Json &Json::operator=( const Json &rhs ) noexcept
 {
 	if ( this != &rhs )
 	{
-		if ( isPtr( rhs._tag ) )
+		if ( isPtr( _type ) )
 			rhs._data.p->inc();
-		if ( isPtr( _tag ) )
+		if ( isPtr( _type ) )
 			_data.p->dec();
 		_type = rhs._type;
-		_tag = rhs._tag;
+		_numberType = rhs._numberType;
 		_data.all = rhs._data.all;
 	}
 	return *this;
@@ -1543,18 +1542,18 @@ Json &Json::operator=( const Json &rhs ) noexcept
 Json::Json( Json &&rhs ) noexcept
 {
 	_type = std::exchange( rhs._type, Type::NUL );
-	_tag = std::exchange( rhs._tag, 0 );
+	_numberType = std::exchange( rhs._numberType, NumberType::NOTANUMBER );
 	_data.all = std::exchange( rhs._data.all, 0 );
 }
 Json &Json::operator=( Json &&rhs ) noexcept
 {
 	if ( this != &rhs )
 	{
-		if ( _type != rhs._type or _tag != rhs._tag or _data.all != rhs._data.all )
+		if ( _type != rhs._type or _numberType != rhs._numberType or _data.all != rhs._data.all )
 		{
 			// different storage
 			std::swap( _type, rhs._type );
-			std::swap( _tag, rhs._tag );
+			std::swap( _numberType, rhs._numberType );
 			std::swap( _data.all, rhs._data.all );
 		}
 		rhs.clear();
@@ -1565,43 +1564,43 @@ Json &Json::operator=( Json &&rhs ) noexcept
 /* * * * * * * * * * * * * * * * * * * *
  * Constructors
  */
-Json::Json( double value ) : _data( value ), _type( Type::NUMBER ), _tag( uint8_t(Json::NumberType::DOUBLE) )
+Json::Json( double value ) : _data( value ), _type( Type::NUMBER ), _numberType( Json::NumberType::DOUBLE )
 {}
-Json::Json( int value ) : _data( num_traits<int>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<int>::number_type )
+Json::Json( int value ) : _data( num_traits<int>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<int>::number_type )
 {}
-Json::Json( unsigned int value ) : _data( num_traits<unsigned int>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned int>::number_type )
+Json::Json( unsigned int value ) : _data( num_traits<unsigned int>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<unsigned int>::number_type )
 {}
-Json::Json( long value ) : _data( num_traits<long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<long>::number_type )
+Json::Json( long value ) : _data( num_traits<long>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<long>::number_type )
 {}
-Json::Json( unsigned long value ) : _data( num_traits<unsigned long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned long>::number_type )
+Json::Json( unsigned long value ) : _data( num_traits<unsigned long>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<unsigned long>::number_type )
 {}
-Json::Json( long long value ) : _data( num_traits<long long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<long long>::number_type )
+Json::Json( long long value ) : _data( num_traits<long long>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<long long>::number_type )
 {}
-Json::Json( unsigned long long value ) : _data( num_traits<unsigned long long>::convert( value ) ), _type( Type::NUMBER ), _tag( num_traits<unsigned long long>::number_type )
+Json::Json( unsigned long long value ) : _data( num_traits<unsigned long long>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<unsigned long long>::number_type )
 {}
 Json::Json( bool value ) : _data( value ), _type( Type::BOOL )
 {}
-Json::Json( const std::string &value ) : _data( new details::JsonString( value ) ), _type( Type::STRING ), _tag( kPtr )
+Json::Json( const std::string &value ) : _data( new details::JsonString( value ) ), _type( Type::STRING )
 {}
-Json::Json( std::string &&value ) : _data( new details::JsonString( std::move( value ) ) ), _type( Type::STRING ), _tag( kPtr )
+Json::Json( std::string &&value ) : _data( new details::JsonString( std::move( value ) ) ), _type( Type::STRING )
 {}
-Json::Json( const char *value ) : _data( new details::JsonString( value ) ), _type( Type::STRING ), _tag( kPtr )
+Json::Json( const char *value ) : _data( new details::JsonString( value ) ), _type( Type::STRING )
 {}
-Json::Json( const Json::array &values ) : _data( new details::JsonArray( values ) ), _type( Type::ARRAY ), _tag( kPtr )
+Json::Json( const Json::array &values ) : _data( new details::JsonArray( values ) ), _type( Type::ARRAY )
 {}
-Json::Json( Json::array &&values ) : _data( new details::JsonArray( std::move( values ) ) ), _type( Type::ARRAY ), _tag( kPtr )
+Json::Json( Json::array &&values ) : _data( new details::JsonArray( std::move( values ) ) ), _type( Type::ARRAY )
 {}
-Json::Json( const Json::object &values ) : _data( new details::JsonObject( values ) ), _type( Type::OBJECT ), _tag( kPtr )
+Json::Json( const Json::object &values ) : _data( new details::JsonObject( values ) ), _type( Type::OBJECT )
 {}
-Json::Json( Json::object &&values ) : _data( new details::JsonObject( std::move( values ) ) ), _type( Type::OBJECT ), _tag( kPtr )
+Json::Json( Json::object &&values ) : _data( new details::JsonObject( std::move( values ) ) ), _type( Type::OBJECT )
 {}
 
 void Json::clear()
 {
-	if ( isPtr( _tag ) )
+	if ( isPtr( _type ) )
 		_data.p->dec();
 	_type = Type::NUL;
-	_tag = 0;
+	_numberType = NumberType::NOTANUMBER;
 	_data.all = 0;
 }
 
