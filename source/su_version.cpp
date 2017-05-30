@@ -104,7 +104,11 @@ std::string version::string() const
 	return std::to_string( _major ) + "." +
 			std::to_string( _minor ) + "." +
 			std::to_string( _patch ) + "." +
-			std::to_string( _buildNumber );
+			std::to_string( _buildNumber )
+#ifndef NDEBUG
+			+ "(debug)"
+#endif
+			;
 }
 
 std::string version::string_platform() const

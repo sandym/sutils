@@ -25,7 +25,7 @@ class version final
   public:
 	version() = default;
 	version( const su::string_view &i_version );
-	version( int i_major, int i_minor, int i_patch, int i_buildNumber );
+	version( int i_major, int i_minor = 0, int i_patch = 0, int i_buildNumber = 0 );
 
 	inline int major() const { return _major; }
 	inline int minor() const { return _minor; }
@@ -35,7 +35,7 @@ class version final
 	std::string revision() const;
 	std::string build_date() const;
 
-	std::string string() const;	//!<  major.minor.patch.buildNumber
+	std::string string() const;	//!<  major.minor.patch.buildNumber(data)
 	std::string string_platform() const;
 	std::string full() const;
 

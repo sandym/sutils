@@ -16,7 +16,7 @@ template<typename T>
 class optional
 {
 public:
-	optional() = default;
+	optional(){}
 	~optional() { reset(); }
 
 	optional( const optional &rhs )
