@@ -56,7 +56,7 @@ class stackarray final
 		}
 		else
 		{
-			_heapArray = std::move( i_other._heapArray );
+			_heapArray = std::move(i_other._heapArray);
 			_array = _heapArray.get();
 
 			i_other._array = i_other._stackArray;
@@ -81,7 +81,7 @@ class stackarray final
 			std::copy( i_other.data(), i_other.data() + size(), data() );
 		else
 		{
-			_heapArray = std::move( i_other._heapArray );
+			_heapArray = std::move(i_other._heapArray);
 			_array = _heapArray.get();
 
 			i_other._array = i_other._stackArray;

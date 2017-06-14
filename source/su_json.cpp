@@ -1492,20 +1492,20 @@ struct JsonValue
 struct JsonString : JsonValue
 {
 	std::string value;
-	JsonString( const std::string &value ) : value( value ) {}
-	JsonString( std::string &&value ) : value( std::move( value ) ) {}
+	JsonString( const std::string &i_value ) : value( i_value ) {}
+	JsonString( std::string &&i_value ) : value( std::move(i_value) ) {}
 };
 struct JsonArray : JsonValue
 {
 	Json::array value;
-	JsonArray( const Json::array &value ) : value( value ) {}
-	JsonArray( Json::array &&value ) : value( std::move( value ) ) {}
+	JsonArray( const Json::array &i_value ) : value( i_value ) {}
+	JsonArray( Json::array &&i_value ) : value( std::move(i_value) ) {}
 };
 struct JsonObject : JsonValue
 {
 	Json::object value;
-	JsonObject( const Json::object &value ) : value( value ) {}
-	JsonObject( Json::object &&value ) : value( std::move( value ) ) {}
+	JsonObject( const Json::object &i_value ) : value( i_value ) {}
+	JsonObject( Json::object &&i_value ) : value( std::move(i_value) ) {}
 };
 
 }
@@ -1529,7 +1529,7 @@ Json &Json::operator=( const Json &rhs ) noexcept
 {
 	if ( this != &rhs )
 	{
-		if ( isPtr( _type ) )
+		if ( isPtr( rhs._type ) )
 			rhs._data.p->inc();
 		if ( isPtr( _type ) )
 			_data.p->dec();
@@ -1564,35 +1564,35 @@ Json &Json::operator=( Json &&rhs ) noexcept
 /* * * * * * * * * * * * * * * * * * * *
  * Constructors
  */
-Json::Json( double value ) : _data( value ), _type( Type::NUMBER ), _numberType( Json::NumberType::DOUBLE )
+Json::Json( double i_value ) : _data( i_value ), _type( Type::NUMBER ), _numberType( Json::NumberType::DOUBLE )
 {}
-Json::Json( int value ) : _data( num_traits<int>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<int>::number_type )
+Json::Json( int i_value ) : _data( num_traits<int>::convert( i_value ) ), _type( Type::NUMBER ), _numberType( num_traits<int>::number_type )
 {}
-Json::Json( unsigned int value ) : _data( num_traits<unsigned int>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<unsigned int>::number_type )
+Json::Json( unsigned int i_value ) : _data( num_traits<unsigned int>::convert( i_value ) ), _type( Type::NUMBER ), _numberType( num_traits<unsigned int>::number_type )
 {}
-Json::Json( long value ) : _data( num_traits<long>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<long>::number_type )
+Json::Json( long i_value ) : _data( num_traits<long>::convert( i_value ) ), _type( Type::NUMBER ), _numberType( num_traits<long>::number_type )
 {}
-Json::Json( unsigned long value ) : _data( num_traits<unsigned long>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<unsigned long>::number_type )
+Json::Json( unsigned long i_value ) : _data( num_traits<unsigned long>::convert( i_value ) ), _type( Type::NUMBER ), _numberType( num_traits<unsigned long>::number_type )
 {}
-Json::Json( long long value ) : _data( num_traits<long long>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<long long>::number_type )
+Json::Json( long long i_value ) : _data( num_traits<long long>::convert( i_value ) ), _type( Type::NUMBER ), _numberType( num_traits<long long>::number_type )
 {}
-Json::Json( unsigned long long value ) : _data( num_traits<unsigned long long>::convert( value ) ), _type( Type::NUMBER ), _numberType( num_traits<unsigned long long>::number_type )
+Json::Json( unsigned long long i_value ) : _data( num_traits<unsigned long long>::convert( i_value ) ), _type( Type::NUMBER ), _numberType( num_traits<unsigned long long>::number_type )
 {}
-Json::Json( bool value ) : _data( value ), _type( Type::BOOL )
+Json::Json( bool i_value ) : _data( i_value ), _type( Type::BOOL )
 {}
-Json::Json( const std::string &value ) : _data( new details::JsonString( value ) ), _type( Type::STRING )
+Json::Json( const std::string &i_value ) : _data( new details::JsonString( i_value ) ), _type( Type::STRING )
 {}
-Json::Json( std::string &&value ) : _data( new details::JsonString( std::move( value ) ) ), _type( Type::STRING )
+Json::Json( std::string &&i_value ) : _data( new details::JsonString( std::move(i_value) ) ), _type( Type::STRING )
 {}
-Json::Json( const char *value ) : _data( new details::JsonString( value ) ), _type( Type::STRING )
+Json::Json( const char *i_value ) : _data( new details::JsonString( i_value ) ), _type( Type::STRING )
 {}
-Json::Json( const Json::array &values ) : _data( new details::JsonArray( values ) ), _type( Type::ARRAY )
+Json::Json( const Json::array &i_values ) : _data( new details::JsonArray( i_values ) ), _type( Type::ARRAY )
 {}
-Json::Json( Json::array &&values ) : _data( new details::JsonArray( std::move( values ) ) ), _type( Type::ARRAY )
+Json::Json( Json::array &&i_values ) : _data( new details::JsonArray( std::move(i_values) ) ), _type( Type::ARRAY )
 {}
-Json::Json( const Json::object &values ) : _data( new details::JsonObject( values ) ), _type( Type::OBJECT )
+Json::Json( const Json::object &i_values ) : _data( new details::JsonObject( i_values ) ), _type( Type::OBJECT )
 {}
-Json::Json( Json::object &&values ) : _data( new details::JsonObject( std::move( values ) ) ), _type( Type::OBJECT )
+Json::Json( Json::object &&i_values ) : _data( new details::JsonObject( std::move(i_values) ) ), _type( Type::OBJECT )
 {}
 
 void Json::clear()
@@ -2124,12 +2124,12 @@ struct JsonParser final
 		collect_object_data.reserve( 64 );
 	}
 
-	Json fail( std::string &&msg ) { return fail( std::move( msg ), Json() ); }
+	Json fail( std::string &&msg ) { return fail( std::move(msg), Json() ); }
 	template <typename T>
 	T fail( std::string &&msg, const T err_ret )
 	{
 		if ( !failed )
-			err = std::move( msg );
+			err = std::move(msg);
 		failed = true;
 		return err_ret;
 	}

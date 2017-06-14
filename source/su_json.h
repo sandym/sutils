@@ -174,9 +174,9 @@ class Json final
 	{
 		Storage() : all( 0 ){}
 		Storage( double v ) : d( v ){}
-		Storage( int32_t v ) : i32( 0 ){}
-		Storage( int64_t v ) : i64( 0 ){}
-		Storage( bool v ) : b( 0 ){}
+		Storage( int32_t v ) : i32( v ){}
+		Storage( int64_t v ) : i64( v ){}
+		Storage( bool v ) : b( v ){}
 		Storage( const details::JsonValue * const v ) : p( v ){}
 		uint64_t all;
 		const int32_t i32;
