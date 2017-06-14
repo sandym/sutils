@@ -30,6 +30,18 @@
 
 struct logger_tests
 {
+	const char *get_tmp_file() const
+	{
+#if UPLATFORM_WIN
+		static char tmpLog[MAX_PATH + 1];
+		TEST_ASSERT( GetTempPath(MAX_PATH, tmpLog) != 0 );
+		strcat(tmpLog, "sutils_tests.log");
+#else
+		const char *tmpLog = "/tmp/sutils_tests.log";
+#endif
+		return tmpLog;
+	}
+	
 	void test_case_1()
 	{
 		// redirect
@@ -66,16 +78,10 @@ struct logger_tests
 
 	void test_case_3()
 	{
-#if UPLATFORM_WIN
-		char tmpLog[MAX_PATH + 1];
-		TEST_ASSERT( GetTempPath(MAX_PATH, tmpLog) != 0 );
-		strcat(tmpLog, "sutils_tests.log");
-#else
-		const char *tmpLog = "/tmp/sutils_tests.log";
-#endif
+		auto tmpLog = get_tmp_file();
 
 		{
-			su::logger_file lf( tmpLog, false, su::logger_file::action::kPush );
+			su::logger_file lf( tmpLog, su::logger_file::Roll{}, false );
 
 			log_debug() << "test " << 1;
 			log_warn() << "test " << 3;
@@ -84,7 +90,7 @@ struct logger_tests
 		std::ifstream istr( tmpLog );
 		
 		if ( not istr )
-			TEST_FAIL( "cannot read /tmp/sutils_tests.log" );
+			TEST_FAIL( std::string("cannot read ") + tmpLog );
 		
 		std::string line;
 
@@ -107,10 +113,45 @@ struct logger_tests
 		TEST_ASSERT_NOT_EQUAL( res.find( "[test]" ), std::string::npos );
 		TEST_ASSERT_NOT_EQUAL( res.find( "[INFO]" ), std::string::npos );
 	}
+
+	void test_case_5()
+	{
+		auto tmpLog = get_tmp_file();
+		
+		std::ostringstream osstr;
+		su::Logger<> stringLogger( osstr );
+		log_debug(stringLogger) << "first!";
+		
+		{
+			su::logger_file lf( stringLogger, tmpLog, su::logger_file::Roll{}, true );
+
+			log_debug(stringLogger) << "test " << 1;
+			log_warn(stringLogger) << "test " << 3;
+		}
+		
+		std::ifstream istr( tmpLog );
+		
+		if ( not istr )
+			TEST_FAIL( std::string("cannot read ") + tmpLog );
+		
+		std::string line;
+
+		std::getline( istr, line );
+		TEST_ASSERT_NOT_EQUAL( line.find( "test 1" ), std::string::npos );
+		std::getline( istr, line );
+		TEST_ASSERT_NOT_EQUAL( line.find( "test 3" ), std::string::npos );
+		
+		// osstr should also contains the log
+		auto s = osstr.str();
+		TEST_ASSERT_NOT_EQUAL( s.find( "test 1" ), std::string::npos );
+		TEST_ASSERT_NOT_EQUAL( s.find( "test 3" ), std::string::npos );
+	}
+
 };
 
 REGISTER_TEST_SUITE( logger_tests,
 	TEST_CASE(logger_tests,test_case_1),
 	TEST_CASE(logger_tests,test_case_2),
 	TEST_CASE(logger_tests,test_case_3),
-	TEST_CASE(logger_tests,test_case_4) );
+	TEST_CASE(logger_tests,test_case_4),
+	TEST_CASE(logger_tests,test_case_5) );

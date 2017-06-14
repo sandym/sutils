@@ -69,6 +69,19 @@ private:
 
 typedef basic_teebuf<char> teebuf;
 
+template<typename char_type, typename traits = std::char_traits<char_type> >
+class basic_teestream : private basic_teebuf<char_type,traits>, public std::basic_ostream<char_type,traits>
+{
+public:
+	basic_teestream( std::basic_streambuf<char_type, traits> *sb1, std::basic_streambuf<char_type, traits> *sb2 )
+		: basic_teebuf<char_type,traits>( sb1, sb2 ),
+			std::basic_ostream<char_type,traits>( this )
+	{
+	}
+};
+
+typedef basic_teestream<char> teestream;
+
 }
 
 #endif

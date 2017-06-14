@@ -70,18 +70,18 @@ struct source_location
 	source_location(const char *i_file, int i_line, const char *i_func)
 		: _file(i_file), _line(i_line), _func(i_func) {}
 
-    const char *_file = nullptr;
-    int _line = -1;
-    const char *_func = nullptr;
-    
-    inline const char *function_name() const { return _func; }
-    inline const char *file_name() const { return _file; }
-    inline int line() const { return _line; }
+	const char *_file = nullptr;
+	int _line = -1;
+	const char *_func = nullptr;
+
+	inline const char *function_name() const { return _func; }
+	inline const char *file_name() const { return _file; }
+	inline int line() const { return _line; }
 };
 
-class LogEvent final
+class log_event final
 {
-  private:
+private:
 	const static int kInlineBufferSize = 128;
 	
 	// event serialisation
@@ -102,85 +102,107 @@ class LogEvent final
 	int _level;
 	source_location _sl;
 	std::thread::id _threadID;
-	uint64_t _time;
+	uint64_t _timestamp;
 	
-  public:
-	LogEvent( const LogEvent & ) = delete;
-	LogEvent &operator=( const LogEvent & ) = delete;
+public:
+	log_event( const log_event & ) = delete;
+	log_event &operator=( const log_event & ) = delete;
 
-	LogEvent( LogEvent &&lhs ) = default;
-	LogEvent &operator=( LogEvent &&lhs ) = default;
+	log_event( log_event &&lhs ) = default;
+	log_event &operator=( log_event &&lhs ) = default;
 	
-	LogEvent( int i_level );
-	LogEvent( int i_level, su::source_location &&i_sl );
+	log_event( int i_level );
+	log_event( int i_level, su::source_location &&i_sl );
 
-	LogEvent &operator<<( bool v );
-	LogEvent &operator<<( char v );
-	LogEvent &operator<<( unsigned char v );
-	LogEvent &operator<<( short v );
-	LogEvent &operator<<( unsigned short v );
-	LogEvent &operator<<( int v );
-	LogEvent &operator<<( unsigned int v );
-	LogEvent &operator<<( long v );
-	LogEvent &operator<<( unsigned long v );
-	LogEvent &operator<<( long long v );
-	LogEvent &operator<<( unsigned long long v );
-	LogEvent &operator<<( double v );
+	log_event &operator<<( bool v );
+	log_event &operator<<( char v );
+	log_event &operator<<( unsigned char v );
+	log_event &operator<<( short v );
+	log_event &operator<<( unsigned short v );
+	log_event &operator<<( int v );
+	log_event &operator<<( unsigned int v );
+	log_event &operator<<( long v );
+	log_event &operator<<( unsigned long v );
+	log_event &operator<<( long long v );
+	log_event &operator<<( unsigned long long v );
+	log_event &operator<<( double v );
 
-	inline LogEvent &operator<<( const std::string &v )
+	inline log_event &operator<<( const std::string &v )
 	{
 		encode_string_data( v.c_str(), v.size() );
 		return *this;
 	}
 
 	template<size_t N>
-	LogEvent &operator<<( const char (&v)[N] )
+	log_event &operator<<( const char (&v)[N] )
 	{
 		encode_string_literal( v );
 		return *this;
 	}
 	
 	template<typename T>
-	inline typename std::enable_if<std::is_same<T,const char *>::value,LogEvent &>::type
+	inline typename std::enable_if<std::is_same<T,const char *>::value,log_event &>::type
 	operator<<( const T &v )
 	{
 		encode_string_data( v, strlen( v ) );
 		return *this;
 	}
 	template<typename T>
-	inline typename std::enable_if<std::is_same<T,char *>::value,LogEvent &>::type
+	inline typename std::enable_if<std::is_same<T,char *>::value,log_event &>::type
 	operator<<( const T &v )
 	{
 		encode_string_data( v, strlen( v ) );
 		return *this;
 	}
 	
-	void dump( const std::string &i_ss, std::ostream &ostr ) const;
+	int level() const { return _level; }
+	uint64_t timestamp() const { return _timestamp; }
+	std::thread::id threadID() const { return _threadID; }
+	const source_location &sl() const { return _sl; }
+	
+	std::string message() const;
+	std::ostream &message( std::ostream &ostr ) const;
 };
 
-class LoggerBase
+struct logger_output
 {
-  protected:
-	LoggerBase( std::ostream &ostr, const std::string &i_subsystem );
-	virtual ~LoggerBase();
+	logger_output( std::ostream &s ) : ostr(s){}
+	virtual ~logger_output() = default;
+	
+	std::ostream &ostr;
+	virtual void flush();
+};
 
-	std::ostream &_ostr;
+class logger_base
+{
+protected:
+	logger_base( std::unique_ptr<logger_output> &&i_output, const std::string &i_subsystem );
+	virtual ~logger_base();
+
+	std::unique_ptr<logger_output> _output;
 	std::string _subsystem;
 	
-  public:
-	inline std::ostream &ostr() const { return _ostr; }
+public:
+	logger_base( const logger_base & ) = delete;
+	logger_base &operator=( const logger_base & ) = delete;
+
+	std::unique_ptr<logger_output> exchangeOutput( std::unique_ptr<logger_output> &&i_output );
+
+	inline logger_output *output() const { return _output.get(); }
 	inline const std::string &subsystem() const { return _subsystem; }
 
-	bool operator==( LogEvent &i_event );
+	// don't call those directly.
+	bool operator==( log_event &i_event );
+	void dump( const log_event &i_event );
 };
 
 template <int COMPILETIME_LOG_MASK=kCOMPILETIME_LOG_MASK>
-class Logger final : public LoggerBase
+class Logger final : public logger_base
 {
-  public:
-	Logger( std::ostream &ostr, const std::string &i_ss = std::string() ) : LoggerBase( ostr, i_ss ){}
-	Logger( const Logger & ) = delete;
-	Logger &operator=( const Logger & ) = delete;
+public:
+	Logger( const std::string &i_ss = {} ) : logger_base( {}, i_ss ){}
+	Logger( std::unique_ptr<logger_output> &&i_output, const std::string &i_ss = {} ) : logger_base( std::move(i_output), i_ss ){}
+	Logger( std::ostream &ostr, const std::string &i_ss = {} ) : logger_base( std::make_unique<logger_output>(ostr), i_ss ){}
 	
 	int getLogMask() const { return _runtimeLogMask; }
 	void setLogMask( int l ) { _runtimeLogMask = l & COMPILETIME_LOG_MASK; }
@@ -188,7 +210,7 @@ class Logger final : public LoggerBase
 	template<int LEVEL>
 	inline bool shouldLog() const { return (COMPILETIME_LOG_MASK&LEVEL) != 0 and (_runtimeLogMask&LEVEL) != 0; }
 
-  private:
+private:
 	int _runtimeLogMask = COMPILETIME_LOG_MASK;
 };
 
@@ -198,16 +220,16 @@ always_inline_func su::Logger<kCOMPILETIME_LOG_MASK> &GET_LOGGER() { return su::
 template<int L>
 always_inline_func su::Logger<L> &GET_LOGGER( su::Logger<L> &i_logger ) { return i_logger; }
 
-#define log_fault(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kFAULT>() and su::GET_LOGGER(__VA_ARGS__) == su::LogEvent( su::kFAULT, {__FILE__,__LINE__,__FUNCTION__})
-#define log_error(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kERROR>() and su::GET_LOGGER(__VA_ARGS__) == su::LogEvent( su::kERROR, {__FILE__,__LINE__,__FUNCTION__})
-#define log_warn(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kWARN>() and su::GET_LOGGER(__VA_ARGS__) == su::LogEvent( su::kWARN, {__FILE__,__LINE__,__FUNCTION__})
-#define log_info(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kINFO>() and su::GET_LOGGER(__VA_ARGS__) == su::LogEvent( su::kINFO, {__FILE__,__LINE__,__FUNCTION__})
-#define log_debug(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kDEBUG>() and su::GET_LOGGER(__VA_ARGS__) == su::LogEvent( su::kDEBUG, {__FILE__,__LINE__,__FUNCTION__})
-#define log_trace(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kTRACE>() and su::GET_LOGGER(__VA_ARGS__) == su::LogEvent( su::kTRACE, {__FILE__,__LINE__,__FUNCTION__})
+#define log_fault(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kFAULT>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kFAULT, {__FILE__,__LINE__,__FUNCTION__})
+#define log_error(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kERROR>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kERROR, {__FILE__,__LINE__,__FUNCTION__})
+#define log_warn(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kWARN>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kWARN, {__FILE__,__LINE__,__FUNCTION__})
+#define log_info(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kINFO>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kINFO, {__FILE__,__LINE__,__FUNCTION__})
+#define log_debug(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kDEBUG>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kDEBUG, {__FILE__,__LINE__,__FUNCTION__})
+#define log_trace(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kTRACE>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kTRACE, {__FILE__,__LINE__,__FUNCTION__})
 
 class logger_thread final
 {
-  public:
+public:
 	logger_thread( const logger_thread & ) = delete;
 	logger_thread &operator=( const logger_thread & ) = delete;
 	
