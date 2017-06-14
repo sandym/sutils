@@ -426,7 +426,7 @@ bool filepath::getBookmarkData( BookmarkData &o_data, const filepath *i_relative
 				the_path += "../";
 			for ( auto it = mismatchPoint.second; it != pathComp.end(); ++it )
 			{
-				the_path += it->to_string();
+				the_path += *it;
 				the_path.append( 1, '/' );
 			}
 			while ( the_path.length() > k_minimumAbsolutePathLength and isSeparator( the_path[the_path.length()-1] ) )
@@ -475,7 +475,7 @@ std::string filepath::name() const
 		auto pos = _path.find_last_of( k_separators );
 		the_name = su::string_view( _path ).substr( pos + 1 );
 	}
-	return the_name.to_string();
+	return the_name;
 }
 
 std::string filepath::stem() const
@@ -488,7 +488,7 @@ std::string filepath::stem() const
 	}
 	auto pos = the_name.find_last_of( '.' );
 	the_name = the_name.substr( 0, pos );
-	return the_name.to_string();
+	return the_name;
 }
 
 std::string filepath::extension() const
@@ -694,7 +694,7 @@ bool filepath::add( const su::string_view &i_name )
 				return false;
 			if ( not isSeparator( fspec._path[fspec._path.length() - 1] ) )
 				fspec._path.append( 1, '/' );
-			fspec._path.append( it.to_string() );
+			fspec._path.append( it );
 		}
 	}
 	*this = std::move(fspec);

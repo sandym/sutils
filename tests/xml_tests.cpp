@@ -59,7 +59,7 @@ class MyParser : public su::saxparser
 				s.remove_suffix( 1 );
 			
 			if ( not s.empty() )
-				_characters.push_back( s.to_string() );
+				_characters.push_back( s );
 			return true;
 		}
 	
@@ -71,16 +71,16 @@ class MyParser : public su::saxparser
 			Elem( const su::string_view &i_localname,
 					const su::string_view &i_URI,
 					const su::flat_map<su::NameURI,su::string_view> &i_attribs )
-				: localname( i_localname.to_string() ),
-					URI( i_URI.to_string() )
+				: localname( i_localname ),
+					URI( i_URI )
 			{
 				for ( auto &it : i_attribs )
-					attribs[std::make_pair(it.first.name.to_string(),it.first.URI.to_string())] = it.second.to_string();
+					attribs[std::make_pair(it.first.name,it.first.URI)] = it.second;
 			}
 			Elem( const su::string_view &i_localname,
 					const su::string_view &i_URI )
-				: localname( i_localname.to_string() ),
-					URI( i_URI.to_string() )
+				: localname( i_localname ),
+					URI( i_URI )
 			{}
 			
 			std::string localname;

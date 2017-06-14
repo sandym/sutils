@@ -9,7 +9,7 @@ namespace su
 class bad_optional_access : std::exception
 {
 public:
-	virtual const char *what() const noexcept;
+	virtual const char *what() const noexcept { return "bad_optional_access"; }
 };
 
 template<typename T>

@@ -116,7 +116,7 @@ std::vector<std::basic_string<CHAR_TYPE>> split( const su::basic_string_view<CHA
 	std::vector<std::basic_string<CHAR_TYPE>> res;
 	res.reserve( viewList.size() );
 	for ( auto it : viewList )
-		res.push_back( it.to_string() );
+		res.push_back( it );
 	return res;
 }
 
@@ -146,7 +146,7 @@ std::vector<std::basic_string<CHAR_TYPE>> split_if( const su::basic_string_view<
 	std::vector<std::basic_string<CHAR_TYPE>> res;
 	res.reserve( viewList.size() );
 	for ( auto it : viewList )
-		res.push_back( it.to_string() );
+		res.push_back( it );
 	return res;
 }
 
@@ -200,7 +200,7 @@ STRING_TYPE join( const CONT &i_list, const STRING_TYPE &i_sep )
    @brief Remove spaces at the begining and end of the string.
 */
 su::string_view trimSpaces_view( const su::string_view &i_s );
-inline std::string trimSpaces( const su::string_view &i_s ) { return trimSpaces_view( i_s ).to_string(); }
+inline std::string trimSpaces( const su::string_view &i_s ) { return trimSpaces_view( i_s ); }
 
 inline bool contains( const su::string_view &i_text, const su::string_view &i_s )
 {

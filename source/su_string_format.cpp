@@ -229,7 +229,7 @@ std::string FormatArg::to_string() const
 		case kDouble: return std::to_string( u._double );
 		case kChar: return std::string( 1, u._char );
 		case kPtr: return std::string( "xx" );
-		case kString: return _string.to_string();
+		case kString: return _string;
 		case kOther: return u._other->to_string();
 		default:
 			break;

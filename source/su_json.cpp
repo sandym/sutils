@@ -2323,14 +2323,14 @@ struct JsonParser final
 				// accessing str[length]. Checking here reduces brittleness.
 				if ( esc.length() < 4 )
 				{
-					fail( "bad \\u escape: " + esc.to_string() );
+					fail( "bad \\u escape: " + std::string(esc) );
 					return;
 				}
 				for ( int j = 0; j < 4; j++ )
 				{
 					if ( !in_range( esc[j], 'a', 'f' ) && !in_range( esc[j], 'A', 'F' ) && !in_range( esc[j], '0', '9' ) )
 					{
-						fail( "bad \\u escape: " + esc.to_string() );
+						fail( "bad \\u escape: " + std::string(esc) );
 						return;
 					}
 				}
@@ -2676,7 +2676,7 @@ struct JsonParser final
 		}
 		else
 		{
-			return fail( "parse error: expected " + expected.to_string() + ", got " + tmp.to_string() );
+			return fail( "parse error: expected " + std::string(expected) + ", got " + std::string(tmp) );
 		}
 	}
 

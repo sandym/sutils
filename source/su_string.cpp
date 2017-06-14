@@ -157,7 +157,7 @@ CFStringRef CreateCFString( const su::string_view &s )
 
 std::string tolower( const su::string_view &s )
 {
-	std::string other( s.to_string() );
+	std::string other( s );
 	for ( auto &it : other )
 	{
 		if ( it < 126 )
@@ -168,7 +168,7 @@ std::string tolower( const su::string_view &s )
 
 std::string toupper( const su::string_view &s )
 {
-	std::string other( s.to_string() );
+	std::string other( s );
 	for ( auto &it : other )
 	{
 		if ( it < 126 )

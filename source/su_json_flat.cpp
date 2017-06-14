@@ -3,6 +3,7 @@
 #include "su_endian.h"
 #include "su_logger.h"
 #include "su_stackarray.h"
+#include <iostream>
 #include <cassert>
 
 namespace {
@@ -285,16 +286,16 @@ su::optional<uint8_t> homogeneousType( const su::Json::array &i_array )
 	for ( auto &it : i_array )
 	{
 		if ( type != encoding_type( it ) )
-			return false;
+			return {};
 	}
-	return true;
+	return type;
 }
 
 void flattener::flatten( const su::Json &i_json )
 {
 	uint8_t type = encoding_type( i_json);
 	/* type:
-		type&0x7, the first 3 bits is always the type of the entry
+		type&0x7, the first 3 bits are always the type of the entry
 			BOOL:
 				type&0x80, the last bit is the value
 			NUMBER:
@@ -398,7 +399,7 @@ void flattener::flatten( const su::Json &i_json )
 				if ( hType )
 				{
 					type |= 0x40;
-					type |= (hType<<3);
+					type |= (*hType<<3);
 					flatten_value<uint8_t>( type );
 					flatten_value<size_t>( a.size() );
 					for ( auto &it : a )
