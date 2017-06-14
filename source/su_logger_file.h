@@ -14,7 +14,7 @@
 #define H_ULOGGER_FILE
 
 #include "su_logger.h"
-#include <memory>
+#include <fstream>
 
 namespace su {
 
@@ -29,23 +29,27 @@ public:
 	struct RollDaily {};
 	struct RollOnSize { int bytes = 10 * 1024 * 1024; };
 
-	logger_file( logger_base &i_logger, const filepath &i_path, const Append &, bool i_tee = true );
-	logger_file( logger_base &i_logger, const filepath &i_path, const Overwrite &, bool i_tee = true );
-	logger_file( logger_base &i_logger, const filepath &i_path, const Roll &, bool i_tee = true );
-	logger_file( logger_base &i_logger, const filepath &i_path, const RollDaily &, bool i_tee = true );
-	logger_file( logger_base &i_logger, const filepath &i_path, const RollOnSize &, bool i_tee = true );
+	logger_file( logger_base &i_logger, const filepath &i_path, const Append &, bool i_tee );
+	logger_file( logger_base &i_logger, const filepath &i_path, const Overwrite &, bool i_tee );
+	logger_file( logger_base &i_logger, const filepath &i_path, const Roll &, bool i_tee );
+	logger_file( logger_base &i_logger, const filepath &i_path, const RollDaily &, bool i_tee );
+	logger_file( logger_base &i_logger, const filepath &i_path, const RollOnSize &, bool i_tee );
 
-	// redirect the default logger to a file
 	template<typename ACTION>
-	logger_file( const filepath &i_path, const ACTION &i_action, bool i_tee = true )
+	logger_file( const filepath &i_path, const ACTION &i_action, bool i_tee )
 		: logger_file( su::logger, i_path, i_action, i_tee )
 	{}
-
+	
 	~logger_file();
 	
 private:
+	std::ofstream _fstr;
 	logger_base &_logger;
-	std::unique_ptr<logger_output> _saveOutput;
+	std::unique_ptr<logger_output> _save;
+	
+	void setStream( bool i_tee );
+	void setStreamRollDaily( const filepath &i_path, bool i_tee );
+	void setStreamRollOnSize( const filepath &i_path, bool i_tee, int i_bytes );
 };
 
 }

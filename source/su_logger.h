@@ -201,8 +201,10 @@ class Logger final : public logger_base
 {
 public:
 	Logger( const std::string &i_ss = {} ) : logger_base( {}, i_ss ){}
-	Logger( std::unique_ptr<logger_output> &&i_output, const std::string &i_ss = {} ) : logger_base( std::move(i_output), i_ss ){}
-	Logger( std::ostream &ostr, const std::string &i_ss = {} ) : logger_base( std::make_unique<logger_output>(ostr), i_ss ){}
+	Logger( std::unique_ptr<logger_output> &&i_output, const std::string &i_ss = {} )
+		: logger_base( std::move(i_output), i_ss ){}
+	Logger( std::ostream &ostr, const std::string &i_ss = {} )
+		: logger_base( std::make_unique<logger_output>(ostr), i_ss ){}
 	
 	int getLogMask() const { return _runtimeLogMask; }
 	void setLogMask( int l ) { _runtimeLogMask = l & COMPILETIME_LOG_MASK; }

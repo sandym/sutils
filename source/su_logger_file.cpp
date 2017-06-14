@@ -14,6 +14,7 @@
 #include "su_filepath.h"
 #include "su_teebuf.h"
 #include <cassert>
+#include <chrono>
 
 namespace {
 
@@ -51,103 +52,6 @@ void roll( const su::filepath &i_path )
 	}
 }
 
-struct file_logger_output : public su::logger_output
-{
-	file_logger_output( const su::filepath &i_path,
-						std::ios_base::openmode i_mode = std::ios_base::out | std::ios_base::trunc |
-															std::ios_base::binary )
-		: su::logger_output( fstr )
-	{
-		i_path.fsopen( fstr, i_mode );
-	}
-	
-	std::ofstream fstr;
-};
-
-struct file_logger_output_roll_daily : public file_logger_output
-{
-	file_logger_output_roll_daily( const su::filepath &i_path,
-						std::ios_base::openmode i_mode = std::ios_base::out | std::ios_base::trunc |
-															std::ios_base::binary )
-		: file_logger_output( i_path, i_mode )
-	{}
-
-	virtual void flush()
-	{
-		su::logger_output::flush();
-		assert( false );
-	}
-};
-
-struct file_logger_output_roll_on_size : public file_logger_output
-{
-	file_logger_output_roll_on_size( int i_bytes, const su::filepath &i_path,
-						std::ios_base::openmode i_mode = std::ios_base::out | std::ios_base::trunc |
-															std::ios_base::binary )
-		: file_logger_output( i_path, i_mode )
-	{}
-
-	virtual void flush()
-	{
-		su::logger_output::flush();
-		assert( false );
-	}
-};
-
-struct tee_file_logger_output : public su::logger_output
-{
-	tee_file_logger_output( std::ostream &other,
-							const su::filepath &i_path,
-							std::ios_base::openmode i_mode = std::ios_base::out | std::ios_base::trunc |
-																std::ios_base::binary )
-		: su::logger_output( fstr ), _tee( other.rdbuf(), fstr.rdbuf() )
-	{
-		i_path.fsopen( fstr, i_mode );
-		_save = ostr.rdbuf( &_tee );
-	}
-	~tee_file_logger_output()
-	{
-		ostr.rdbuf( _save );
-	}
-	
-	std::ofstream fstr;
-	su::teebuf _tee;
-	std::streambuf *_save = nullptr;
-};
-
-struct tee_file_logger_output_roll_daily : public tee_file_logger_output
-{
-	tee_file_logger_output_roll_daily( std::ostream &other,
-							const su::filepath &i_path,
-							std::ios_base::openmode i_mode = std::ios_base::out | std::ios_base::trunc |
-																std::ios_base::binary )
-		: tee_file_logger_output( other, i_path, i_mode )
-	{}
-	
-	virtual void flush()
-	{
-		su::logger_output::flush();
-		assert( false );
-	}
-};
-
-struct tee_file_logger_output_roll_on_size : public tee_file_logger_output
-{
-	tee_file_logger_output_roll_on_size( int i_bytes, std::ostream &other,
-							const su::filepath &i_path,
-							std::ios_base::openmode i_mode = std::ios_base::out | std::ios_base::trunc |
-																std::ios_base::binary )
-		: tee_file_logger_output( other, i_path, i_mode )
-	{}
-	
-	virtual void flush()
-	{
-		su::logger_output::flush();
-		assert( false );
-	}
-};
-
-
 }
 
 namespace su {
@@ -155,88 +59,213 @@ namespace su {
 logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const Append &, bool i_tee )
 	: _logger( i_logger )
 {
-	std::unique_ptr<logger_output> lo;
-	if ( i_tee and _logger.output() != nullptr )
-	{
-		lo = std::make_unique<tee_file_logger_output>( _logger.output()->ostr, i_path, std::ios::app );
-	}
-	else
-	{
-		lo = std::make_unique<file_logger_output>( i_path, std::ios::app );
-	}
-	_saveOutput = _logger.exchangeOutput( std::move(lo) );
+	i_path.fsopen( _fstr, std::ios::app );
+	setStream( i_tee );
 }
 
 logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const Overwrite &, bool i_tee )
 	: _logger( i_logger )
 {
-	std::unique_ptr<logger_output> lo;
-	if ( i_tee and _logger.output() != nullptr )
-	{
-		lo = std::make_unique<tee_file_logger_output>( _logger.output()->ostr, i_path );
-	}
-	else
-	{
-		lo = std::make_unique<file_logger_output>( i_path );
-	}
-	_saveOutput = _logger.exchangeOutput( std::move(lo) );
+	i_path.fsopen( _fstr );
+	setStream( i_tee );
 }
 
 logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const Roll &, bool i_tee )
 	: _logger( i_logger )
 {
 	roll( i_path );
-	
-	std::unique_ptr<logger_output> lo;
-	if ( i_tee and _logger.output() != nullptr )
-	{
-		lo = std::make_unique<tee_file_logger_output>( _logger.output()->ostr, i_path );
-	}
-	else
-	{
-		lo = std::make_unique<file_logger_output>( i_path );
-	}
-	_saveOutput = _logger.exchangeOutput( std::move(lo) );
+	i_path.fsopen( _fstr );
+	setStream( i_tee );
 }
 
 logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const RollDaily &, bool i_tee )
 	: _logger( i_logger )
 {
 	roll( i_path );
-
-	std::unique_ptr<logger_output> lo;
-	if ( i_tee and _logger.output() != nullptr )
-	{
-		lo = std::make_unique<tee_file_logger_output_roll_daily>( _logger.output()->ostr, i_path );
-	}
-	else
-	{
-		lo = std::make_unique<file_logger_output_roll_daily>( i_path );
-	}
-	_saveOutput = _logger.exchangeOutput( std::move(lo) );
+	i_path.fsopen( _fstr );
+	setStreamRollDaily( i_path, i_tee );
 }
 
 logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const RollOnSize &i_action, bool i_tee )
 	: _logger( i_logger )
 {
 	roll( i_path );
-
-	std::unique_ptr<logger_output> lo;
-	if ( i_tee and _logger.output() != nullptr )
-	{
-		lo = std::make_unique<tee_file_logger_output_roll_on_size>( i_action.bytes, _logger.output()->ostr, i_path );
-	}
-	else
-	{
-		lo = std::make_unique<file_logger_output_roll_on_size>( i_action.bytes, i_path );
-	}
-	_saveOutput = _logger.exchangeOutput( std::move(lo) );
+	i_path.fsopen( _fstr );
+	setStreamRollOnSize( i_path, i_tee, i_action.bytes );
 }
-
 
 logger_file::~logger_file()
 {
-	_logger.exchangeOutput( std::move(_saveOutput) );
+	_logger.exchangeOutput( std::move(_save) );
+}
+
+void logger_file::setStream( bool i_tee )
+{
+	if ( i_tee and _logger.output() != nullptr )
+	{
+		struct output : public logger_output
+		{
+			output( std::ostream &ostr1, std::ostream &ostr2 )
+				: logger_output( ostr1 ),
+					tee( ostr1.rdbuf(), ostr2.rdbuf() )
+			{
+				_save = ostr.rdbuf( &tee );
+			}
+			~output()
+			{
+				ostr.rdbuf( _save );
+			}
+			
+			teebuf tee;
+			std::streambuf *_save = nullptr;
+		};
+		_save = _logger.exchangeOutput( std::make_unique<output>( _fstr, _logger.output()->ostr ) );
+	}
+	else
+	{
+		_save = _logger.exchangeOutput( std::make_unique<logger_output>( _fstr ) );
+	}
+}
+
+void logger_file::setStreamRollDaily( const filepath &i_path, bool i_tee )
+{
+	if ( i_tee and _logger.output() != nullptr )
+	{
+		struct output : public logger_output
+		{
+			output( const filepath &i_path, std::ofstream &ofstr, std::ostream &ostr2 )
+				: logger_output( ofstr ),
+					tee( ofstr.rdbuf(), ostr2.rdbuf() ),
+					_path( i_path ),
+					_ofstr( ofstr )
+			{
+				_save = ostr.rdbuf( &tee );
+				timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
+			}
+			~output()
+			{
+				ostr.rdbuf( _save );
+			}
+			
+			teebuf tee;
+			std::streambuf *_save = nullptr;
+			const filepath _path;
+			std::ofstream &_ofstr;
+			std::chrono::system_clock::time_point timeout;
+			
+			virtual void flush()
+			{
+				logger_output::flush();
+				if ( std::chrono::system_clock::now() > timeout )
+				{
+					_ofstr.close();
+					roll( _path );
+					_path.fsopen( _ofstr );
+					timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
+				}
+			}
+		};
+		_save = _logger.exchangeOutput( std::make_unique<output>( i_path, _fstr, _logger.output()->ostr ) );
+	}
+	else
+	{
+		struct output : public logger_output
+		{
+			output( const filepath &i_path, std::ofstream &ofstr )
+				: logger_output( ofstr ),
+					_path( i_path ),
+					_ofstr( ofstr )
+			{
+				timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
+			}
+			
+			const filepath _path;
+			std::ofstream &_ofstr;
+			std::chrono::system_clock::time_point timeout;
+			
+			virtual void flush()
+			{
+				logger_output::flush();
+				if ( std::chrono::system_clock::now() > timeout )
+				{
+					_ofstr.close();
+					roll( _path );
+					_path.fsopen( _ofstr );
+					timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
+				}
+			}
+		};
+		_save = _logger.exchangeOutput( std::make_unique<output>( i_path, _fstr ) );
+	}
+}
+
+void logger_file::setStreamRollOnSize( const filepath &i_path, bool i_tee, int i_bytes )
+{
+	if ( i_tee and _logger.output() != nullptr )
+	{
+		struct output : public logger_output
+		{
+			output( const filepath &i_path, std::ofstream &ofstr, std::ostream &ostr2, int i_bytes )
+				: logger_output( ofstr ),
+					tee( ofstr.rdbuf(), ostr2.rdbuf() ),
+					_path( i_path ),
+					_ofstr( ofstr ),
+					_bytes( i_bytes )
+			{
+				_save = ostr.rdbuf( &tee );
+			}
+			~output()
+			{
+				ostr.rdbuf( _save );
+			}
+			
+			teebuf tee;
+			std::streambuf *_save = nullptr;
+			const filepath _path;
+			std::ofstream &_ofstr;
+			const int _bytes;;
+			
+			virtual void flush()
+			{
+				logger_output::flush();
+				if ( _ofstr.tellp() >= _bytes )
+				{
+					_ofstr.close();
+					roll( _path );
+					_path.fsopen( _ofstr );
+				}
+			}
+		};
+		_save = _logger.exchangeOutput( std::make_unique<output>( i_path, _fstr, _logger.output()->ostr, i_bytes ) );
+	}
+	else
+	{
+		struct output : public logger_output
+		{
+			output( const filepath &i_path, std::ofstream &ofstr, int i_bytes )
+				: logger_output( ofstr ),
+					_path( i_path ),
+					_ofstr( ofstr ),
+					_bytes( i_bytes )
+			{}
+			
+			const filepath _path;
+			std::ofstream &_ofstr;
+			const int _bytes;;
+			
+			virtual void flush()
+			{
+				logger_output::flush();
+				if ( _ofstr.tellp() >= _bytes )
+				{
+					_ofstr.close();
+					roll( _path );
+					_path.fsopen( _ofstr );
+				}
+			}
+		};
+		_save = _logger.exchangeOutput( std::make_unique<output>( i_path, _fstr, i_bytes ) );
+	}
 }
 
 }
