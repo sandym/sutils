@@ -19,6 +19,7 @@
 
 #include "tests/simple_tests.h"
 #include "su_endian.h"
+#include <iostream>
 
 struct endian_tests
 {
@@ -27,13 +28,18 @@ struct endian_tests
 	void test_case_2bytes();
 	void test_case_4bytes();
 	void test_case_8bytes();
+	void test_case_float();
+	void test_case_double();
+	void test_case_long_double();
 };
 
 REGISTER_TEST_SUITE( endian_tests,
 	TEST_CASE(endian_tests,test_case_1byte),
 	TEST_CASE(endian_tests,test_case_2bytes),
 	TEST_CASE(endian_tests,test_case_4bytes),
-	TEST_CASE(endian_tests,test_case_8bytes) );
+	TEST_CASE(endian_tests,test_case_8bytes),
+	TEST_CASE(endian_tests,test_case_float),
+	TEST_CASE(endian_tests,test_case_double) );
 
 // MARK: -
 // MARK:  === test cases ===
@@ -49,7 +55,7 @@ void endian_tests::test_case_1byte()
 
 void endian_tests::test_case_2bytes()
 {
-	uint16_t v = 0x3362;
+	char16_t v = 0x3362;
 	if ( su::endian::native == su::endian::big )
 	{
 		TEST_ASSERT_EQUAL( su::little_to_native( v ), uint16_t(0x6233) );
@@ -102,4 +108,67 @@ void endian_tests::test_case_8bytes()
 		TEST_ASSERT_EQUAL( su::big_to_native( v ), uint64_t(0x0807060504030201) );
 		TEST_ASSERT_EQUAL( su::native_to_big( v ), uint64_t(0x0807060504030201) );
 	}
+}
+
+void endian_tests::test_case_float()
+{
+	float v = 1.234567;
+	if ( su::endian::native == su::endian::big )
+	{
+		auto s = su::native_to_big( v );
+		TEST_ASSERT_EQUAL( v, s );
+		s = su::native_to_little( v );
+		s = su::little_to_native( s );
+		TEST_ASSERT_EQUAL( v, s );
+	}
+	else
+	{
+		auto s = su::native_to_little( v );
+		TEST_ASSERT_EQUAL( v, s );
+		s = su::native_to_big( v );
+		s = su::big_to_native( s );
+		TEST_ASSERT_EQUAL( v, s );
+	}
+}
+
+void endian_tests::test_case_double()
+{
+	double v = 1.234567;
+	if ( su::endian::native == su::endian::big )
+	{
+		auto s = su::native_to_big( v );
+		TEST_ASSERT_EQUAL( v, s );
+		s = su::native_to_little( v );
+		s = su::little_to_native( s );
+		TEST_ASSERT_EQUAL( v, s );
+	}
+	else
+	{
+		auto s = su::native_to_little( v );
+		TEST_ASSERT_EQUAL( v, s );
+		s = su::native_to_big( v );
+		s = su::big_to_native( s );
+		TEST_ASSERT_EQUAL( v, s );
+	}
+}
+
+void endian_tests::test_case_long_double()
+{
+//	long double v = 1.234567;
+//	if ( su::endian::native == su::endian::big )
+//	{
+//		auto s = su::native_to_big( v );
+//		TEST_ASSERT_EQUAL( v, s );
+//		s = su::native_to_little( v );
+//		s = su::little_to_native( s );
+//		TEST_ASSERT_EQUAL( v, s );
+//	}
+//	else
+//	{
+//		auto s = su::native_to_little( v );
+//		TEST_ASSERT_EQUAL( v, s );
+//		s = su::native_to_big( v );
+//		s = su::big_to_native( s );
+//		TEST_ASSERT_EQUAL( v, s );
+//	}
 }

@@ -13,10 +13,8 @@
 #include "su_logger.h"
 #include "su_spinlock.h"
 #include "su_platform.h"
-#include "su_flat_map.h"
 #include "su_flat_set.h"
 #include "su_thread.h"
-#include <ciso646>
 #include <iostream>
 #include <ctime>
 #include <condition_variable>

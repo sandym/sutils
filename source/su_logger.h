@@ -33,7 +33,6 @@
 #include <memory>
 #include <string>
 #include <thread>
-#include <vector>
 #include "su_always_inline.h"
 
 namespace su {

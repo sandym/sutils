@@ -31,88 +31,123 @@ enum class endian
 
 namespace details
 {
-template<typename T,int S>
-struct endian_swap { static T swap( T ); };
 
 template<typename T>
-struct endian_swap<T,1> { static T swap( T v ){ return v; } };
+inline std::enable_if_t<sizeof(T)==1,T>
+endian_swap( T v ) { return v; }
 
 template<typename T>
-struct endian_swap<T,2> { static T swap( T v )
+inline std::enable_if_t<sizeof(T)==2,T>
+endian_swap( T v )
 {
-	return ((((uint16_t)v)<<8)&0xFF00)|
-			((((uint16_t)v)>>8)&0x00FF);
-} };
+	union {
+		T v;
+		uint16_t b;
+	} u;
+	u.v = v;
+	u.b = ((u.b<<8)&0xFF00)|
+			((u.b>>8)&0x00FF);
+	return u.v;
+}
 
 template<typename T>
-struct endian_swap<T,4> { static T swap( T v )
+inline std::enable_if_t<sizeof(T)==4,T>
+endian_swap( T v )
 {
-	return ((((uint32_t)v)<<24)&0xFF000000)|
-			((((uint32_t)v)<<8)&0x00FF0000)|
-			((((uint32_t)v)>>8)&0x0000FF00)|
-			((((uint32_t)v)>>24)&0x000000FF);
-} };
+	union {
+		T v;
+		uint32_t b;
+	} u;
+	u.v = v;
+	u.b = ((u.b<<24)&0xFF000000)|
+			((u.b<<8)&0x00FF0000)|
+			((u.b>>8)&0x0000FF00)|
+			((u.b>>24)&0x000000FF);
+	return u.v;
+}
 
 template<typename T>
-struct endian_swap<T,8> { static T swap( T v )
+inline std::enable_if_t<sizeof(T)==8,T>
+endian_swap( T v )
 {
-	return ((((uint64_t)v)<<56)&0xFF00000000000000)|
-			((((uint64_t)v)<<40)&0x00FF000000000000)|
-			((((uint64_t)v)<<24)&0x0000FF0000000000)|
-			((((uint64_t)v)<<8)&0x000000FF00000000)|
-			((((uint64_t)v)>>8)&0x00000000FF000000)|
-			((((uint64_t)v)>>24)&0x0000000000FF0000)|
-			((((uint64_t)v)>>40)&0x000000000000FF00)|
-			((((uint64_t)v)>>56)&0x00000000000000FF);
-} };
+	union {
+		T v;
+		uint64_t b;
+	} u;
+	u.v = v;
+	u.b = ((u.b<<56)&0xFF00000000000000)|
+			((u.b<<40)&0x00FF000000000000)|
+			((u.b<<24)&0x0000FF0000000000)|
+			((u.b<<8)&0x000000FF00000000)|
+			((u.b>>8)&0x00000000FF000000)|
+			((u.b>>24)&0x0000000000FF0000)|
+			((u.b>>40)&0x000000000000FF00)|
+			((u.b>>56)&0x00000000000000FF);
+	return u.v;
+}
+
+//template<typename T>
+//inline std::enable_if_t<sizeof(T)==16,T>
+//endian_swap( T v )
+//{
+//	union {
+//		T v;
+//		struct { uint64_t b1, b2; } b;
+//	} u;
+//	u.v = v;
+//	u.b.b1 = endian_swap( u.b.b1 );
+//	u.b.b2 = endian_swap( u.b.b2 );
+//	std::swap( u.b.b1, u.b.b2 );
+//	return u.v;
+//}
 
 }
 
 // little
 template<typename T>
-std::enable_if_t<su::endian::native==su::endian::little,T>
-inline little_to_native( T v ){ return v; }
+inline std::enable_if_t<su::endian::native==su::endian::little,T>
+little_to_native( T v ){ return v; }
 
 template<typename T>
-std::enable_if_t<su::endian::native==su::endian::little,T>
-inline native_to_little( T v ){ return v; }
+inline std::enable_if_t<su::endian::native==su::endian::little,T>
+native_to_little( T v ){ return v; }
 
 template<typename T>
-std::enable_if_t<su::endian::native==su::endian::little,T>
-inline big_to_native( T v )
+inline std::enable_if_t<su::endian::native==su::endian::little,T>
+big_to_native( T v )
 {
-	return details::endian_swap<T,sizeof(T)>::swap( v );
+	return details::endian_swap( v );
 }
 
 template<typename T>
-std::enable_if_t<su::endian::native==su::endian::little,T>
-inline native_to_big( T v )
+inline std::enable_if_t<su::endian::native==su::endian::little,T>
+native_to_big( T v )
 {
-	return details::endian_swap<T,sizeof(T)>::swap( v );
+	return details::endian_swap( v );
 }
 
 // big
 template<typename T>
-std::enable_if_t<su::endian::native==su::endian::big,T>
-inline little_to_native( T v )
+inline std::enable_if_t<su::endian::native==su::endian::big,T>
+little_to_native( T v )
 {
-	return details::endian_swap<T,sizeof(T)>::swap( v );
+	return details::endian_swap( v );
 }
 
 template<typename T>
-std::enable_if_t<su::endian::native==su::endian::big,T>
-inline native_to_little( T v )
+inline std::enable_if_t<su::endian::native==su::endian::big,T>
+native_to_little( T v )
 {
-	return details::endian_swap<T,sizeof(T)>::swap( v );
+	return details::endian_swap( v );
 }
 
 template<typename T>
-std::enable_if_t<su::endian::native==su::endian::big,T>
-inline big_to_native( T v ){ return v; }
+inline std::enable_if_t<su::endian::native==su::endian::big,T>
+big_to_native( T v ){ return v; }
 
 template<typename T>
-std::enable_if_t<su::endian::native==su::endian::big,T>
-inline native_to_big( T v ){ return v; }
+inline std::enable_if_t<su::endian::native==su::endian::big,T>
+native_to_big( T v ){ return v; }
 
 }
 
