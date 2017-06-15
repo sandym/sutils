@@ -16,8 +16,7 @@
 #include <array>
 #include <string>
 
-namespace su
-{
+namespace su {
 /*!
    @brief uuid value, unique across the universe.
 */
@@ -44,6 +43,9 @@ class uuid final
   private:
 	std::array<uint8_t, 16> _uuid;
 };
+
 }
+
+inline std::string to_string( const su::uuid &v ) { return v.string(); }
 
 #endif

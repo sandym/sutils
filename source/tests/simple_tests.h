@@ -20,8 +20,7 @@
 #include <cmath>
 #include <chrono>
 
-namespace su
-{
+namespace su {
 
 /*!
 	Simple nanoseconds timer.

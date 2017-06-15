@@ -277,8 +277,7 @@ ConversionResult ConvertUTF16toUTF8 (
     return result;
 }
 
-namespace
-{
+namespace {
 /* --------------------------------------------------------------------- */
 
 /*

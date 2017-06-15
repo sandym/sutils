@@ -128,6 +128,8 @@ class filepath final
 
 }
 
+inline std::string to_string( const su::filepath &v ) { return v.path(); }
+
 #endif
 
 

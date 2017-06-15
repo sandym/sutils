@@ -15,8 +15,7 @@
 #include "ConvertUTF.h"
 #include <cctype>
 
-namespace su
-{
+namespace su {
 
 abstractparserbase::abstractparserbase( std::istream &i_str, const std::string &i_name )
 	: _stream( i_str ),

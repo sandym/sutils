@@ -12,59 +12,30 @@
 #include "su_attachable.h"
 #include <cassert>
 
-namespace su
-{
+namespace su {
+
 attachable::~attachable()
 {
-	std::for_each( _attachments.begin(), _attachments.end(), []( auto v )
-		{
-			v.second->_attachable = nullptr;
-			delete v.second;
-		} );
 }
 
-void attachable::attach( const std::string& i_name, attachment* i_attachment )
+void attachable::attach( const std::string& i_name, std::unique_ptr<attachment> &&i_attachment )
 {
+	assert( i_attachment->_attachable == nullptr ); // already attached !?
+
 	detach( i_name );
 
-	if ( i_attachment == nullptr )
+	if ( i_attachment.get() == nullptr )
 		return;
 
-	assert( i_attachment->_attachable == nullptr );
 	i_attachment->_attachable = this;
-	_attachments.emplace( i_name, i_attachment );
+	_attachments.emplace( i_name, std::move(i_attachment) );
 }
 
 void attachable::detach( const std::string& i_name )
 {
 	auto it = _attachments.find( i_name );
 	if ( it != _attachments.end() )
-	{
-		it->second->_attachable = nullptr;
-		delete it->second;
 		_attachments.erase( it );
-	}
 }
 
-void attachable::detach( attachment* i_attachment )
-{
-	for ( auto it = _attachments.begin(); it != _attachments.end(); ++it )
-	{
-		if ( it->second == i_attachment )
-		{
-			_attachments.erase( it );
-			break;
-		}
-	}
-}
-
-#if 0
-#pragma mark -
-#endif
-
-attachment::~attachment()
-{
-	if ( _attachable != nullptr )
-		_attachable->detach( this );
-}
 }

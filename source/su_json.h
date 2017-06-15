@@ -5,16 +5,15 @@
 #include <string>
 #include "su_flat_map.h"
 
-namespace su
-{
+namespace su {
+
 enum class JsonParse
 {
 	STANDARD,
 	COMMENTS
 };
 
-namespace details
-{
+namespace details {
 struct JsonValue;
 }
 
@@ -191,5 +190,7 @@ class Json final
 };
 
 }
+
+inline std::string to_string( const su::Json &v ) { return v.dump(); }
 
 #endif

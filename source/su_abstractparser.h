@@ -18,8 +18,7 @@
 #include <sstream>
 #include "su_flat_map.h"
 
-namespace su
-{
+namespace su {
 
 /*!
  * Token or lexical element class to help parsing files

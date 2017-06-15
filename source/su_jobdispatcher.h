@@ -82,7 +82,7 @@ class jobdispatcher
 	private:
 		bool _isRunning = true;	//!< dispatcher state
 		int _nbOfWorkersRunning = 0, _nbOfWorkersFree = 0;
-		std::vector<std::thread *> _threadPool;
+		std::vector<std::unique_ptr<std::thread>> _threadPool;
 
 		// Async queue
 		std::mutex _JDMutex;

@@ -29,7 +29,7 @@ class MyDispatcher;
 struct jobdispatcher_tests
 {
 	jobdispatcher_tests();
-	~jobdispatcher_tests();
+	~jobdispatcher_tests() = default;
 
 	// declare all test cases here...
 	void test_case_async_completion();
@@ -41,10 +41,10 @@ struct jobdispatcher_tests
 	void test_case_sprint_2();
 	void test_case_prioritise_1();
 
-	private:
-		// declare local members need for the test here
-		MyDispatcher *_dispatcher;
-		bool _needIdleTime;
+private:
+	// declare local members need for the test here
+	std::unique_ptr<MyDispatcher> _dispatcher;
+	bool _needIdleTime;
 };
 
 REGISTER_TEST_SUITE( jobdispatcher_tests,
@@ -99,14 +99,7 @@ jobdispatcher_tests::jobdispatcher_tests()
 	su::this_thread::set_as_main();
 	
 	_needIdleTime = false;
-	_dispatcher = new MyDispatcher( _needIdleTime );
-}
-
-jobdispatcher_tests::~jobdispatcher_tests()
-{
-	// clean up local members
-	delete _dispatcher;
-	_dispatcher = nullptr;
+	_dispatcher = std::make_unique<MyDispatcher>( _needIdleTime );
 }
 
 // MARK: -

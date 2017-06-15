@@ -37,6 +37,7 @@ REGISTER_TEST_SUITE( string_format_tests,
 // MARK:  === test cases ===
 
 namespace {
+
 std::string ustring_format_using_sprintf( const char *i_format, ... )
 {
 	char buf[4096];

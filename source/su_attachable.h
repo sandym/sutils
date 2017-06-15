@@ -32,7 +32,7 @@ class attachable
 	virtual ~attachable();
 
 	// ownership is transfered
-	void attach( const std::string &i_name, attachment *i_attachment );
+	void attach( const std::string &i_name, std::unique_ptr<attachment> &&i_attachment );
 
 	// will delete attachment with that name
 	void detach( const std::string &i_name );
@@ -40,7 +40,7 @@ class attachable
 	inline attachment *getRaw( const std::string &i_name ) const
 	{
 		auto it = _attachments.find( i_name );
-		return it != _attachments.end() ? it->second : nullptr;
+		return it != _attachments.end() ? it->second.get() : nullptr;
 	}
 
 	template <class T>
@@ -50,11 +50,7 @@ class attachable
 	}
 
   private:
-	su::flat_map<std::string, attachment *> _attachments;
-
-	void detach( attachment *i_attachment );
-
-	friend class attachment;
+	su::flat_map<std::string,std::unique_ptr<attachment>> _attachments;
 };
 
 class attachment
@@ -64,7 +60,7 @@ class attachment
 	attachment &operator=( const attachment & ) = delete;
 
 	attachment() = default;
-	virtual ~attachment();
+	virtual ~attachment() = default;
 
   protected:
 	inline class attachable *attachable() { return _attachable; }

@@ -23,33 +23,24 @@
 struct attachable_tests
 {
 	attachable_tests();
-	~attachable_tests();
+	~attachable_tests() = default;
 	
 	// declare all test cases here...
 	void test_detach();
-	void test_delete_attachable();
 	void test_delete_attachment();
 
 	private:
 		// declare local members need for the test here
-		su::attachable *_attachable;
+		std::unique_ptr<su::attachable> _attachable;
 };
 
 REGISTER_TEST_SUITE( attachable_tests,
 			   TEST_CASE(attachable_tests,test_detach),
-			   TEST_CASE(attachable_tests,test_delete_attachable),
 			   TEST_CASE(attachable_tests,test_delete_attachment) );
 
 attachable_tests::attachable_tests()
 {
-	_attachable = new su::attachable;
-}
-
-attachable_tests::~attachable_tests()
-{
-	//	clean up local members
-	delete _attachable;
-	_attachable = nullptr;
+	_attachable = std::make_unique<su::attachable>();
 }
 
 // MARK: -
@@ -74,32 +65,19 @@ class CheckDelete : public su::attachment
 void attachable_tests::test_detach()
 {
 	bool wasDeleted = false;
-	auto att = new CheckDelete( wasDeleted );
-	_attachable->attach( "test", att );
+	_attachable->attach( "test", std::make_unique<CheckDelete>( wasDeleted ) );
 	TEST_ASSERT_NOT_EQUAL( _attachable->get<CheckDelete>( "test" ), nullptr );
 	_attachable->detach( "test" );
 	TEST_ASSERT_EQUAL( _attachable->get<CheckDelete>( "test" ), nullptr );
 	TEST_ASSERT( wasDeleted );
 }
 
-void attachable_tests::test_delete_attachable()
-{
-	bool wasDeleted = false;
-	auto att = new CheckDelete( wasDeleted );
-	_attachable->attach( "test", att );
-	TEST_ASSERT_NOT_EQUAL( _attachable->get<CheckDelete>( "test" ), nullptr );
-	delete _attachable;
-	_attachable = nullptr;
-	TEST_ASSERT( wasDeleted );
-}
-
 void attachable_tests::test_delete_attachment()
 {
 	bool wasDeleted = false;
-	auto att = new CheckDelete( wasDeleted );
-	_attachable->attach( "test", att );
+	_attachable->attach( "test", std::make_unique<CheckDelete>( wasDeleted ) );
 	TEST_ASSERT_NOT_EQUAL( _attachable->get<CheckDelete>( "test" ), nullptr );
-	delete att;
+	_attachable->detach( "test" );
 	TEST_ASSERT_EQUAL( _attachable->get<CheckDelete>( "test" ), nullptr );
 	TEST_ASSERT( wasDeleted );
 }

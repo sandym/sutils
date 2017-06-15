@@ -17,8 +17,7 @@
 #include <algorithm>
 #include <cctype>
 
-namespace su
-{
+namespace su {
 
 std::string format( const su::string_view &i_format )
 {
@@ -46,17 +45,17 @@ namespace details {
 
 struct FormatSpec
 {
-	char type = 0; // d, i, x, s, f, c, etc
-	int flags = 0;
 	int valueIndex = -1;
 	int width = -1, prec = -1;
 	int widthIndex = -1, precIndex = -1;
 	ptrdiff_t size = 0;
+	uint16_t flags = 0;
+	char type = 0; // d, i, x, s, f, c, etc
 };
 
 FormatArg::~FormatArg()
 {
-	if ( _which == kOther )
+	if ( _which == arg_type::kOther )
 		delete u._other;
 }
 
@@ -65,15 +64,15 @@ inline double FormatArg::cast() const
 {
 	switch ( _which )
 	{
-		case kShort: return u._short;
-		case kInt: return u._int;
-		case kLong: return u._long;
-		case kLongLong: return static_cast<double>(u._longlong);
-		case kUnsignedShort: return u._unsignedshort;
-		case kUnsignedInt: return u._unsignedint;
-		case kUnsignedLong: return u._unsignedlong;
-		case kUnsignedLongLong: return static_cast<double>(u._unsignedlonglong);
-		case kDouble: return u._double;
+		case arg_type::kShort: return u._short;
+		case arg_type::kInt: return u._int;
+		case arg_type::kLong: return u._long;
+		case arg_type::kLongLong: return static_cast<double>(u._longlong);
+		case arg_type::kUnsignedShort: return u._unsignedshort;
+		case arg_type::kUnsignedInt: return u._unsignedint;
+		case arg_type::kUnsignedLong: return u._unsignedlong;
+		case arg_type::kUnsignedLongLong: return static_cast<double>(u._unsignedlonglong);
+		case arg_type::kDouble: return u._double;
 		default:
 			break;
 	}
@@ -85,10 +84,10 @@ inline int FormatArg::cast() const
 {
 	switch ( _which )
 	{
-		case kShort: return u._short;
-		case kInt: return u._int;
-		case kUnsignedShort: return u._unsignedshort;
-		case kUnsignedInt: return static_cast<int>(u._unsignedint);
+		case arg_type::kShort: return u._short;
+		case arg_type::kInt: return u._int;
+		case arg_type::kUnsignedShort: return u._unsignedshort;
+		case arg_type::kUnsignedInt: return static_cast<int>(u._unsignedint);
 		default:
 			break;
 	}
@@ -100,10 +99,10 @@ inline unsigned int FormatArg::cast() const
 {
 	switch ( _which )
 	{
-		case kShort: return static_cast<unsigned int>(u._short);
-		case kInt: return static_cast<unsigned int>(u._int);
-		case kUnsignedShort: return u._unsignedshort;
-		case kUnsignedInt: return u._unsignedint;
+		case arg_type::kShort: return static_cast<unsigned int>(u._short);
+		case arg_type::kInt: return static_cast<unsigned int>(u._int);
+		case arg_type::kUnsignedShort: return u._unsignedshort;
+		case arg_type::kUnsignedInt: return u._unsignedint;
 		default:
 			break;
 	}
@@ -115,12 +114,12 @@ inline long FormatArg::cast() const
 {
 	switch ( _which )
 	{
-		case kShort: return u._short;
-		case kInt: return u._int;
-		case kUnsignedShort: return u._unsignedshort;
-		case kUnsignedInt: return u._unsignedint;
-		case kLong: return u._long;
-		case kUnsignedLong: return u._unsignedlong;
+		case arg_type::kShort: return u._short;
+		case arg_type::kInt: return u._int;
+		case arg_type::kUnsignedShort: return u._unsignedshort;
+		case arg_type::kUnsignedInt: return u._unsignedint;
+		case arg_type::kLong: return u._long;
+		case arg_type::kUnsignedLong: return u._unsignedlong;
 		default:
 			break;
 	}
@@ -132,12 +131,12 @@ inline unsigned long FormatArg::cast() const
 {
 	switch ( _which )
 	{
-		case kShort: return u._short;
-		case kInt: return u._int;
-		case kUnsignedShort: return u._unsignedshort;
-		case kUnsignedInt: return u._unsignedint;
-		case kLong: return u._long;
-		case kUnsignedLong: return u._unsignedlong;
+		case arg_type::kShort: return u._short;
+		case arg_type::kInt: return u._int;
+		case arg_type::kUnsignedShort: return u._unsignedshort;
+		case arg_type::kUnsignedInt: return u._unsignedint;
+		case arg_type::kLong: return u._long;
+		case arg_type::kUnsignedLong: return u._unsignedlong;
 		default:
 			break;
 	}
@@ -149,10 +148,10 @@ inline short FormatArg::cast() const
 {
 	switch ( _which )
 	{
-		case kShort: return u._short;
-		case kUnsignedShort: return u._unsignedshort;
-		case kInt: return static_cast<short>(u._int);
-		case kUnsignedInt: return static_cast<short>(u._unsignedint);
+		case arg_type::kShort: return u._short;
+		case arg_type::kUnsignedShort: return u._unsignedshort;
+		case arg_type::kInt: return static_cast<short>(u._int);
+		case arg_type::kUnsignedInt: return static_cast<short>(u._unsignedint);
 		default:
 			break;
 	}
@@ -164,10 +163,10 @@ inline unsigned short FormatArg::cast() const
 {
 	switch ( _which )
 	{
-		case kShort: return u._short;
-		case kUnsignedShort: return u._unsignedshort;
-		case kInt: return static_cast<unsigned short>(u._int);
-		case kUnsignedInt: return static_cast<unsigned short>(u._unsignedint);
+		case arg_type::kShort: return u._short;
+		case arg_type::kUnsignedShort: return u._unsignedshort;
+		case arg_type::kInt: return static_cast<unsigned short>(u._int);
+		case arg_type::kUnsignedInt: return static_cast<unsigned short>(u._unsignedint);
 		default:
 			break;
 	}
@@ -179,14 +178,14 @@ inline long long FormatArg::cast() const
 {
 	switch ( _which )
 	{
-		case kShort: return u._short;
-		case kInt: return u._int;
-		case kLong: return u._long;
-		case kLongLong: return u._longlong;
-		case kUnsignedShort: return u._unsignedshort;
-		case kUnsignedInt: return u._unsignedint;
-		case kUnsignedLong: return u._unsignedlong;
-		case kUnsignedLongLong: return u._unsignedlonglong;
+		case arg_type::kShort: return u._short;
+		case arg_type::kInt: return u._int;
+		case arg_type::kLong: return u._long;
+		case arg_type::kLongLong: return u._longlong;
+		case arg_type::kUnsignedShort: return u._unsignedshort;
+		case arg_type::kUnsignedInt: return u._unsignedint;
+		case arg_type::kUnsignedLong: return u._unsignedlong;
+		case arg_type::kUnsignedLongLong: return u._unsignedlonglong;
 		default:
 			break;
 	}
@@ -198,14 +197,14 @@ inline unsigned long long FormatArg::cast() const
 {
 	switch ( _which )
 	{
-		case kShort: return u._short;
-		case kInt: return u._int;
-		case kLong: return u._long;
-		case kLongLong: return u._longlong;
-		case kUnsignedShort: return u._unsignedshort;
-		case kUnsignedInt: return u._unsignedint;
-		case kUnsignedLong: return u._unsignedlong;
-		case kUnsignedLongLong: return u._unsignedlonglong;
+		case arg_type::kShort: return u._short;
+		case arg_type::kInt: return u._int;
+		case arg_type::kLong: return u._long;
+		case arg_type::kLongLong: return u._longlong;
+		case arg_type::kUnsignedShort: return u._unsignedshort;
+		case arg_type::kUnsignedInt: return u._unsignedint;
+		case arg_type::kUnsignedLong: return u._unsignedlong;
+		case arg_type::kUnsignedLongLong: return u._unsignedlonglong;
 		default:
 			break;
 	}
@@ -216,21 +215,21 @@ std::string FormatArg::to_string() const
 {
 	switch ( _which )
 	{
-		case kShort: return std::to_string( u._short );
-		case kInt: return std::to_string( u._int );
-		case kLong: return std::to_string( u._long );
-		case kLongLong: return std::to_string( u._longlong );
-		case kUnsignedShort: return std::to_string( u._unsignedshort );
-		case kUnsignedInt: return std::to_string( u._unsignedint );
-		case kUnsignedLong: return std::to_string( u._unsignedlong );
-		case kUnsignedLongLong: return std::to_string( u._unsignedlonglong );
-		case kSize: return std::to_string( u._size_t );
-		case kPtrDiff: return std::to_string( u._ptrdiff_t );
-		case kDouble: return std::to_string( u._double );
-		case kChar: return std::string( 1, u._char );
-		case kPtr: return std::string( "xx" );
-		case kString: return _string;
-		case kOther: return u._other->to_string();
+		case arg_type::kShort: return std::to_string( u._short );
+		case arg_type::kInt: return std::to_string( u._int );
+		case arg_type::kLong: return std::to_string( u._long );
+		case arg_type::kLongLong: return std::to_string( u._longlong );
+		case arg_type::kUnsignedShort: return std::to_string( u._unsignedshort );
+		case arg_type::kUnsignedInt: return std::to_string( u._unsignedint );
+		case arg_type::kUnsignedLong: return std::to_string( u._unsignedlong );
+		case arg_type::kUnsignedLongLong: return std::to_string( u._unsignedlonglong );
+		case arg_type::kSize: return std::to_string( u._size_t );
+		case arg_type::kPtrDiff: return std::to_string( u._ptrdiff_t );
+		case arg_type::kDouble: return std::to_string( u._double );
+		case arg_type::kChar: return std::string( 1, u._char );
+		case arg_type::kPtr: return std::string( "xx" );
+		case arg_type::kString: return _string;
+		case arg_type::kOther: return u._other->to_string();
 		default:
 			break;
 	}
@@ -239,10 +238,9 @@ std::string FormatArg::to_string() const
 
 } }
 
-namespace
-{
+namespace {
 
-enum
+enum : uint16_t
 {
 	// flags
 	kLeftAdjustFlag = 0x01, // -
@@ -805,7 +803,7 @@ void format_impl::appendFormattedArg( const su::details::FormatSpec &i_formatSpe
 	}
 }
 
-char *format_impl::prepare_append_integer( int num_digits, int flags, int width, int prec, const char *prefix, int prefix_size )
+char *format_impl::prepare_append_integer( int num_digits, uint16_t flags, int width, int prec, const char *prefix, int prefix_size )
 {
 	if ( prec < num_digits )
 		prec = num_digits;

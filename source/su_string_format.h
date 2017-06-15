@@ -25,28 +25,29 @@
 namespace su { namespace details {
 
 struct FormatSpec;
-struct FormatArg
+class FormatArg
 {
-	FormatArg( short v ) : _which( kShort ){ u._short = v; }
-	FormatArg( int v ) : _which( kInt ){ u._int = v; }
-	FormatArg( long v ) : _which( kLong ){ u._long = v; }
-	FormatArg( long long v ) : _which( kLongLong ){ u._longlong = v; }
-	FormatArg( unsigned short v ) : _which( kUnsignedShort ){ u._unsignedshort = v; }
-	FormatArg( unsigned int v ) : _which( kUnsignedInt ){ u._unsignedint = v; }
-	FormatArg( unsigned long v ) : _which( kUnsignedLong ){ u._unsignedlong = v; }
-	FormatArg( unsigned long long v ) : _which( kUnsignedLongLong ){ u._unsignedlonglong = v; }
-	FormatArg( double v ) : _which( kDouble ){ u._double = v; }
-	FormatArg( float v ) : _which( kDouble ){ u._double = v; }
-	FormatArg( char v ) : _which( kChar ){ u._char = v; }
-	FormatArg( const void *v ) : _which( kPtr ){ u._ptr = v; }
-	FormatArg( void *v ) : _which( kPtr ){ u._ptr = v; }
-	FormatArg( const char *v ) : _which( kString ), _string( v ){}
-	FormatArg( char *v ) : _which( kString ), _string( v ){}
-	FormatArg( const std::string &v ) : _which( kString ), _string( v ){}
-	FormatArg( const su::string_view &v ) : _which( kString ), _string( v ){}
+public:
+	FormatArg( short v ) : _which( arg_type::kShort ){ u._short = v; }
+	FormatArg( int v ) : _which( arg_type::kInt ){ u._int = v; }
+	FormatArg( long v ) : _which( arg_type::kLong ){ u._long = v; }
+	FormatArg( long long v ) : _which( arg_type::kLongLong ){ u._longlong = v; }
+	FormatArg( unsigned short v ) : _which( arg_type::kUnsignedShort ){ u._unsignedshort = v; }
+	FormatArg( unsigned int v ) : _which( arg_type::kUnsignedInt ){ u._unsignedint = v; }
+	FormatArg( unsigned long v ) : _which( arg_type::kUnsignedLong ){ u._unsignedlong = v; }
+	FormatArg( unsigned long long v ) : _which( arg_type::kUnsignedLongLong ){ u._unsignedlonglong = v; }
+	FormatArg( double v ) : _which( arg_type::kDouble ){ u._double = v; }
+	FormatArg( float v ) : _which( arg_type::kDouble ){ u._double = v; }
+	FormatArg( char v ) : _which( arg_type::kChar ){ u._char = v; }
+	FormatArg( const void *v ) : _which( arg_type::kPtr ){ u._ptr = v; }
+	FormatArg( void *v ) : _which( arg_type::kPtr ){ u._ptr = v; }
+	FormatArg( const char *v ) : _which( arg_type::kString ), _string( v ){}
+	FormatArg( char *v ) : _which( arg_type::kString ), _string( v ){}
+	FormatArg( const std::string &v ) : _which( arg_type::kString ), _string( v ){}
+	FormatArg( const su::string_view &v ) : _which( arg_type::kString ), _string( v ){}
 
 	template<typename T,typename = std::enable_if_t<not std::is_base_of<std::string,T>::value>>
-	FormatArg( const T &v ) : _which( kOther ){ u._other = new any<T>( v ); }
+	FormatArg( const T &v ) : _which( arg_type::kOther ){ u._other = new any<T>( v ); }
 	FormatArg( FormatArg &&i_other ) noexcept : _which( i_other._which )
 	{
 		u = i_other.u;
@@ -70,7 +71,7 @@ private:
 		virtual std::string to_string() const = 0;
 	};
 
-	enum arg_type
+	enum class arg_type : uint8_t
 	{
 		kShort, kInt, kLong, kLongLong,
 		kUnsignedShort, kUnsignedInt, kUnsignedLong, kUnsignedLongLong,
@@ -106,8 +107,9 @@ private:
 	};
 };
 
-struct format_impl
+class format_impl
 {
+public:
 	format_impl( const su::string_view &i_format, const su::details::FormatArg *i_args, size_t i_argsSize );
 
 	std::string result;
@@ -116,7 +118,7 @@ private:
 	void appendFormattedArg( const su::details::FormatSpec &i_formatSpec, const su::details::FormatArg *i_args, size_t i_argsSize );
 	template<typename T>
 	void formatInteger( T i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec );
-	char *prepare_append_integer( int num_digits, int flags, int width, int prec, const char *prefix, int prefix_size );
+	char *prepare_append_integer( int num_digits, uint16_t flags, int width, int prec, const char *prefix, int prefix_size );
 	void formatDouble( double i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec );
 };
 }
@@ -125,7 +127,7 @@ private:
    @brief  A printf-like formatter function.
 
 		It accept all the printf format including i18n formatting (i.e. %1$s to reorder the arguments).
-		It also accept %@ to print anything that can be converted to a string (std::to_string)
+		It also accept %@ to print anything that can be converted to a string (with a to_string overload)
 
    @param[in] i_format a format string
    @return     formatted string

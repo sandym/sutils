@@ -18,8 +18,7 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
-namespace su
-{
+namespace su {
 
 template <class T>
 class cfauto final

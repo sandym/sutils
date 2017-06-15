@@ -29,7 +29,7 @@ jobdispatcher::jobdispatcher( int i_nbOfWorkers )
 		i_nbOfWorkers = std::max<unsigned>( std::thread::hardware_concurrency() - 1, 1 );
 	}
 	// just reserve the space, we'll lazily start the threads later
-	_threadPool.resize( i_nbOfWorkers, nullptr );
+	_threadPool.resize( i_nbOfWorkers );
 }
 
 jobdispatcher::~jobdispatcher()
@@ -54,11 +54,8 @@ jobdispatcher::~jobdispatcher()
 	// wait for all threads
 	for ( auto &it : _threadPool )
 	{
-		if ( it != nullptr )
-		{
+		if ( it.get() != nullptr )
 			it->join();
-			delete it;
-		}
 	}
 }
 
@@ -99,7 +96,7 @@ void jobdispatcher::postAsync( const job_ptr &i_job )
 	// lazily start workers as needed
 	if ( _nbOfWorkersFree == 0 and _nbOfWorkersRunning < (int)_threadPool.size() )
 	{
-		_threadPool[_nbOfWorkersRunning] = new std::thread( &jobdispatcher::workerThread, this, _nbOfWorkersRunning );
+		_threadPool[_nbOfWorkersRunning] = std::make_unique<std::thread>( &jobdispatcher::workerThread, this, _nbOfWorkersRunning );
 		++_nbOfWorkersRunning;
 	}
 	

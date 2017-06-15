@@ -21,8 +21,7 @@
 #include <sqlite3.h>
 #endif
 
-namespace
-{
+namespace {
 
 enum
 {
@@ -249,8 +248,7 @@ int64_t SimpleTestDB::mostRecentDuration( const std::string &i_testSuiteName, co
 
 }
 
-namespace su
-{
+namespace su {
 
 void addTestSuite( TestSuiteAbstract *i_testsuite )
 {
@@ -317,58 +315,61 @@ int main( int argc, char **argv )
 	// do all tests
 	int total = 0;
 	int failure = 0;
-	for ( auto testSuite : *g_testSuites )
+	if ( g_testSuites )
 	{
-		std::cout << styleTTY{ttyUnderline|ttyBold} << "Test case:" << styleTTY{} << " "
-					<< displayName(testSuite->name()) << std::endl;
-		auto tests = testSuite->getTests();
-		for ( auto test : tests )
+		for ( auto testSuite : *g_testSuites )
 		{
-			++total;
-			
-			std::cout << "  " << displayName(test.name()) << " : ";
-			std::cout.flush();
-			
-			int64_t duration;
-			std::string result;
-			try
+			std::cout << styleTTY{ttyUnderline|ttyBold} << "Test case:" << styleTTY{} << " "
+						<< displayName(testSuite->name()) << std::endl;
+			auto tests = testSuite->getTests();
+			for ( auto test : tests )
 			{
-				su::TestTimer timer;
-				test( timer );
-				duration = timer.nanoseconds();
-				// test succeed, an exception would have occured otherwise
-				std::cout << styleTTY{ttyGreen|ttyBold} << "OK" << styleTTY{};
-				if ( test.timed() )
+				++total;
+				
+				std::cout << "  " << displayName(test.name()) << " : ";
+				std::cout.flush();
+				
+				int64_t duration;
+				std::string result;
+				try
 				{
-					// a timed test, compare to last run
-					auto prev = db.mostRecentDuration( testSuite->name(), test.name() );
-					std::cout << " (" << duration << "ns";
-					if ( duration > prev )
-						std::cout << styleTTY{ttyRed} << " regression: " << duration - prev << "ns slower" << styleTTY{};
-					std::cout << ")";
+					su::TestTimer timer;
+					test( timer );
+					duration = timer.nanoseconds();
+					// test succeed, an exception would have occured otherwise
+					std::cout << styleTTY{ttyGreen|ttyBold} << "OK" << styleTTY{};
+					if ( test.timed() )
+					{
+						// a timed test, compare to last run
+						auto prev = db.mostRecentDuration( testSuite->name(), test.name() );
+						std::cout << " (" << duration << "ns";
+						if ( duration > prev )
+							std::cout << styleTTY{ttyRed} << " regression: " << duration - prev << "ns slower" << styleTTY{};
+						std::cout << ")";
+					}
 				}
+				catch ( su::FailedTest &ex )
+				{
+					result = std::string("TEST FAIL - ") + ex.what();
+					++failure;
+				}
+				catch ( std::exception &ex )
+				{
+					result = std::string("EXCEPTION CAUGHT - ") + ex.what();
+					++failure;
+				}
+				catch ( ... )
+				{
+					result = "UNKNOWN EXCEPTION CAUGHT";
+					++failure;
+				}
+				if ( not result.empty() )
+					std::cout << styleTTY{ttyRed} << result << styleTTY{};
+				std::cout << std::endl;
+				
+				// record results
+				db.addResult( testSuite->name(), test.name(), result, duration );
 			}
-			catch ( su::FailedTest &ex )
-			{
-				result = std::string("TEST FAIL - ") + ex.what();
-				++failure;
-			}
-			catch ( std::exception &ex )
-			{
-				result = std::string("EXCEPTION CAUGHT - ") + ex.what();
-				++failure;
-			}
-			catch ( ... )
-			{
-				result = "UNKNOWN EXCEPTION CAUGHT";
-				++failure;
-			}
-			if ( not result.empty() )
-				std::cout << styleTTY{ttyRed} << result << styleTTY{};
-			std::cout << std::endl;
-			
-			// record results
-			db.addResult( testSuite->name(), test.name(), result, duration );
 		}
 	}
 	std::cout << styleTTY{ttyBold} << "Success: " << styleTTY{} << (total-failure) << "/" << total << std::endl;
