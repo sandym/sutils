@@ -16,6 +16,7 @@
 
 #include "su_flat_map.h"
 #include <string>
+#include <memory>
 
 namespace su {
 

@@ -381,7 +381,7 @@ void flattener::flatten( const su::Json &i_json )
 			else
 			{
 				flatten_value<uint8_t>( type );
-				flatten_value<int>( i_json.int64_value() );
+				flatten_value<int64_t>( i_json.int64_value() );
 			}
 			break;
 		case encoding_array:
@@ -464,7 +464,7 @@ void flattener::flatten_no_type( const su::Json &i_json )
 			flatten_value<int>( i_json.int_value() );
 			break;
 		case encoding_int64:
-			flatten_value<int>( i_json.int64_value() );
+			flatten_value<int64_t>( i_json.int64_value() );
 			break;
 		case encoding_array:
 			assert( false );

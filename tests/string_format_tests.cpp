@@ -262,9 +262,8 @@ void string_format_tests::test_case_format()
 //	PRINTF_TEST( "%hhx", 0x123 );
 //	PRINTF_TEST( "%hhx", 0x12345 );
 
-	double nan = 0.0;
-	double inf = 1.0/nan;
-	nan = std::sqrt(-1);
+	auto inf = std::numeric_limits<double>::infinity();
+	auto nan = std::numeric_limits<double>::quiet_NaN();
 	PRINTF_TEST( "%lf", nan );
 	PRINTF_TEST( "%lf", inf );
 	PRINTF_TEST( "%le", nan );

@@ -19,13 +19,13 @@
 
 namespace su {
 
-template<typename char_type, typename traits = std::char_traits<char_type> >
-class basic_teebuf : public std::basic_streambuf<char_type, traits>
+template<typename CHAR_TYPE, typename TRAITS = std::char_traits<CHAR_TYPE> >
+class basic_teebuf : public std::basic_streambuf<CHAR_TYPE, TRAITS>
 {
 public:
-	typedef typename traits::int_type int_type;
+	typedef typename TRAITS::int_type int_type;
 
-	basic_teebuf( std::basic_streambuf<char_type, traits> *sb1, std::basic_streambuf<char_type, traits> *sb2 )
+	basic_teebuf( std::basic_streambuf<CHAR_TYPE, TRAITS> *sb1, std::basic_streambuf<CHAR_TYPE, TRAITS> *sb2 )
 		: _sb1( sb1 ), _sb2( sb2 )
 	{}
 
@@ -37,7 +37,7 @@ private:
 		return r1 == 0 and r2 == 0 ? 0 : -1;
 	}
 
-	virtual std::streamsize xsputn( const char_type *s, std::streamsize n )
+	virtual std::streamsize xsputn( const CHAR_TYPE *s, std::streamsize n )
 	{
 		auto n1 = _sb1->sputn( s, n );
 		auto n2 = _sb2->sputn( s, n );
@@ -46,36 +46,36 @@ private:
 
 	virtual int_type overflow( int_type c )
 	{
-		int_type eof = traits::eof();
+		int_type eof = TRAITS::eof();
 
-		if ( traits::eq_int_type( c, eof ) )
+		if (TRAITS::eq_int_type( c, eof ) )
 		{
-			return traits::not_eof( c );
+			return TRAITS::not_eof( c );
 		}
 		else
 		{
-			char_type ch = traits::to_char_type( c );
+			CHAR_TYPE ch = TRAITS::to_char_type( c );
 			int_type r1 = _sb1->sputc( ch );
 			int_type r2 = _sb2->sputc( ch );
 
-			return traits::eq_int_type( r1, eof ) or traits::eq_int_type( r2, eof ) ? eof : c;
+			return TRAITS::eq_int_type( r1, eof ) or TRAITS::eq_int_type( r2, eof ) ? eof : c;
 		}
 	}
 
 private:
-	std::basic_streambuf<char_type, traits> *_sb1;
-	std::basic_streambuf<char_type, traits> *_sb2;
+	std::basic_streambuf<CHAR_TYPE, TRAITS> *_sb1;
+	std::basic_streambuf<CHAR_TYPE, TRAITS> *_sb2;
 };
 
 typedef basic_teebuf<char> teebuf;
 
-template<typename char_type, typename traits = std::char_traits<char_type> >
-class basic_teestream : private basic_teebuf<char_type,traits>, public std::basic_ostream<char_type,traits>
+template<typename CHAR_TYPE, typename TRAITS = std::char_traits<CHAR_TYPE> >
+class basic_teestream : private basic_teebuf<CHAR_TYPE, TRAITS>, public std::basic_ostream<CHAR_TYPE, TRAITS>
 {
 public:
-	basic_teestream( std::basic_streambuf<char_type, traits> *sb1, std::basic_streambuf<char_type, traits> *sb2 )
-		: basic_teebuf<char_type,traits>( sb1, sb2 ),
-			std::basic_ostream<char_type,traits>( this )
+	basic_teestream( std::basic_streambuf<CHAR_TYPE, TRAITS> *sb1, std::basic_streambuf<CHAR_TYPE, TRAITS> *sb2 )
+		: basic_teebuf<CHAR_TYPE, TRAITS>( sb1, sb2 ),
+			std::basic_ostream<CHAR_TYPE, TRAITS>( this )
 	{
 	}
 };

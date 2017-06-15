@@ -112,7 +112,7 @@ void endian_tests::test_case_8bytes()
 
 void endian_tests::test_case_float()
 {
-	float v = 1.234567;
+	float v = 1.234567f;
 	if ( su::endian::native == su::endian::big )
 	{
 		auto s = su::native_to_big( v );
