@@ -27,7 +27,8 @@
 namespace
 {
 
-enum class log_event_type : uint8_t
+// type-to-enum to help encode event data
+enum class log_data_type : uint8_t
 {
 	kBool,
 	kChar, kUnsignedChar,
@@ -40,25 +41,20 @@ enum class log_event_type : uint8_t
 	kStringLiteral
 };
 template<typename T> struct TypeToEnum{};
-template<> struct TypeToEnum<bool>{ static const log_event_type value = log_event_type::kBool; };
-template<> struct TypeToEnum<char>{ static const log_event_type value = log_event_type::kChar; };
-template<> struct TypeToEnum<unsigned char>{ static const log_event_type value = log_event_type::kUnsignedChar; };
-template<> struct TypeToEnum<short>{ static const log_event_type value = log_event_type::kShort; };
-template<> struct TypeToEnum<unsigned short>{ static const log_event_type value = log_event_type::kUnsignedShort; };
-template<> struct TypeToEnum<int>{ static const log_event_type value = log_event_type::kInt; };
-template<> struct TypeToEnum<unsigned int>{ static const log_event_type value = log_event_type::kUnsignedInt; };
-template<> struct TypeToEnum<long>{ static const log_event_type value = log_event_type::kLong; };
-template<> struct TypeToEnum<unsigned long>{ static const log_event_type value = log_event_type::kUnsignedLong; };
-template<> struct TypeToEnum<long long>{ static const log_event_type value = log_event_type::kLongLong; };
-template<> struct TypeToEnum<unsigned long long>{ static const log_event_type value = log_event_type::kUnsignedLongLong; };
-template<> struct TypeToEnum<double>{ static const log_event_type value = log_event_type::kDouble; };
+template<> struct TypeToEnum<bool>{ static const log_data_type value = log_data_type::kBool; };
+template<> struct TypeToEnum<char>{ static const log_data_type value = log_data_type::kChar; };
+template<> struct TypeToEnum<unsigned char>{ static const log_data_type value = log_data_type::kUnsignedChar; };
+template<> struct TypeToEnum<short>{ static const log_data_type value = log_data_type::kShort; };
+template<> struct TypeToEnum<unsigned short>{ static const log_data_type value = log_data_type::kUnsignedShort; };
+template<> struct TypeToEnum<int>{ static const log_data_type value = log_data_type::kInt; };
+template<> struct TypeToEnum<unsigned int>{ static const log_data_type value = log_data_type::kUnsignedInt; };
+template<> struct TypeToEnum<long>{ static const log_data_type value = log_data_type::kLong; };
+template<> struct TypeToEnum<unsigned long>{ static const log_data_type value = log_data_type::kUnsignedLong; };
+template<> struct TypeToEnum<long long>{ static const log_data_type value = log_data_type::kLongLong; };
+template<> struct TypeToEnum<unsigned long long>{ static const log_data_type value = log_data_type::kUnsignedLongLong; };
+template<> struct TypeToEnum<double>{ static const log_data_type value = log_data_type::kDouble; };
 
-su::spinlock g_loggerQueueLock;
-std::condition_variable_any g_loggerQueueEvent;
-
-std::vector<su::logger_base *> g_loggers;
-std::thread g_loggerThread;
-
+//! generate timestamp in microseconds
 inline uint64_t get_timestamp()
 {
 	return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -67,7 +63,7 @@ inline uint64_t get_timestamp()
 class logger_thread_data
 {
 private:
-	int refCount = 1;
+	int refCount = 1; // not protected, but typically only one logger_thread should be created
 	std::mutex queueMutex;
 	std::condition_variable queueCond;
 	su::spinlock queueSpinLock;
@@ -87,7 +83,6 @@ public:
 	void push( su::logger_base *i_logger, su::log_event &&i_event );
 	void flush();
 };
-
 logger_thread_data *g_thread = nullptr;
 
 logger_thread_data::logger_thread_data()
@@ -131,9 +126,9 @@ void logger_thread_data::push( su::logger_base *i_logger, su::log_event &&i_even
 
 void logger_thread_data::flush()
 {
-	std::unique_lock<std::mutex> l( queueMutex );
 	if ( not logQueueIsEmpty() )
 	{
+		std::unique_lock<std::mutex> l( queueMutex );
 		queueCond.notify_one();
 		while ( not logQueueIsEmpty() )
 			queueCond.wait( l );
@@ -142,9 +137,13 @@ void logger_thread_data::flush()
 
 void logger_thread_data::func()
 {
+	su::this_thread::set_name( "logger_thread" );
+	
 	std::unique_lock<std::mutex> l( queueMutex, std::defer_lock );
+	
 	std::vector<std::pair<su::logger_base *,su::log_event>> localCopy;
 	su::flat_set<su::logger_base *> toFlush;
+	
 	bool exitLoop = false;
 	while ( not exitLoop )
 	{
@@ -159,24 +158,23 @@ void logger_thread_data::func()
 		localCopy.swap( logQueue );
 		sl.unlock();
 		
-		for ( auto &ll : localCopy )
+		// dump all events
+		for ( auto &ev : localCopy )
 		{
-			if ( ll.first == nullptr )
+			if ( ev.first == nullptr )
 				exitLoop = true;
-			else
+			else if ( ev.first->output() )
 			{
-				ll.first->dump( ll.second );
-				toFlush.insert( ll.first );
+				ev.first->dump( ev.second );
+				toFlush.insert( ev.first );
 			}
 		}
 		
+		// flush all loggers that did some work
 		for ( auto l : toFlush )
-		{
-			if ( l->output() )
-				l->output()->flush();
-		}
+			l->output()->flush();
+
 		toFlush.clear();
-		
 		localCopy.clear();
 		
 		// notify
@@ -223,7 +221,7 @@ template<typename T>
 void log_event::encode( const T &v )
 {
 	ensure_extra_capacity( 1 + sizeof( v ) );
-	*reinterpret_cast<log_event_type*>(_ptr) = TypeToEnum<T>::value;
+	*reinterpret_cast<log_data_type*>(_ptr) = TypeToEnum<T>::value;
 	++_ptr;
 	*reinterpret_cast<T*>(_ptr) = v;
 	_ptr += sizeof( v );
@@ -244,18 +242,18 @@ log_event &log_event::operator<<( double v ) { encode( v ); return *this; }
 
 void log_event::encode_string_data( const char *i_data, size_t s )
 {
-	ensure_extra_capacity( sizeof( log_event_type ) + s + 1 );
-	*reinterpret_cast<log_event_type*>(_ptr) = log_event_type::kStringData;
-	_ptr += sizeof( log_event_type );
+	ensure_extra_capacity( sizeof( log_data_type ) + s + 1 );
+	*reinterpret_cast<log_data_type*>(_ptr) = log_data_type::kStringData;
+	_ptr += sizeof( log_data_type );
 	memcpy( _ptr, i_data, s + 1 );
 	_ptr += s + 1;
 }
 
 void log_event::encode_string_literal( const char *i_data )
 {
-	ensure_extra_capacity( sizeof( log_event_type ) + sizeof( const char * ) );
-	*reinterpret_cast<log_event_type*>(_ptr) = log_event_type::kStringLiteral;
-	_ptr += sizeof( log_event_type );
+	ensure_extra_capacity( sizeof( log_data_type ) + sizeof( const char * ) );
+	*reinterpret_cast<log_data_type*>(_ptr) = log_data_type::kStringLiteral;
+	_ptr += sizeof( log_data_type );
 	*reinterpret_cast<const char **>(_ptr) = i_data;
 	_ptr += sizeof( const char * );
 }
@@ -273,66 +271,66 @@ std::ostream &log_event::message( std::ostream &ostr ) const
 	auto end = _ptr;
 	while ( ptr < end )
 	{
-		auto t = *reinterpret_cast<const log_event_type*>(ptr);
-		ptr += sizeof( log_event_type );
+		auto t = *reinterpret_cast<const log_data_type*>(ptr);
+		ptr += sizeof( log_data_type );
 		switch ( t )
 		{
-			case log_event_type::kBool:
+			case log_data_type::kBool:
 				if ( *reinterpret_cast<const bool *>(ptr) )
 					ostr << "true";
 				else
 					ostr << "false";
 				ptr += sizeof( bool );
 				break;
-			case log_event_type::kChar:
+			case log_data_type::kChar:
 				ostr << *reinterpret_cast<const char *>(ptr);
 				ptr += sizeof( char );
 				break;
-			case log_event_type::kUnsignedChar:
+			case log_data_type::kUnsignedChar:
 				ostr << *reinterpret_cast<const unsigned char *>(ptr);
 				ptr += sizeof( unsigned char );
 				break;
-			case log_event_type::kShort:
+			case log_data_type::kShort:
 				ostr << *reinterpret_cast<const short *>(ptr);
 				ptr += sizeof( short );
 				break;
-			case log_event_type::kUnsignedShort:
+			case log_data_type::kUnsignedShort:
 				ostr << *reinterpret_cast<const unsigned short *>(ptr);
 				ptr += sizeof( unsigned short );
 				break;
-			case log_event_type::kInt:
+			case log_data_type::kInt:
 				ostr << *reinterpret_cast<const int *>(ptr);
 				ptr += sizeof( int );
 				break;
-			case log_event_type::kUnsignedInt:
+			case log_data_type::kUnsignedInt:
 				ostr << *reinterpret_cast<const unsigned int *>(ptr);
 				ptr += sizeof( unsigned int );
 				break;
-			case log_event_type::kLong:
+			case log_data_type::kLong:
 				ostr << *reinterpret_cast<const long *>(ptr);
 				ptr += sizeof( long );
 				break;
-			case log_event_type::kUnsignedLong:
+			case log_data_type::kUnsignedLong:
 				ostr << *reinterpret_cast<const unsigned long *>(ptr);
 				ptr += sizeof( unsigned long );
 				break;
-			case log_event_type::kLongLong:
+			case log_data_type::kLongLong:
 				ostr << *reinterpret_cast<const long long *>(ptr);
 				ptr += sizeof( long long );
 				break;
-			case log_event_type::kUnsignedLongLong:
+			case log_data_type::kUnsignedLongLong:
 				ostr << *reinterpret_cast<const unsigned long long *>(ptr);
 				ptr += sizeof( unsigned long long );
 				break;
-			case log_event_type::kDouble:
+			case log_data_type::kDouble:
 				ostr << *reinterpret_cast<const double *>(ptr);
 				ptr += sizeof( double );
 				break;
-			case log_event_type::kStringLiteral:
+			case log_data_type::kStringLiteral:
 				ostr << *reinterpret_cast<const char * const *>(ptr);
 				ptr += sizeof( const char * );
 				break;
-			case log_event_type::kStringData:
+			case log_data_type::kStringData:
 				ostr << reinterpret_cast<const char *>(ptr);
 				ptr += strlen( reinterpret_cast<const char *>(ptr) ) + 1;
 				break;

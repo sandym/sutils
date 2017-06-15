@@ -841,7 +841,7 @@ void format_impl::formatInteger( T i_arg, const su::details::FormatSpec &i_forma
 {
 	int prefix_size = 0;
 	char prefix[4] = "";
-	typename std::make_unsigned<T>::type abs_value = i_arg;
+	typename std::make_unsigned_t<T> abs_value = i_arg;
 	if ( i_arg < 0 )
 	{
 		prefix[0] = '-';

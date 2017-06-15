@@ -10,8 +10,8 @@
  * implied or otherwise.
  */
 
-#ifndef H_ULOGGER_FILE
-#define H_ULOGGER_FILE
+#ifndef H_SU_LOGGER_FILE
+#define H_SU_LOGGER_FILE
 
 #include "su_logger.h"
 #include <fstream>
@@ -47,9 +47,9 @@ private:
 	logger_base &_logger;
 	std::unique_ptr<logger_output> _save;
 	
-	void setStream( bool i_tee );
-	void setStreamRollDaily( const filepath &i_path, bool i_tee );
-	void setStreamRollOnSize( const filepath &i_path, bool i_tee, int i_bytes );
+	std::unique_ptr<logger_output> createSimpleStream( bool i_tee );
+	std::unique_ptr<logger_output> createRollDailyStream( const filepath &i_path, bool i_tee );
+	std::unique_ptr<logger_output> createRollOnSizeStream( const filepath &i_path, bool i_tee, int i_bytes );
 };
 
 }

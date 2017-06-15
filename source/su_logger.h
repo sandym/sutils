@@ -36,8 +36,8 @@
 #include <vector>
 #include "su_always_inline.h"
 
-namespace su
-{
+namespace su {
+
 // from less to more verbose
 enum loglevel
 {
@@ -52,8 +52,8 @@ enum loglevel
 // level not in kCOMPILETIME_LOG_MASK will be compiled out!
 #ifndef COMPILETIME_LOG_MASK
 #ifdef NDEBUG
-// in release, all but debug and trace
-const int kCOMPILETIME_LOG_MASK = ~(kDEBUG + kTRACE);
+// in release, all but debug
+const int kCOMPILETIME_LOG_MASK = ~kDEBUG;
 #else
 // in debug, all
 const int kCOMPILETIME_LOG_MASK = 0xFF;
@@ -79,6 +79,7 @@ struct source_location
 	inline int line() const { return _line; }
 };
 
+//! record on log event
 class log_event final
 {
 private:
@@ -141,14 +142,7 @@ public:
 	}
 	
 	template<typename T>
-	inline typename std::enable_if<std::is_same<T,const char *>::value,log_event &>::type
-	operator<<( const T &v )
-	{
-		encode_string_data( v, strlen( v ) );
-		return *this;
-	}
-	template<typename T>
-	inline typename std::enable_if<std::is_same<T,char *>::value,log_event &>::type
+	inline typename std::enable_if_t<std::is_same<std::remove_cv_t<T>,char *>::value,log_event &>
 	operator<<( const T &v )
 	{
 		encode_string_data( v, strlen( v ) );
@@ -216,19 +210,20 @@ private:
 	int _runtimeLogMask = COMPILETIME_LOG_MASK;
 };
 
-extern Logger<kCOMPILETIME_LOG_MASK> logger; // default logger
+extern Logger<kCOMPILETIME_LOG_MASK> logger; //!< the default logger
 
 always_inline_func su::Logger<kCOMPILETIME_LOG_MASK> &GET_LOGGER() { return su::logger; }
 template<int L>
 always_inline_func su::Logger<L> &GET_LOGGER( su::Logger<L> &i_logger ) { return i_logger; }
 
-#define log_fault(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kFAULT>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kFAULT, {__FILE__,__LINE__,__FUNCTION__})
-#define log_error(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kERROR>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kERROR, {__FILE__,__LINE__,__FUNCTION__})
-#define log_warn(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kWARN>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kWARN, {__FILE__,__LINE__,__FUNCTION__})
-#define log_info(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kINFO>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kINFO, {__FILE__,__LINE__,__FUNCTION__})
-#define log_debug(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kDEBUG>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kDEBUG, {__FILE__,__LINE__,__FUNCTION__})
-#define log_trace(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kTRACE>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event( su::kTRACE, {__FILE__,__LINE__,__FUNCTION__})
+#define log_fault(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kFAULT>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event(su::kFAULT,{__FILE__,__LINE__,__FUNCTION__})
+#define log_error(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kERROR>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event(su::kERROR,{__FILE__,__LINE__,__FUNCTION__})
+#define log_warn(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kWARN>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event(su::kWARN,{__FILE__,__LINE__,__FUNCTION__})
+#define log_info(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kINFO>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event(su::kINFO,{__FILE__,__LINE__,__FUNCTION__})
+#define log_debug(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kDEBUG>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event(su::kDEBUG,{__FILE__,__LINE__,__FUNCTION__})
+#define log_trace(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kTRACE>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event(su::kTRACE,{__FILE__,__LINE__,__FUNCTION__})
 
+//! instanciate one of those to defer the logging out put to a thread
 class logger_thread final
 {
 public:

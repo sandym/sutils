@@ -10,8 +10,8 @@
 //	implied or otherwise.
 //
 
-#ifndef H_JSON_FLAT
-#define H_JSON_FLAT
+#ifndef H_SU_JSON_FLAT
+#define H_SU_JSON_FLAT
 
 #include "su_json.h"
 #include "su_shim/optional.h"

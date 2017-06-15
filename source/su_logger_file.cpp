@@ -13,11 +13,13 @@
 #include "su_logger_file.h"
 #include "su_filepath.h"
 #include "su_teebuf.h"
-#include <cassert>
 #include <chrono>
 
 namespace {
 
+/*! roll a file if it exists
+		will rename "file" to "file_YYYY-MM-DD" or "file_YYYY-MM-DD-INDEX"
+*/
 void roll( const su::filepath &i_path )
 {
 	auto tm = i_path.creation_date();
@@ -52,6 +54,71 @@ void roll( const su::filepath &i_path )
 	}
 }
 
+//! logger_output that tee to 2 streams
+struct tee_output : public su::logger_output
+{
+	tee_output( std::ostream &ostr1, std::ostream &ostr2 )
+		: logger_output( ostr1 ),
+			tee( ostr1.rdbuf(), ostr2.rdbuf() )
+	{
+		_save = ostr.rdbuf( &tee );
+	}
+	~tee_output()
+	{
+		ostr.rdbuf( _save );
+	}
+	
+	su::teebuf tee;
+	std::streambuf *_save = nullptr;
+};
+
+//! helper that close, roll and re-open a new file daily
+struct RollDailyHelper
+{
+	RollDailyHelper( const su::filepath &i_path, std::ofstream &ofstr )
+		: _path( i_path ), _ofstr( ofstr )
+	{
+		//! @todo: should probably be at the next midnight
+		timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
+	}
+	
+	const su::filepath _path;
+	std::ofstream &_ofstr;
+	std::chrono::system_clock::time_point timeout;
+	
+	void flush()
+	{
+		if ( std::chrono::system_clock::now() > timeout )
+		{
+			_ofstr.close();
+			roll( _path );
+			_path.fsopen( _ofstr );
+			timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
+		}
+	}
+};
+
+//! helper that close, roll and re-open a new file when a certain size is reach
+struct RollOnSizeHelper
+{
+	RollOnSizeHelper( const su::filepath &i_path, std::ofstream &ofstr, int i_bytes )
+		: _path( i_path ), _ofstr( ofstr ), _bytes( i_bytes ) {}
+	
+	const su::filepath _path;
+	std::ofstream &_ofstr;
+	const int _bytes;;
+	
+	void flush()
+	{
+		if ( _ofstr and _ofstr.tellp() >= _bytes )
+		{
+			_ofstr.close();
+			roll( _path );
+			_path.fsopen( _ofstr );
+		}
+	}
+};
+
 }
 
 namespace su {
@@ -60,14 +127,14 @@ logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const A
 	: _logger( i_logger )
 {
 	i_path.fsopen( _fstr, std::ios::app );
-	setStream( i_tee );
+	_save = _logger.exchangeOutput( createSimpleStream( i_tee ) );
 }
 
 logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const Overwrite &, bool i_tee )
 	: _logger( i_logger )
 {
 	i_path.fsopen( _fstr );
-	setStream( i_tee );
+	_save = _logger.exchangeOutput( createSimpleStream( i_tee ) );
 }
 
 logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const Roll &, bool i_tee )
@@ -75,7 +142,7 @@ logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const R
 {
 	roll( i_path );
 	i_path.fsopen( _fstr );
-	setStream( i_tee );
+	_save = _logger.exchangeOutput( createSimpleStream( i_tee ) );
 }
 
 logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const RollDaily &, bool i_tee )
@@ -83,7 +150,7 @@ logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const R
 {
 	roll( i_path );
 	i_path.fsopen( _fstr );
-	setStreamRollDaily( i_path, i_tee );
+	_save = _logger.exchangeOutput( createRollDailyStream( i_path, i_tee ) );
 }
 
 logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const RollOnSize &i_action, bool i_tee )
@@ -91,181 +158,89 @@ logger_file::logger_file( logger_base &i_logger, const filepath &i_path, const R
 {
 	roll( i_path );
 	i_path.fsopen( _fstr );
-	setStreamRollOnSize( i_path, i_tee, i_action.bytes );
+	_save = _logger.exchangeOutput( createRollOnSizeStream( i_path, i_tee, i_action.bytes ) );
 }
 
 logger_file::~logger_file()
 {
+	// restore the logger
 	_logger.exchangeOutput( std::move(_save) );
 }
 
-void logger_file::setStream( bool i_tee )
+std::unique_ptr<logger_output> logger_file::createSimpleStream( bool i_tee )
 {
 	if ( i_tee and _logger.output() != nullptr )
-	{
-		struct output : public logger_output
-		{
-			output( std::ostream &ostr1, std::ostream &ostr2 )
-				: logger_output( ostr1 ),
-					tee( ostr1.rdbuf(), ostr2.rdbuf() )
-			{
-				_save = ostr.rdbuf( &tee );
-			}
-			~output()
-			{
-				ostr.rdbuf( _save );
-			}
-			
-			teebuf tee;
-			std::streambuf *_save = nullptr;
-		};
-		_save = _logger.exchangeOutput( std::make_unique<output>( _fstr, _logger.output()->ostr ) );
-	}
-	else
-	{
-		_save = _logger.exchangeOutput( std::make_unique<logger_output>( _fstr ) );
-	}
+		return std::make_unique<tee_output>( _fstr, _logger.output()->ostr );
+	
+	return std::make_unique<logger_output>( _fstr );
 }
 
-void logger_file::setStreamRollDaily( const filepath &i_path, bool i_tee )
+std::unique_ptr<logger_output> logger_file::createRollDailyStream( const filepath &i_path, bool i_tee )
 {
 	if ( i_tee and _logger.output() != nullptr )
 	{
-		struct output : public logger_output
+		// compose tee and roll daily features
+		struct output : public tee_output, public RollDailyHelper
 		{
 			output( const filepath &i_path, std::ofstream &ofstr, std::ostream &ostr2 )
-				: logger_output( ofstr ),
-					tee( ofstr.rdbuf(), ostr2.rdbuf() ),
-					_path( i_path ),
-					_ofstr( ofstr )
-			{
-				_save = ostr.rdbuf( &tee );
-				timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
-			}
-			~output()
-			{
-				ostr.rdbuf( _save );
-			}
-			
-			teebuf tee;
-			std::streambuf *_save = nullptr;
-			const filepath _path;
-			std::ofstream &_ofstr;
-			std::chrono::system_clock::time_point timeout;
+				: tee_output( ofstr, ostr2 ), RollDailyHelper( i_path, ofstr ) {}
 			
 			virtual void flush()
 			{
 				logger_output::flush();
-				if ( std::chrono::system_clock::now() > timeout )
-				{
-					_ofstr.close();
-					roll( _path );
-					_path.fsopen( _ofstr );
-					timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
-				}
+				RollDailyHelper::flush();
 			}
 		};
-		_save = _logger.exchangeOutput( std::make_unique<output>( i_path, _fstr, _logger.output()->ostr ) );
+		return std::make_unique<output>( i_path, _fstr, _logger.output()->ostr );
 	}
-	else
+
+	// roll daily output
+	struct output : public logger_output, public RollDailyHelper
 	{
-		struct output : public logger_output
+		output( const filepath &i_path, std::ofstream &ofstr )
+			: logger_output( ofstr ), RollDailyHelper( i_path, ofstr ) {}
+		
+		virtual void flush()
 		{
-			output( const filepath &i_path, std::ofstream &ofstr )
-				: logger_output( ofstr ),
-					_path( i_path ),
-					_ofstr( ofstr )
-			{
-				timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
-			}
-			
-			const filepath _path;
-			std::ofstream &_ofstr;
-			std::chrono::system_clock::time_point timeout;
-			
-			virtual void flush()
-			{
-				logger_output::flush();
-				if ( std::chrono::system_clock::now() > timeout )
-				{
-					_ofstr.close();
-					roll( _path );
-					_path.fsopen( _ofstr );
-					timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
-				}
-			}
-		};
-		_save = _logger.exchangeOutput( std::make_unique<output>( i_path, _fstr ) );
-	}
+			logger_output::flush();
+			RollDailyHelper::flush();
+		}
+	};
+	return std::make_unique<output>( i_path, _fstr );
 }
 
-void logger_file::setStreamRollOnSize( const filepath &i_path, bool i_tee, int i_bytes )
+std::unique_ptr<logger_output> logger_file::createRollOnSizeStream( const filepath &i_path, bool i_tee, int i_bytes )
 {
 	if ( i_tee and _logger.output() != nullptr )
 	{
-		struct output : public logger_output
+		// compose tee and roll on size features
+		struct output : public tee_output, public RollOnSizeHelper
 		{
 			output( const filepath &i_path, std::ofstream &ofstr, std::ostream &ostr2, int i_bytes )
-				: logger_output( ofstr ),
-					tee( ofstr.rdbuf(), ostr2.rdbuf() ),
-					_path( i_path ),
-					_ofstr( ofstr ),
-					_bytes( i_bytes )
-			{
-				_save = ostr.rdbuf( &tee );
-			}
-			~output()
-			{
-				ostr.rdbuf( _save );
-			}
-			
-			teebuf tee;
-			std::streambuf *_save = nullptr;
-			const filepath _path;
-			std::ofstream &_ofstr;
-			const int _bytes;;
+				: tee_output( ofstr, ostr2 ), RollOnSizeHelper( i_path, ofstr, i_bytes ) {}
 			
 			virtual void flush()
 			{
 				logger_output::flush();
-				if ( _ofstr.tellp() >= _bytes )
-				{
-					_ofstr.close();
-					roll( _path );
-					_path.fsopen( _ofstr );
-				}
+				RollOnSizeHelper::flush();
 			}
 		};
-		_save = _logger.exchangeOutput( std::make_unique<output>( i_path, _fstr, _logger.output()->ostr, i_bytes ) );
+		return std::make_unique<output>( i_path, _fstr, _logger.output()->ostr, i_bytes );
 	}
-	else
+
+	// roll on size output
+	struct output : public logger_output, public RollOnSizeHelper
 	{
-		struct output : public logger_output
+		output( const filepath &i_path, std::ofstream &ofstr, int i_bytes )
+			: logger_output( ofstr ), RollOnSizeHelper( i_path, ofstr, i_bytes ){}
+		
+		virtual void flush()
 		{
-			output( const filepath &i_path, std::ofstream &ofstr, int i_bytes )
-				: logger_output( ofstr ),
-					_path( i_path ),
-					_ofstr( ofstr ),
-					_bytes( i_bytes )
-			{}
-			
-			const filepath _path;
-			std::ofstream &_ofstr;
-			const int _bytes;;
-			
-			virtual void flush()
-			{
-				logger_output::flush();
-				if ( _ofstr.tellp() >= _bytes )
-				{
-					_ofstr.close();
-					roll( _path );
-					_path.fsopen( _ofstr );
-				}
-			}
-		};
-		_save = _logger.exchangeOutput( std::make_unique<output>( i_path, _fstr, i_bytes ) );
-	}
+			logger_output::flush();
+			RollOnSizeHelper::flush();
+		}
+	};
+	return std::make_unique<output>( i_path, _fstr, i_bytes );
 }
 
 }
