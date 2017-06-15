@@ -15,46 +15,45 @@
 
 #include <streambuf>
 
-namespace su
-{
+namespace su {
 
 class membuf : public std::streambuf
 {
-	public:
-		membuf( const char *i_begin, const char *i_end );
-		virtual ~membuf() = default;
-	
-	private:
-		// Locales:
-		//virtual void imbue( const locale& loc );
-	
-		// Buffer management and positioning:
-//		virtual basic_streambuf *setbuf( char_type *s, std::streamsize n );
-		virtual pos_type seekoff( off_type off, std::ios_base::seekdir way,
-									std::ios_base::openmode which = std::ios_base::in | std::ios_base::out );
-		virtual pos_type seekpos( pos_type sp,
-									std::ios_base::openmode which = std::ios_base::in | std::ios_base::out );
-//		virtual int sync();
+public:
+	membuf( const char *i_begin, const char *i_end );
+	virtual ~membuf() = default;
 
-		// Get area:
-		virtual std::streamsize showmanyc();
-		virtual std::streamsize xsgetn( char_type *s, std::streamsize n );
-		virtual int_type underflow();
-		virtual int_type uflow();
+private:
+	// Locales:
+	//virtual void imbue( const locale& loc );
 
-		// Putback:
-		virtual int_type pbackfail( int_type c = traits_type::eof() );
+	// Buffer management and positioning:
+//	virtual basic_streambuf *setbuf( char_type *s, std::streamsize n );
+	virtual pos_type seekoff( off_type off, std::ios_base::seekdir way,
+								std::ios_base::openmode which = std::ios_base::in | std::ios_base::out );
+	virtual pos_type seekpos( pos_type sp,
+								std::ios_base::openmode which = std::ios_base::in | std::ios_base::out );
+//	virtual int sync();
 
-		// Put area:
-//		virtual std::streamsize xsputn( const char_type *s, std::streamsize n );
-//		virtual int_type overflow( int_type c = traits_type::eof() );
+	// Get area:
+	virtual std::streamsize showmanyc();
+	virtual std::streamsize xsgetn( char_type *s, std::streamsize n );
+	virtual int_type underflow();
+	virtual int_type uflow();
 
-		membuf( const membuf & ) = delete;
-		membuf &operator=( const membuf & ) = delete;
+	// Putback:
+	virtual int_type pbackfail( int_type c = traits_type::eof() );
 
-		const char * const _begin;
-		const char * const _end;
-		const char *_current;
+	// Put area:
+//	virtual std::streamsize xsputn( const char_type *s, std::streamsize n );
+//	virtual int_type overflow( int_type c = traits_type::eof() );
+
+	membuf( const membuf & ) = delete;
+	membuf &operator=( const membuf & ) = delete;
+
+	const char * const _begin;
+	const char * const _end;
+	const char *_current;
 };
 
 }

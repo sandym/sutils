@@ -46,7 +46,7 @@ const uint8_t headerMask[256] = {
 };
 
 // helper class for serializing/deserializing integer types with maximum compression
-// it is then specialzed for 1, 2, 4 and 8 bytes integer type.  Should be 64 bit safe.
+// it is then specialzed for 1, 2, 4 and 8 bytes integer type. Should be 64 bit safe.
 template<typename T,size_t S>
 struct helper_int
 {

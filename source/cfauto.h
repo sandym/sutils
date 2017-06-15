@@ -23,7 +23,7 @@ namespace su {
 template <class T>
 class cfauto final
 {
-  public:
+public:
 	cfauto() = default;
 	explicit cfauto( T i_obj ) : obj( i_obj ) {}
 	cfauto( const cfauto<T> &i_other ) : obj( i_other.obj )
@@ -85,7 +85,7 @@ class cfauto final
 	inline bool isBoolean() const { return isOfType( CFBooleanGetTypeID() ); }
 	inline bool isURL() const { return isOfType( CFURLGetTypeID() ); }
 	inline bool isUUID() const { return isOfType( CFUUIDGetTypeID() ); }
-  private:
+private:
 	T obj = nullptr;
 };
 

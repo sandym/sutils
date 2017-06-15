@@ -22,7 +22,7 @@ namespace su {
 */
 class uuid final
 {
-  public:
+public:
 	static uuid create();
 
 	uuid() = default;
@@ -40,7 +40,7 @@ class uuid final
 	inline const std::array<uint8_t, 16> &value() const { return _uuid; }
 	std::string string() const;
 
-  private:
+private:
 	std::array<uint8_t, 16> _uuid;
 };
 

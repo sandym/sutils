@@ -19,17 +19,17 @@
 #include <algorithm>
 #include <functional>
 
-namespace su
-{
+namespace su {
+
 /*!
 	A map implemented with a vector for better cache coherency
 */
-template <class Key, class T, class CMP = std::less<Key>>
+template<typename Key, typename T, class CMP = std::less<Key>>
 class flat_map
 {
-  public:
+public:
 	// types:
-	using storage_type = std::vector<std::pair<Key, T>>;
+	using storage_type = std::vector<std::pair<Key,T>>;
 	using key_type = Key;
 	using mapped_type = T;
 	using value_type = typename storage_type::value_type;
@@ -47,20 +47,15 @@ class flat_map
 
 	flat_map() = default;
 	flat_map( const std::initializer_list<std::pair<Key,T>> &il )
+		: _flatlist( il )
 	{
-		_flatlist.reserve( il.size() );
-		for ( auto &it : il )
-			insert( it );
+		sort();
 	}
 	template<typename IT>
 	flat_map( IT beg, IT en )
+		: _flatlist( beg, en )
 	{
-		_flatlist.reserve( std::distance( beg, en ) );
-		while ( beg != en )
-		{
-			insert( *beg );
-			++beg;
-		}
+		sort();
 	}
 	~flat_map() = default;
 	inline bool empty() const { return _flatlist.empty(); }
@@ -84,7 +79,7 @@ class flat_map
 	inline size_type count( const key_type &k ) const
 	{
 		auto it = lower_bound( k );
-		return it == end() ? 0 : 1;
+		return it == end() and key_equal( it->first, k ) ? 0 : 1;
 	}
 	inline iterator lower_bound( const key_type &k ) { return std::lower_bound( begin(), end(), k, &key_less2 ); }
 	inline const_iterator lower_bound( const key_type &k ) const { return std::lower_bound( begin(), end(), k, &key_less2 ); }
@@ -95,7 +90,7 @@ class flat_map
 		auto it = lower_bound( k );
 		if ( it == end() )
 		{
-			_flatlist.push_back( std::make_pair( k, T() ) );
+			_flatlist.emplace_back( k, T() );
 			it = _flatlist.end() - 1;
 		}
 		else if ( not key_equal( it->first, k ) )
@@ -107,7 +102,7 @@ class flat_map
 		auto it = lower_bound( k );
 		if ( it == end() )
 		{
-			_flatlist.push_back( std::make_pair( k, T() ) );
+			_flatlist.emplace_back( k, T() );
 			it = _flatlist.end() - 1;
 		}
 		else if ( not key_equal( it->first, k ) )
@@ -115,31 +110,47 @@ class flat_map
 		return it->second;
 	}
 
-	void insert( const value_type &v )
+	std::pair<iterator,bool> insert( const value_type &v )
 	{
 		auto it = std::lower_bound( begin(), end(), v.first, &key_less2 );
 		if ( it == end() )
+		{
 			_flatlist.push_back( v );
+			return { _flatlist.end()-1, true };
+		}
 		else if ( not key_equal( it->first, v.first ) )
-			_flatlist.insert( it, v );
+			return { _flatlist.insert( it, v ), true };
 		else
-			*it = v;
+			return { it, false };
 	}
 
 	template <typename... Args>
-	void emplace( const key_type &k, Args &&... args )
+	std::pair<iterator,bool> emplace( const key_type &k, Args &&... args )
 	{
 		auto it = std::lower_bound( begin(), end(), k, &key_less2 );
 		if ( it == end() )
+		{
 			_flatlist.emplace_back( k, std::forward<Args>( args )... );
+			return { _flatlist.end()-1, true };
+		}
 		else if ( not key_equal( it->first, k ) )
-			_flatlist.emplace( it, k, std::forward<Args>( args )... );
+			return { _flatlist.emplace( it, k, std::forward<Args>( args )... ), true };
 		else
-			it->second = T( std::forward<Args>( args )... );
+			return { it, false };
 	}
 
-	inline void erase( iterator it ) { _flatlist.erase( it ); }
-	inline void erase( const key_type &k ) { erase( lower_bound( k ) ); }
+	inline iterator erase( iterator it ) { return _flatlist.erase( it ); }
+	inline size_type erase( const key_type &k )
+	{
+		auto it = lower_bound( k );
+		if ( it != end() and key_equal( it->first, k ) )
+		{
+			erase( it );
+			return 1;
+		}
+		else
+			return 0;
+	}
 	inline void swap( flat_map<Key, T, CMP> &i_other ) { _flatlist.swap( i_other._flatlist ); }
 	inline const storage_type &storage() const { return _flatlist; }
 	inline storage_type &storage() { return _flatlist; }
@@ -152,11 +163,17 @@ class flat_map
 	{
 		return _flatlist == rhs._flatlist;
 	}
-  private:
+	
+private:
 	storage_type _flatlist;
 
 	static inline bool key_less2( const value_type &a, const key_type &b ) { return CMP()( a.first, b ); }
 	static inline bool key_equal( const key_type &a, const key_type &b ) { return not CMP()( a, b ) and not CMP()( b, a ); }
+	
+	inline void sort()
+	{
+		std::sort( _flatlist.begin(), _flatlist.end(), []( auto &a, auto &b ){ return CMP()( a.first, b.first ); } );
+	}
 };
 
 }

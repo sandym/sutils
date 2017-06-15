@@ -16,8 +16,7 @@
 #include <cstddef>
 #include <memory>
 
-namespace su
-{
+namespace su {
 
 /*!
    @brief Automatic heap array.
@@ -25,7 +24,7 @@ namespace su
 template <typename T, size_t S = 512>
 class stackarray final
 {
-  public:
+public:
 	stackarray( size_t i_len = S ) : _size( i_len )
 	{
 		if ( size() > S )
@@ -114,7 +113,7 @@ class stackarray final
 	inline T *data() { return _array; }
 	inline operator T *() { return _array; }
 	inline operator const T *() const { return _array; }
-  private:
+private:
 	T _stackArray[S];
 	std::unique_ptr<T[]> _heapArray;
 	size_t _size = 0;

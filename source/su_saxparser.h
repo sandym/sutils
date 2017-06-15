@@ -18,8 +18,7 @@
 #include "su_flat_map.h"
 #include "su_shim/string_view.h"
 
-namespace su
-{
+namespace su {
 
 struct NameURI
 {

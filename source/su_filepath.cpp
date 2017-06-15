@@ -31,8 +31,8 @@
 #include <sysdir.h>
 #endif
 
-namespace
-{
+namespace {
+
 #if UPLATFORM_WIN
 const char k_separators[] = {'/', '\\', 0};
 const char k_illegalChars[] = {'?', ':', '*', '<', '>', 0};
@@ -151,8 +151,7 @@ std::string getUserSysDir( const char *i_key, const char *i_default )
 
 }
 
-namespace su
-{
+namespace su {
 
 filepath::filepath( const std::string &i_path, const filepath *i_relativeTo )
 {

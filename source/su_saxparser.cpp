@@ -17,8 +17,7 @@
 #include <cstring>
 #include <iostream>
 
-namespace
-{
+namespace {
 
 su::NameURI extractNameURI( const char *s )
 {
@@ -64,8 +63,7 @@ void characters( void *userData, const char *s, int len )
 
 }
 
-namespace su
-{
+namespace su {
 
 bool NameURI::operator<( const NameURI &rhs ) const
 {

@@ -16,15 +16,15 @@
 #include <thread>
 #include <cassert>
 
-namespace su
-{
+namespace su {
 
-namespace this_thread
-{
+namespace this_thread {
+
 // extension
 void set_as_main();
 bool is_main();
 void set_name( const char *n );
+
 }
 
 void set_low_priority( std::thread &i_thread );

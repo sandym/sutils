@@ -16,8 +16,7 @@
 #include <string.h>
 #include <algorithm>
 
-namespace su
-{
+namespace su {
 
 membuf::membuf( const char *i_begin, const char *i_end )
 	: _begin( i_begin ),

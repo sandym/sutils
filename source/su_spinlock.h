@@ -15,15 +15,14 @@
 
 #include <atomic>
 
-namespace su
-{
+namespace su {
 
 class spinlock
 {
-  private:
+private:
 	std::atomic_flag _locked = ATOMIC_FLAG_INIT;
 	
-  public:
+public:
 	inline void lock()
 	{
 		while ( _locked.test_and_set(std::memory_order_acquire) );

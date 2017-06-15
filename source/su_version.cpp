@@ -15,16 +15,16 @@
 #include <tuple>
 #include "su_platform.h"
 
-namespace
-{
+namespace {
+
 inline bool isSeparator( char c )
 {
 	return c == '.' or c == ',' or c == '-' or c == '_';
 }
 
 }
-namespace su
-{
+
+namespace su {
 
 version::version( const su::string_view &i_version )
 {

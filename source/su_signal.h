@@ -21,8 +21,8 @@
 #include <algorithm>
 #include <memory>
 
-namespace su
-{
+namespace su {
+
 /*!
  *  signal class
  *      for signal with no returned value
@@ -40,7 +40,7 @@ namespace su
 template <typename... Args>
 class signal final
 {
-  public:
+public:
 	//! function type for this signal.
 	using func_type = std::function<void( Args... )>;
 
@@ -69,8 +69,8 @@ class signal final
 
 	void disconnect( conn c )
 	{
-		auto it = std::find_if( std::begin( _connections ), std::end( _connections ),
-								[c]( const std::unique_ptr<func_type> &p ) { return p.get() == c; } );
+		auto it = std::find_if( std::begin(_connections), std::end(_connections),
+								[c]( auto &p ) { return p.get() == c; } );
 		if ( it != _connections.end() )
 		{
 			assert( not _in_signal );
@@ -86,7 +86,7 @@ class signal final
 
 	class scoped_conn
 	{
-	  public:
+	public:
 		scoped_conn( signal &sig, const func_type &i_func ) : s( sig ) { c = s.connect( i_func ); }
 		~scoped_conn() { disconnect(); }
 		void disconnect()
@@ -98,12 +98,12 @@ class signal final
 			}
 		}
 
-	  private:
+	private:
 		signal &s;
 		conn c;
 	};
 
-  private:
+private:
 	bool _in_signal = false;
 	std::vector<std::unique_ptr<func_type>> _connections;
 };

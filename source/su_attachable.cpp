@@ -18,17 +18,17 @@ attachable::~attachable()
 {
 }
 
-void attachable::attach( const std::string& i_name, std::unique_ptr<attachment> &&i_attachment )
+attachment *attachable::attach( const std::string& i_name, std::unique_ptr<attachment> &&i_attachment )
 {
-	assert( i_attachment->_attachable == nullptr ); // already attached !?
-
 	detach( i_name );
 
 	if ( i_attachment.get() == nullptr )
-		return;
+		return nullptr;
+
+	assert( i_attachment->_attachable == nullptr ); // already attached !?
 
 	i_attachment->_attachable = this;
-	_attachments.emplace( i_name, std::move(i_attachment) );
+	return _attachments.emplace( i_name, std::move(i_attachment) ).first->second.get();
 }
 
 void attachable::detach( const std::string& i_name )

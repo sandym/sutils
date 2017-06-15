@@ -17,12 +17,11 @@
 #include <string>
 #include "su_shim/string_view.h"
 
-namespace su
-{
+namespace su {
 
 class version final
 {
-  public:
+public:
 	version() = default;
 	version( const su::string_view &i_version );
 	version( int i_major, int i_minor = 0, int i_patch = 0, int i_buildNumber = 0 );
@@ -35,7 +34,7 @@ class version final
 	std::string revision() const;
 	std::string build_date() const;
 
-	std::string string() const;	//!<  major.minor.patch.buildNumber(data)
+	std::string string() const;	//!< major.minor.patch.buildNumber(data)
 	std::string string_platform() const;
 	std::string full() const;
 
@@ -56,7 +55,7 @@ class version final
 		return not operator>( i_other );
 	}
 
-  private:
+private:
 	int _major = 0;
 	int _minor = 0;
 	int _patch = 0;

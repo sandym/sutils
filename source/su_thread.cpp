@@ -17,15 +17,16 @@
 #include <Windows.h>
 #endif
 
-namespace
-{
+namespace {
+
 std::thread::id g_mainThreadID;
+
 }
 
-namespace su
-{
-namespace this_thread
-{
+namespace su {
+
+namespace this_thread {
+
 void set_as_main()
 {
 	g_mainThreadID = std::this_thread::get_id();

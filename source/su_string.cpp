@@ -343,8 +343,7 @@ std::string japaneseHiASCIIFix( const su::string_view &i_s )
 
 }
 
-namespace
-{
+namespace {
 
 const char16_t kICHI  = 0x4E00; // 1
 const char16_t kNI    = 0x4E8C; // 2
@@ -465,8 +464,7 @@ int kanjiNumberValue( std::u16string s )
 
 }
 
-namespace su
-{
+namespace su {
 
 std::string kanjiNumberFix( const su::string_view &i_s )
 {

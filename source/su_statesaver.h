@@ -13,13 +13,12 @@
 #ifndef H_SU_STATESAVER
 #define H_SU_STATESAVER
 
-namespace su
-{
+namespace su {
 
 template<typename T>
 class statesaver final
 {
-  public:
+public:
 	template<typename Y>
 	statesaver( T &i_holder, const Y &v )
 		: _holder( &i_holder ), _originalValue( i_holder )
@@ -46,7 +45,7 @@ class statesaver final
 		}
 	}
 
-  private:
+private:
 	T *_holder;
 	T _originalValue;
 };

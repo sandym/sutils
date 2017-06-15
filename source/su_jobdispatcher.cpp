@@ -17,8 +17,7 @@
 #include <memory>
 #include <algorithm>
 
-namespace su
-{
+namespace su {
 
 jobdispatcher::jobdispatcher( int i_nbOfWorkers )
 {

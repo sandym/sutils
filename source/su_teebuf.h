@@ -29,7 +29,7 @@ public:
 		: _sb1( sb1 ), _sb2( sb2 )
 	{}
 
-private:    
+private:
 	virtual int sync()
 	{
 		int r1 = _sb1->pubsync();

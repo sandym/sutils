@@ -20,12 +20,11 @@
 #include <ctime>
 #include <fstream>
 
-namespace su
-{
+namespace su {
 
 class filepath final
 {
-  public:
+public:
 	filepath() = default;
 	filepath( const char *i_path );
 	filepath( const std::string &i_path, const filepath *i_relativeTo = nullptr );
@@ -51,7 +50,7 @@ class filepath final
 
 	class BookmarkData
 	{
-	  public:
+	public:
 		BookmarkData() = default;
 		BookmarkData( BookmarkData && ) noexcept;
 		~BookmarkData() = default;
@@ -61,7 +60,7 @@ class filepath final
 
 		inline size_t size() const { return _len; }
 		inline const char *data() const { return _data.get(); }
-	  private:
+	private:
 		std::unique_ptr<char[]> _data;
 		size_t _len = 0;
 
@@ -113,7 +112,7 @@ class filepath final
 	std::ofstream &fsopen( std::ofstream &o_fs, std::ios_base::openmode i_mode = std::ios_base::out | std::ios_base::trunc |
 																				 std::ios_base::binary ) const;
 	std::fstream &fsopen( std::fstream &o_fs,
-						  std::ios_base::openmode i_mode = std::ios_base::in | std::ios_base::out | std::ios_base::binary ) const;
+							std::ios_base::openmode i_mode = std::ios_base::in | std::ios_base::out | std::ios_base::binary ) const;
 
 	// file operation
 	bool unlink() const;
@@ -122,8 +121,8 @@ class filepath final
 	bool move( const filepath &i_dest ) const;
 	bool copy( const filepath &i_dest ) const;
 
-  private:
-  	std::string _path;
+private:
+	std::string _path;
 };
 
 }

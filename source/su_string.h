@@ -22,8 +22,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-namespace su
-{
+namespace su {
 
 // conversion
 std::string to_string( const std::wstring &s );

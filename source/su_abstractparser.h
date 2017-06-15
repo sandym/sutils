@@ -26,141 +26,141 @@ namespace su {
 template<typename TOKEN_TYPE>
 class token
 {
-	public:
-		token( const token & ) = default;
-		token &operator=( const token & ) = default;
-	
-		token() = default;
-		token( TOKEN_TYPE i_tok, const std::string &i_val )
-			: _isValid( true ),
-				_tokenid( i_tok ),
-				_value( i_val )
-		{}
-		token( TOKEN_TYPE i_tok, std::string::value_type i_val )
-			: _isValid( true ),
-				_tokenid( i_tok ),
-				_value( 1, i_val )
-		{}
+public:
+	token( const token & ) = default;
+	token &operator=( const token & ) = default;
 
-		token( token && ) = default;
-		token &operator=( token &&i_other ) = default;
+	token() = default;
+	token( TOKEN_TYPE i_tok, const std::string &i_val )
+		: _isValid( true ),
+			_tokenid( i_tok ),
+			_value( i_val )
+	{}
+	token( TOKEN_TYPE i_tok, std::string::value_type i_val )
+		: _isValid( true ),
+			_tokenid( i_tok ),
+			_value( 1, i_val )
+	{}
+
+	token( token && ) = default;
+	token &operator=( token &&i_other ) = default;
+
+	void clear()
+	{
+		_properties.clear();
+		_isValid = false;
+	}
 	
-		void clear()
-		{
-			_properties.clear();
-			_isValid = false;
-		}
-		
-		bool isValid() const { return _isValid; }
-		TOKEN_TYPE type() const { return _tokenid; }
-		const std::string &value() const { return _value; }
-		
-		void setProperty( const std::string &i_name, const std::string &i_value )
-		{
-			_properties[i_name] = i_value;
-		}
-		std::string getProperty( const std::string &i_name ) const
-		{
-			auto it = _properties.find( i_name );
-			if ( it != _properties.end() )
-				return it->second;
-			return std::string();
-		}
-		
-	private:
-		bool _isValid = false;
-		TOKEN_TYPE _tokenid;
-		std::string _value;
-		su::flat_map<std::string,std::string> _properties;
+	bool isValid() const { return _isValid; }
+	TOKEN_TYPE type() const { return _tokenid; }
+	const std::string &value() const { return _value; }
+	
+	void setProperty( const std::string &i_name, const std::string &i_value )
+	{
+		_properties[i_name] = i_value;
+	}
+	std::string getProperty( const std::string &i_name ) const
+	{
+		auto it = _properties.find( i_name );
+		if ( it != _properties.end() )
+			return it->second;
+		return std::string();
+	}
+	
+private:
+	bool _isValid = false;
+	TOKEN_TYPE _tokenid;
+	std::string _value;
+	su::flat_map<std::string,std::string> _properties;
 };
 
 class abstractparserbase
 {
-	public:
-		abstractparserbase( std::istream &i_str, const std::string &i_name = std::string() );
-		virtual ~abstractparserbase();
-	
-		/*!
-		   @brief read from the current position to the end of the line.
+public:
+	abstractparserbase( std::istream &i_str, const std::string &i_name = std::string() );
+	virtual ~abstractparserbase();
 
-		   @return  the string read
-		*/
-		std::string readLine();
-		
-		void throwTokenizerException() const;
+	/*!
+	   @brief read from the current position to the end of the line.
+
+	   @return  the string read
+	*/
+	std::string readLine();
 	
-	protected:
-		char nextNonSpaceChar();
-		char nextChar();
-		void putBackChar( char val );
-		void skipToNextLine();
-		bool readDoubleQuotedString( std::string &o_s );
-		bool readNumber( std::string &o_s, bool &o_isFloat );
+	void throwTokenizerException() const;
+
+protected:
+	char nextNonSpaceChar();
+	char nextChar();
+	void putBackChar( char val );
+	void skipToNextLine();
+	bool readDoubleQuotedString( std::string &o_s );
+	bool readNumber( std::string &o_s, bool &o_isFloat );
+
+private:
+	std::istream &_stream;
+	std::string _name;
+
+	// text file format
+	enum AbstractParserStreamFormat_t { kutf8, kutf16BE, kutf16LE };
+	AbstractParserStreamFormat_t _format;
 	
-	private:
-		std::istream &_stream;
-		std::string _name;
-	
-		// text file format
-		enum AbstractParserStreamFormat_t { kutf8, kutf16BE, kutf16LE };
-		AbstractParserStreamFormat_t _format;
-		
-		// parsing utility
-		std::stack<char> _putbackCharList;
+	// parsing utility
+	std::stack<char> _putbackCharList;
 };
 
 template<typename TOKEN_TYPE>
 class abstractparser : public abstractparserbase
 {
-	public:
-		using token_type = token<TOKEN_TYPE>;
+public:
+	using token_type = token<TOKEN_TYPE>;
 
-		abstractparser( std::istream &i_str, const std::string &i_name = std::string() );
-		virtual ~abstractparser();
-		
-		/*!
-		   @brief get a token.
+	abstractparser( std::istream &i_str, const std::string &i_name = std::string() );
+	virtual ~abstractparser();
+	
+	/*!
+	   @brief get a token.
 
-			get the next token of the stream, return false if no token found.
-		   @param[out] o_token the token found or an invalid token
-		   @return  true if o_token is valid
-		*/
-		bool nextToken( token_type &o_token );
+		get the next token of the stream, return false if no token found.
+	   @param[out] o_token the token found or an invalid token
+	   @return  true if o_token is valid
+	*/
+	bool nextToken( token_type &o_token );
 
-		/*!
-		   @brief put back a token.
+	/*!
+	   @brief put back a token.
 
-				Put back a token in the stream, it will be the next token to be returned
-				by nextToken().
-		   @param[in]  i_token the token to return to the stream
-		*/
-		void putBackToken( token_type &i_token );
+			Put back a token in the stream, it will be the next token to be returned
+			by nextToken().
+	   @param[in]  i_token the token to return to the stream
+	*/
+	void putBackToken( token_type &i_token );
 
-		/*!
-		   @brief get a token of a specified type.
+	/*!
+	   @brief get a token of a specified type.
 
-			get the next token of the stream, throw a parse error if no token found or
-				the token is not of the specified type.
-		   @param[out]  o_token the token found or an invalid token
-		   @param[in]   i_forcedToken the type wanted
-		*/
-		void nextTokenForced( token_type &o_token, TOKEN_TYPE i_forcedToken );
-		
-		/*!
-		   @brief get a token of a specified type.
+		get the next token of the stream, throw a parse error if no token found or
+			the token is not of the specified type.
+	   @param[out]  o_token the token found or an invalid token
+	   @param[in]   i_forcedToken the type wanted
+	*/
+	void nextTokenForced( token_type &o_token, TOKEN_TYPE i_forcedToken );
+	
+	/*!
+	   @brief get a token of a specified type.
 
-		 	get the next token of the stream, return false if no token found or
-				the token is not of the specified type.
-		   @param[out] o_token   the token found or an invalid token
-		   @param[in]  i_optionalToken the type wanted
-		   @return   true if the specified type is found
-		*/
-		bool nextTokenOptional( token_type &o_token, TOKEN_TYPE i_optionalToken );
-		
-	protected:
-		std::stack<token_type> _putbackTokenList;
-		
-		virtual bool parseAToken( token_type &o_token ) = 0;
+		get the next token of the stream, return false if no token found or
+			the token is not of the specified type.
+	   @param[out] o_token   the token found or an invalid token
+	   @param[in]  i_optionalToken the type wanted
+	   @return   true if the specified type is found
+	*/
+	bool nextTokenOptional( token_type &o_token, TOKEN_TYPE i_optionalToken );
+	
+protected:
+	std::stack<token_type> _putbackTokenList;
+	
+	virtual bool parseAToken( token_type &o_token ) = 0;
 };
 
 template<typename TOKEN_TYPE>
@@ -228,11 +228,11 @@ enum linetoken_t
 
 class lineparser : public abstractparser<linetoken_t>
 {
-	public:
-		lineparser( std::istream &i_str, const std::string &i_name );
-	
-	protected:
-		virtual bool parseAToken( token_type &o_token );
+public:
+	lineparser( std::istream &i_str, const std::string &i_name );
+
+protected:
+	virtual bool parseAToken( token_type &o_token );
 };
 
 }

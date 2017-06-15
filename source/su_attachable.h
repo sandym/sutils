@@ -17,13 +17,13 @@
 #include "su_flat_map.h"
 #include <string>
 
-namespace su
-{
+namespace su {
+
 class attachment;
 
 class attachable
 {
-  public:
+public:
 	attachable() = default;
 
 	attachable( const attachable & ) = delete;
@@ -32,7 +32,7 @@ class attachable
 	virtual ~attachable();
 
 	// ownership is transfered
-	void attach( const std::string &i_name, std::unique_ptr<attachment> &&i_attachment );
+	attachment *attach( const std::string &i_name, std::unique_ptr<attachment> &&i_attachment );
 
 	// will delete attachment with that name
 	void detach( const std::string &i_name );
@@ -49,23 +49,24 @@ class attachable
 		return dynamic_cast<T *>( getRaw( i_name ) );
 	}
 
-  private:
+private:
 	su::flat_map<std::string,std::unique_ptr<attachment>> _attachments;
 };
 
 class attachment
 {
-  public:
+public:
 	attachment( const attachment & ) = delete;
 	attachment &operator=( const attachment & ) = delete;
 
 	attachment() = default;
 	virtual ~attachment() = default;
 
-  protected:
+protected:
 	inline class attachable *attachable() { return _attachable; }
 	inline const class attachable *attachable() const { return _attachable; }
-  private:
+
+private:
 	class attachable *_attachable = nullptr;
 
 	friend class attachable;

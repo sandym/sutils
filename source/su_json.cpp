@@ -30,7 +30,7 @@ namespace {
 
 class Double
 {
-  public:
+public:
 	Double() {}
 	Double( double d ) : d_( d ) {}
 	Double( uint64_t u ) : u_( u ) {}
@@ -62,7 +62,7 @@ class Double
 			return static_cast<unsigned>( order ) + 1074;
 	}
 
-  private:
+private:
 	static const int kSignificandSize = 52;
 	static const int kExponentBias = 0x3FF;
 	static const int kDenormalExponent = 1 - kExponentBias;
@@ -1148,7 +1148,7 @@ class BigInteger
 		return digits_[index];
 	}
 	bool IsZero() const { return count_ == 1 && digits_[0] == 0; }
-  private:
+private:
 	void AppendDecimal64( const char *begin, const char *end )
 	{
 		uint64_t u = ParseUint64( begin, end );
@@ -1426,13 +1426,13 @@ void dump( const std::string &value, std::string &out )
 			out.append( buf, l );
 		}
 		else if ( static_cast<uint8_t>( *ch ) == 0xe2 && static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
-				  static_cast<uint8_t>( *( ch + 2 ) ) == 0xa8 )
+					static_cast<uint8_t>( *( ch + 2 ) ) == 0xa8 )
 		{
 			out.append( "\\u2028", 6 );
 			ch += 2;
 		}
 		else if ( static_cast<uint8_t>( *ch ) == 0xe2 && static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
-				  static_cast<uint8_t>( *( ch + 2 ) ) == 0xa9 )
+					static_cast<uint8_t>( *( ch + 2 ) ) == 0xa9 )
 		{
 			out.append( "\\u2029", 6 );
 			ch += 2;
@@ -1470,10 +1470,9 @@ struct num_traits<T,8>
 
 }
 
-namespace su
-{
-namespace details
-{
+namespace su {
+
+namespace details {
 
 struct JsonValue
 {
@@ -2000,8 +1999,8 @@ bool Json::operator<( const Json &rhs ) const
 	return type() < rhs.type();
 }
 
-namespace details
-{
+namespace details {
+
 static const int max_depth = 200;
 
 /* * * * * * * * * * * * * * * * * * * *
@@ -2782,12 +2781,12 @@ struct JsonParser final
 						{
 							return lhs.first < rhs.first;
 						} );
-		    auto last = std::unique( object_data.storage().begin(), object_data.storage().end(),
+			auto last = std::unique( object_data.storage().begin(), object_data.storage().end(),
 						[]( const auto &lhs, const auto &rhs )
 						{
 							return lhs.first == rhs.first;
 						} );
-		    object_data.storage().erase( last, object_data.storage().end() );
+			object_data.storage().erase( last, object_data.storage().end() );
 			output = std::move(object_data);
 			return;
 		}

@@ -18,15 +18,15 @@
 #include <algorithm>
 #include <functional>
 
-namespace su
-{
+namespace su {
+
 /*!
 	A set implemented with a vector for better cache coherency
 */
-template <class T, class CMP = std::less<T>>
+template<typename T, class CMP = std::less<T>>
 class flat_set
 {
-  public:
+public:
 	// types:
 	using storage_type = std::vector<T>;
 	using value_type = typename storage_type::value_type;
@@ -40,8 +40,9 @@ class flat_set
 	using const_iterator = typename storage_type::const_iterator;
 	using const_reverse_iterator = typename storage_type::const_reverse_iterator;
 
-	flat_set() {}
-	~flat_set() {}
+	flat_set() = default;
+	~flat_set() = default;
+	
 	inline bool empty() const { return _flatlist.empty(); }
 	inline size_type size() const { return _flatlist.size(); }
 	inline void clear() { _flatlist.clear(); }
@@ -62,20 +63,20 @@ class flat_set
 			_flatlist.push_back( v );
 		else if ( not value_equal( *it, v ) )
 			_flatlist.insert( it, v );
-		else
-			*it = v;
 	}
 
 	inline void erase( const_iterator it ) { _flatlist.erase( it ); }
-	inline void swap( flat_set<T, CMP> &i_other ) { _flatlist.swap( i_other._flatlist ); }
+	inline void swap( flat_set<T,CMP> &i_other ) { _flatlist.swap( i_other._flatlist ); }
 	inline const storage_type &storage() const { return _flatlist; }
 	inline storage_type &storage() { return _flatlist; }
-  private:
+	
+private:
 	storage_type _flatlist;
 
 	static inline bool value_less( const value_type &a, const value_type &b ) { return CMP()( a, b ); }
 	static inline bool value_equal( const value_type &a, const value_type &b ) { return not CMP()( a, b ) and not CMP()( b, a ); }
 };
+
 }
 
 #endif

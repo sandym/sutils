@@ -16,8 +16,7 @@
 #include <ciso646>
 #include <type_traits>
 
-namespace su
-{
+namespace su {
 
 template<typename T>
 struct is_regular :

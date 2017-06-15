@@ -22,8 +22,8 @@
 #include <rpc.h>
 #endif
 
-namespace su
-{
+namespace su {
+
 /*!
    @brief Create a unique value.
 

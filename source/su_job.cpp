@@ -14,8 +14,7 @@
 #include "su_jobdispatcher.h"
 #include "su_thread.h"
 
-namespace su
-{
+namespace su {
 
 job::~job()
 {

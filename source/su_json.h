@@ -19,7 +19,7 @@ struct JsonValue;
 
 class Json final
 {
-  public:
+public:
 	// Types
 	enum class Type
 	{
@@ -62,8 +62,8 @@ class Json final
 
 	// Implicit constructor: map-like objects (std::map, std::unordered_map, etc)
 	template <class M, typename std::enable_if_t<std::is_constructible<std::string, typename M::key_type>::value &&
-												   std::is_constructible<Json, typename M::mapped_type>::value,
-											   int> = 0>
+													std::is_constructible<Json, typename M::mapped_type>::value,
+												int> = 0>
 	Json( const M &m ) : Json( object( m.begin(), m.end() ) ){}
 
 	// Implicit constructor: vector-like objects (std::list, std::vector, std::set, etc)
@@ -144,8 +144,8 @@ class Json final
 	}
 	// Parse multiple objects, concatenated or separated by whitespace
 	static std::vector<Json> parse_multi( const su::string_view &input,
-										  su::string_view::size_type &parser_stop_pos, std::string &err,
-										  JsonParse strategy = JsonParse::STANDARD );
+											su::string_view::size_type &parser_stop_pos, std::string &err,
+											JsonParse strategy = JsonParse::STANDARD );
 
 	static inline std::vector<Json> parse_multi( const su::string_view &input, std::string &err,
 												 JsonParse strategy = JsonParse::STANDARD )
@@ -168,7 +168,7 @@ class Json final
 	typedef std::initializer_list<std::pair<std::string, Type>> shape;
 	bool has_shape( const shape &types, std::string &err ) const;
 
-  private:
+private:
 	union Storage
 	{
 		Storage() : all( 0 ){}

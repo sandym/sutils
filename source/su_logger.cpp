@@ -22,8 +22,7 @@
 #include <sstream>
 #include <string.h>
 
-namespace
-{
+namespace {
 
 // type-to-enum to help encode event data
 enum class log_data_type : uint8_t
@@ -182,8 +181,7 @@ void logger_thread_data::func()
 
 }
 
-namespace su
-{
+namespace su {
 
 log_event::log_event( int i_level )
 	: _level( i_level ),

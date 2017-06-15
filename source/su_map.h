@@ -15,8 +15,7 @@
 
 #include <vector>
 
-namespace su
-{
+namespace su {
 
 template<class MAP>
 inline MAP::value_type value( const MAP &i_map, const MAP::key_type &k )

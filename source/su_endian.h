@@ -15,8 +15,7 @@
 
 #include <type_traits>
 
-namespace su
-{
+namespace su {
 
 enum class endian
 {
@@ -29,8 +28,7 @@ enum class endian
 #endif
 };
 
-namespace details
-{
+namespace details {
 
 template<typename T>
 inline std::enable_if_t<sizeof(T)==1,T>

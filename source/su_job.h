@@ -18,15 +18,14 @@
 #include <condition_variable>
 #include <atomic>
 
-namespace su
-{
+namespace su {
 
 class jobdispatcher;
 class job_cancelled{};
 
 class job : public std::enable_shared_from_this<job>
 {
-  public:
+public:
 	virtual ~job();
 	
 	/*!
@@ -69,7 +68,7 @@ class job : public std::enable_shared_from_this<job>
 	*/
 	void prioritise();
 	
-  protected:
+protected:
 	job() = default;
 	
 	//! will be called on a thread
@@ -78,7 +77,7 @@ class job : public std::enable_shared_from_this<job>
 	//! will be called at idle time
 	virtual void runIdle();
 
-  private:
+private:
 	jobdispatcher *_dispatcher = nullptr; //!< the dispather, null unless the job is posted
 	int _threadIndex = -1; //!< -1 unless the job is running async
 	std::atomic_bool _cancelled{ false };
@@ -96,15 +95,15 @@ using job_ptr = std::shared_ptr<job>;
 using job_weak_ptr = std::weak_ptr<job>;
 
 /*!
-   @brief Job that can run C++ lambdas
+	@brief Job that can run C++ lambdas
 */
 class asyncJob : public job
 {
-  public:
+public:
 	asyncJob( const std::function< void(job*) > &i_async, const std::function< void(job*) > &i_idle );
 	virtual ~asyncJob();
 
-  private:
+private:
 	std::function< void(job*) > _async, _idle;
 	
 	virtual void runAsync();
