@@ -30,13 +30,13 @@ void roll( const su::filepath &i_path )
 			ext.insert( 0, "." );
 		auto newName = i_path.stem();
 		newName += "_";
-		struct tm gmtm;
+		struct tm tmdata;
 		char isoTime[32] = "";
 #if UPLATFORM_WIN
-		if (gmtime_s(&gmtm, &tm) == 0)
-			strftime(isoTime, 32, "%Y-%m-%d", &gmtm);
+		if ( localtime_s( &tmdata, &tm ) == 0 )
+			strftime(isoTime, 32, "%Y-%m-%d", &tmdata);
 #else
-		strftime( isoTime, 32, "%Y-%m-%d", gmtime_r( &tm, &gmtm ) );
+		strftime( isoTime, 32, "%Y-%m-%d", localtime_r( &tm, &tmdata ) );
 #endif
 		newName += isoTime;
 		su::filepath folder( i_path );
@@ -78,8 +78,7 @@ struct RollDailyHelper
 	RollDailyHelper( const su::filepath &i_path, std::ofstream &ofstr )
 		: _path( i_path ), _ofstr( ofstr )
 	{
-		//! @todo: should probably be at the next midnight
-		timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
+		timeout = nextMidnight();
 	}
 	
 	const su::filepath _path;
@@ -93,8 +92,28 @@ struct RollDailyHelper
 			_ofstr.close();
 			roll( _path );
 			_path.fsopen( _ofstr );
-			timeout = std::chrono::system_clock::now() + std::chrono::hours(24);
+			timeout = nextMidnight();
 		}
+	}
+	
+	std::chrono::system_clock::time_point nextMidnight()
+	{
+		// align to next midnight, local time.
+		auto tt = std::chrono::system_clock::to_time_t( std::chrono::system_clock::now() );
+	
+		struct tm tmdata;
+#if UPLATFORM_WIN
+		localtime_s( &tmdata, &tt );
+#else
+		localtime_r( &tt, &tmdata );
+#endif
+		tmdata.tm_hour = 0;
+		tmdata.tm_min = 0;
+		tmdata.tm_sec = 0;
+		tmdata.tm_mday += 1;
+		tt = mktime( &tmdata );
+
+		return std::chrono::system_clock::from_time_t( tt );
 	}
 };
 

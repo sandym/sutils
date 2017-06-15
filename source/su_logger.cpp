@@ -414,15 +414,15 @@ void logger_base::dump( const su::log_event &i_event )
 	std::time_t t = i_event.timestamp() / 1000000;
 	char isoTime[32] = "";
 	char ms[8] = "";
-	struct tm gmtm;
+	struct tm tmdata;
 #if UPLATFORM_WIN
-	if (gmtime_s(&gmtm, &t) == 0)
+	if ( localtime_s( &tmdata, &t ) == 0 )
 	{
-		strftime(isoTime, 32, "%Y-%m-%dT%T", &gmtm);
+		strftime(isoTime, 32, "%Y-%m-%dT%T", &tmdata);
 		sprintf_s(ms, ".%06lu", (unsigned long)(i_event.timestamp() % 1000000));
 	}
 #else
-	strftime( isoTime, 32, "%Y-%m-%dT%T", gmtime_r( &t, &gmtm ) );
+	strftime( isoTime, 32, "%Y-%m-%dT%T", localtime_r( &t, &tmdata ) );
 	sprintf(ms, ".%06lu", (unsigned long)(i_event.timestamp() % 1000000));
 #endif
 	
