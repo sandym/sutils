@@ -36,6 +36,28 @@ inline MAP::value_type value_or( const MAP &i_map, const MAP::key_type &k, const
 }
 
 template<class MAP>
+inline MAP::key_type key( const MAP &i_map, const MAP::value_type &v )
+{
+	for ( auto &it : i_map )
+	{
+		if ( it.second == v )
+			return it.first;
+	}
+	return {};
+}
+
+template<class MAP>
+inline MAP::key_type key_or( const MAP &i_map, const MAP::value_type &v, const MAP::key_type &i_default  )
+{
+	for ( auto &it : i_map )
+	{
+		if ( it.second == v )
+			return it.first;
+	}
+	return i_default;
+}
+
+template<class MAP>
 inline MAP::value_type take( MAP &i_map, const MAP::key_type &k )
 {
 	auto it = i_map.find( k );

@@ -21,14 +21,14 @@ class Json final
 {
 public:
 	// Types
-	enum class Type
+	enum class Type : int32_t
 	{
 		NUL, BOOL, NUMBER, STRING, ARRAY, OBJECT
 	};
 
 	// Array and object typedefs
 	typedef std::vector<Json> array;
-	typedef flat_map<std::string, Json> object;
+	typedef flat_map<std::string,Json> object;
 
 	~Json();
 
@@ -74,7 +74,11 @@ public:
 	// Json(bool(some_pointer)) if that behavior is desired.
 	Json( void * ) = delete;
 
+	// set to json nul
 	void clear();
+	
+	// recursively remove all nul and empty strings, arrays and objects
+	void clean();
 
 	// Accessors
 	inline Type type() const { return _type; }
@@ -85,7 +89,7 @@ public:
 	bool is_array() const { return type() == Type::ARRAY; }
 	bool is_object() const { return type() == Type::OBJECT; }
 
-	enum class NumberType { NOTANUMBER, INTEGER, INTEGER64, DOUBLE };
+	enum class NumberType : int32_t { NOTANUMBER, INTEGER, INTEGER64, DOUBLE };
 	NumberType number_type() const { return _numberType; }
 	bool is_int() const { return number_type() == NumberType::INTEGER; }
 	bool is_int64() const { return number_type() == NumberType::INTEGER64; }

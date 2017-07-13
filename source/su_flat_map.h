@@ -24,12 +24,12 @@ namespace su {
 /*!
 	A map implemented with a vector for better cache coherency
 */
-template<typename Key, typename T, class CMP=std::less<Key>>
+template<typename Key,typename T,class CMP=std::less<Key>,class STORAGE=std::vector<std::pair<Key,T>>>
 class flat_map
 {
 public:
 	// types:
-	using storage_type = std::vector<std::pair<Key,T>>;
+	using storage_type = STORAGE;
 	using key_type = Key;
 	using mapped_type = T;
 	using value_type = typename storage_type::value_type;

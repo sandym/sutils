@@ -1603,17 +1603,67 @@ void Json::clear()
 	_data.all = 0;
 }
 
+void Json::clean()
+{
+	if ( type() == Type::OBJECT )
+	{
+		auto &obj = ((details::JsonObject *)_data.p)->value;
+		obj.storage().erase( std::remove_if( obj.storage().begin(), obj.storage().end(),
+							[]( auto &v )
+							{
+								switch ( v.second.type() )
+								{
+									case Type::NUL:
+										return true;
+										break;
+									case Type::STRING:
+										if ( v.second.string_value().empty() )
+											return true;
+										break;
+									case Type::ARRAY:
+									{
+										auto &arr = ((details::JsonArray *)v.second._data.p)->value;
+										if ( arr.empty() )
+											return true;
+										else
+										{
+											for ( auto &el : arr )
+												el.clean();
+										}
+										break;
+									}
+									case Type::OBJECT:
+									{
+										auto &o = ((details::JsonObject *)v.second._data.p)->value;
+										if ( o.empty() )
+											return true;
+										else
+										{
+											for ( auto &el : o )
+												el.second.clean();
+										}
+										break;
+									}
+									default:
+										break;
+								}
+								return false;
+							} ),
+					obj.storage().end() );
+	}
+}
+
 double Json::number_value() const
 {
 	if ( type() == Type::NUMBER )
 	{
 		switch ( number_type() )
 		{
-			case Json::NumberType::DOUBLE:
+			case NumberType::DOUBLE:
 				return _data.d;
-			case Json::NumberType::INTEGER:
+			case NumberType::INTEGER:
 				return _data.i32;
-			case Json::NumberType::INTEGER64:
+			case NumberType::INTEGER64:
 				return static_cast<double>( _data.i64 );
 			default: break;
 		}
@@ -1627,11 +1677,11 @@ int32_t Json::int_value() const
 	{
 		switch ( number_type() )
 		{
-			case Json::NumberType::DOUBLE:
+			case NumberType::DOUBLE:
 				return static_cast<int32_t>(_data.d);
-			case Json::NumberType::INTEGER:
+			case NumberType::INTEGER:
 				return _data.i32;
-			case Json::NumberType::INTEGER64:
+			case NumberType::INTEGER64:
 				return static_cast<int32_t>(_data.i64);
 			default: break;
 		}
@@ -1645,11 +1695,11 @@ int64_t Json::int64_value() const
 	{
 		switch ( number_type() )
 		{
-			case Json::NumberType::DOUBLE:
+			case NumberType::DOUBLE:
 				return static_cast<int64_t>(_data.d);
-			case Json::NumberType::INTEGER:
+			case NumberType::INTEGER:
 				return _data.i32;
-			case Json::NumberType::INTEGER64:
+			case NumberType::INTEGER64:
 				return _data.i64;
 			default: break;
 		}
@@ -1667,21 +1717,21 @@ bool Json::bool_value() const
 const std::string &Json::string_value() const
 {
 	if ( type() == Type::STRING )
-		return ( (details::JsonString *)_data.p )->value;
+		return ((details::JsonString *)_data.p)->value;
 	return statics().empty_string;
 }
 
 const Json::array &Json::array_items() const
 {
 	if ( type() == Type::ARRAY )
-		return ( (details::JsonArray *)_data.p )->value;
+		return ((details::JsonArray *)_data.p)->value;
 	return statics().empty_array;
 }
 
 const Json::object &Json::object_items() const
 {
 	if ( type() == Type::OBJECT )
-		return ( (details::JsonObject *)_data.p )->value;
+		return ((details::JsonObject *)_data.p)->value;
 	return statics().empty_object;
 }
 

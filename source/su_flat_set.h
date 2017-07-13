@@ -23,12 +23,12 @@ namespace su {
 /*!
 	A set implemented with a vector for better cache coherency
 */
-template<typename T, class CMP = std::less<T>>
+template<typename T,class CMP=std::less<T>,class STORAGE=std::vector<T>>
 class flat_set
 {
 public:
 	// types:
-	using storage_type = std::vector<T>;
+	using storage_type = STORAGE;
 	using value_type = typename storage_type::value_type;
 	using reference = typename storage_type::reference;
 	using const_reference = typename storage_type::const_reference;

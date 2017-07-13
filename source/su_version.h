@@ -66,4 +66,6 @@ extern const version CURRENT_VERSION;
 
 }
 
+inline std::string to_string( const su::version &v ) { return v.string(); }
+
 #endif
