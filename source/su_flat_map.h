@@ -24,15 +24,17 @@ namespace su {
 /*!
 	A map implemented with a vector for better cache coherency
 */
-template<typename Key, typename T, class CMP = std::less<Key>>
+template<typename Key,typename T,class CMP=std::less<Key>,class STORAGE=std::vector<std::pair<Key,T>>>
 class flat_map
 {
 public:
 	// types:
-	using storage_type = std::vector<std::pair<Key,T>>;
+	using storage_type = STORAGE;
 	using key_type = Key;
 	using mapped_type = T;
 	using value_type = typename storage_type::value_type;
+	using key_compare = CMP;
+	using allocator_type = typename storage_type::allocator_type;
 	using reference = typename storage_type::reference;
 	using const_reference = typename storage_type::const_reference;
 	using pointer = typename storage_type::pointer;
@@ -46,7 +48,7 @@ public:
 	using const_reverse_iterator = typename storage_type::const_reverse_iterator;
 
 	flat_map() = default;
-	flat_map( const std::initializer_list<std::pair<Key,T>> &il )
+	flat_map( const std::initializer_list<std::pair<key_type,T>> &il )
 		: _flatlist( il )
 	{
 		sort();
@@ -58,55 +60,68 @@ public:
 		sort();
 	}
 	~flat_map() = default;
-	inline bool empty() const { return _flatlist.empty(); }
-	inline size_type size() const { return _flatlist.size(); }
-	inline void clear() { _flatlist.clear(); }
-	inline void reserve( size_t s ) { _flatlist.reserve( s ); }
-	inline iterator begin() { return _flatlist.begin(); }
-	inline iterator end() { return _flatlist.end(); }
-	inline const_iterator begin() const { return _flatlist.begin(); }
-	inline const_iterator end() const { return _flatlist.end(); }
-	inline iterator find( const key_type &k )
+	bool empty() const noexcept { return _flatlist.empty(); }
+	size_type size() const noexcept { return _flatlist.size(); }
+	size_type max_size() const noexcept { return _flatlist.max_size(); }
+	void clear() noexcept { _flatlist.clear(); }
+	void reserve( size_t s ) { _flatlist.reserve( s ); }
+
+	iterator begin() noexcept { return _flatlist.begin(); }
+	const_iterator begin() const noexcept { return _flatlist.begin(); }
+	iterator end() noexcept { return _flatlist.end(); }
+	const_iterator end() const noexcept { return _flatlist.end(); }
+
+	reverse_iterator rbegin() noexcept { return _flatlist.rbegin(); }
+	const_reverse_iterator rbegin() const noexcept { return _flatlist.rbegin(); }
+	reverse_iterator rend() noexcept { return _flatlist.rend(); }
+	const_reverse_iterator rend() const noexcept { return _flatlist.rend(); }
+	
+	const_iterator cbegin() const noexcept { return _flatlist.cbegin(); }
+	const_iterator cend() const noexcept { return _flatlist.cend(); }
+	const_reverse_iterator crbegin() const noexcept { return _flatlist.crbegin(); }
+	const_reverse_iterator crend() const noexcept { return _flatlist.crend(); }
+
+	iterator find( const key_type &k )
 	{
 		auto it = lower_bound( k );
 		return it != end() and key_equal( it->first, k ) ? it : end();
 	}
-	inline const_iterator find( const key_type &k ) const
+	const_iterator find( const key_type &k ) const
 	{
 		auto it = lower_bound( k );
 		return it != end() and key_equal( it->first, k ) ? it : end();
 	}
-	inline size_type count( const key_type &k ) const
+	size_type count( const key_type &k ) const
 	{
 		auto it = lower_bound( k );
 		return it == end() and key_equal( it->first, k ) ? 0 : 1;
 	}
-	inline iterator lower_bound( const key_type &k ) { return std::lower_bound( begin(), end(), k, &key_less2 ); }
-	inline const_iterator lower_bound( const key_type &k ) const { return std::lower_bound( begin(), end(), k, &key_less2 ); }
-	inline iterator upper_bound( const key_type &k ) { return std::upper_bound( begin(), end(), k, &key_less2 ); }
-	inline const_iterator upper_bound( const key_type &k ) const { return std::upper_bound( begin(), end(), k, &key_less2 ); }
+	iterator lower_bound( const key_type &k ) { return std::lower_bound( begin(), end(), k, &key_less2 ); }
+	const_iterator lower_bound( const key_type &k ) const { return std::lower_bound( begin(), end(), k, &key_less2 ); }
+	iterator upper_bound( const key_type &k ) { return std::upper_bound( begin(), end(), k, &key_less2 ); }
+	const_iterator upper_bound( const key_type &k ) const { return std::upper_bound( begin(), end(), k, &key_less2 ); }
 	mapped_type &operator[]( const key_type &k )
 	{
 		auto it = lower_bound( k );
 		if ( it == end() )
 		{
-			_flatlist.emplace_back( k, T() );
+			_flatlist.emplace_back( k, mapped_type() );
 			it = _flatlist.end() - 1;
 		}
 		else if ( not key_equal( it->first, k ) )
-			it = _flatlist.insert( it, std::make_pair( k, T() ) );
+			it = _flatlist.insert( it, std::make_pair( k, mapped_type() ) );
 		return it->second;
 	}
-	const mapped_type &operator[]( const key_type &k ) const
+	mapped_type &operator[]( key_type &&k )
 	{
 		auto it = lower_bound( k );
 		if ( it == end() )
 		{
-			_flatlist.emplace_back( k, T() );
+			_flatlist.emplace_back( std::move(k), mapped_type() );
 			it = _flatlist.end() - 1;
 		}
 		else if ( not key_equal( it->first, k ) )
-			it = _flatlist.insert( it, std::make_pair( k, T() ) );
+			it = _flatlist.insert( it, std::make_pair( std::move(k), mapped_type() ) );
 		return it->second;
 	}
 
@@ -139,8 +154,8 @@ public:
 			return { it, false };
 	}
 
-	inline iterator erase( iterator it ) { return _flatlist.erase( it ); }
-	inline size_type erase( const key_type &k )
+	iterator erase( iterator it ) { return _flatlist.erase( it ); }
+	size_type erase( const key_type &k )
 	{
 		auto it = lower_bound( k );
 		if ( it != end() and key_equal( it->first, k ) )
@@ -151,9 +166,9 @@ public:
 		else
 			return 0;
 	}
-	inline void swap( flat_map<Key, T, CMP> &i_other ) { _flatlist.swap( i_other._flatlist ); }
-	inline const storage_type &storage() const { return _flatlist; }
-	inline storage_type &storage() { return _flatlist; }
+	void swap( flat_map<key_type,T,key_compare> &i_other ) { _flatlist.swap( i_other._flatlist ); }
+	const storage_type &storage() const { return _flatlist; }
+	storage_type &storage() { return _flatlist; }
 
 	bool operator<( const flat_map &rhs ) const
 	{
@@ -167,12 +182,12 @@ public:
 private:
 	storage_type _flatlist;
 
-	static inline bool key_less2( const value_type &a, const key_type &b ) { return CMP()( a.first, b ); }
-	static inline bool key_equal( const key_type &a, const key_type &b ) { return not CMP()( a, b ) and not CMP()( b, a ); }
+	static inline bool key_less2( const value_type &a, const key_type &b ) { return key_compare()( a.first, b ); }
+	static inline bool key_equal( const key_type &a, const key_type &b ) { return not key_compare()( a, b ) and not key_compare()( b, a ); }
 	
-	inline void sort()
+	void sort()
 	{
-		std::sort( _flatlist.begin(), _flatlist.end(), []( auto &a, auto &b ){ return CMP()( a.first, b.first ); } );
+		std::sort( _flatlist.begin(), _flatlist.end(), []( auto &a, auto &b ){ return key_compare()( a.first, b.first ); } );
 	}
 };
 
