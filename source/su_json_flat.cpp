@@ -274,7 +274,7 @@ uint8_t encoding_type( const su::Json &i_json )
 	}
 	return 0;
 }
-su::optional<uint8_t> homogeneousType( const su::Json::array &i_array )
+su_std::optional<uint8_t> homogeneousType( const su::Json::array &i_array )
 {
 	assert( not i_array.empty() );
 	auto type = encoding_type( i_array.front() );
@@ -742,7 +742,7 @@ su::Json unflattener::unflatten_type( uint8_t type )
 
 namespace su {
 
-su::optional<su::Json> unflatten( std::istream &istr )
+su_std::optional<su::Json> unflatten( std::istream &istr )
 {
 	try
 	{

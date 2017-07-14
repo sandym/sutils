@@ -22,8 +22,8 @@ namespace su {
 
 struct NameURI
 {
-	su::string_view name;
-	su::string_view URI;
+	su_std::string_view name;
+	su_std::string_view URI;
 	bool operator<( const NameURI &rhs ) const;
 };
 
@@ -45,9 +45,9 @@ public:
 	virtual void startDocument();
 	virtual void endDocument();
 	virtual bool startElement( const NameURI &i_nameURI,
-									const flat_map<NameURI,su::string_view> &i_attribs );
+									const flat_map<NameURI,su_std::string_view> &i_attribs );
 	virtual bool endElement( const NameURI &i_nameURI );
-	virtual bool characters( const su::string_view &i_text );
+	virtual bool characters( const su_std::string_view &i_text );
 	
 private:
 	std::istream &_stream;

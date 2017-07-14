@@ -19,7 +19,7 @@
 namespace su {
 
 void flatten( const su::Json &i_json, std::ostream &ostr );
-su::optional<su::Json> unflatten( std::istream &istr );
+su_std::optional<su::Json> unflatten( std::istream &istr );
 
 }
 

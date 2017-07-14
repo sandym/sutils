@@ -44,7 +44,7 @@ public:
 	FormatArg( const char *v ) : _which( arg_type::kString ), _string( v ){}
 	FormatArg( char *v ) : _which( arg_type::kString ), _string( v ){}
 	FormatArg( const std::string &v ) : _which( arg_type::kString ), _string( v ){}
-	FormatArg( const su::string_view &v ) : _which( arg_type::kString ), _string( v ){}
+	FormatArg( const su_std::string_view &v ) : _which( arg_type::kString ), _string( v ){}
 
 	template<typename T,typename = std::enable_if_t<not std::is_base_of<std::string,T>::value>>
 	FormatArg( const T &v ) : _which( arg_type::kOther ){ u._other = new any<T>( v ); }
@@ -95,7 +95,7 @@ private:
 		const void *_ptr;
 		any_base *_other;
 	} u;
-	su::string_view _string;
+	su_std::string_view _string;
 
 	template<typename T>
 	struct any : public any_base
@@ -110,7 +110,7 @@ private:
 class format_impl
 {
 public:
-	format_impl( const su::string_view &i_format, const su::details::FormatArg *i_args, size_t i_argsSize );
+	format_impl( const su_std::string_view &i_format, const su::details::FormatArg *i_args, size_t i_argsSize );
 
 	std::string result;
 	
@@ -132,9 +132,9 @@ private:
    @param[in] i_format a format string
    @return     formatted string
 */
-std::string format( const su::string_view &i_format ); // overloaded fast path
+std::string format( const su_std::string_view &i_format ); // overloaded fast path
 template<typename ...Args>
-std::string never_inline_func format( const su::string_view &i_format, Args... args )
+std::string never_inline_func format( const su_std::string_view &i_format, Args... args )
 {
 	// sizeof...(Args) is an upper limit on the number of arguments to format
 	su::details::FormatArg arr[sizeof...(Args)] = {args...};
