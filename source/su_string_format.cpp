@@ -19,7 +19,7 @@
 
 namespace su {
 
-std::string format( const su::string_view &i_format )
+std::string format( const su_std::string_view &i_format )
 {
 	std::string res;
 	if ( not i_format.empty() )
@@ -257,7 +257,7 @@ enum : uint16_t
 	kPtrDiffLength = 0x0500,
 };
 
-su::details::FormatSpec parseFormat( const su::string_view &i_ptr )
+su::details::FormatSpec parseFormat( const su_std::string_view &i_ptr )
 {
 	//%[index$][flags][width][.precision][length]specifier
 	
@@ -568,7 +568,7 @@ void appendIntegerSimple( char *&io_ptr, int i_arg )
 
 namespace su { namespace details {
 
-format_impl::format_impl( const su::string_view &i_format, const FormatArg *i_args, size_t i_argsSize )
+format_impl::format_impl( const su_std::string_view &i_format, const FormatArg *i_args, size_t i_argsSize )
 {
 	std::vector<su::details::FormatSpec> formatSpecs;
 	formatSpecs.reserve( i_argsSize );

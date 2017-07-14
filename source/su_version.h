@@ -23,7 +23,7 @@ class version final
 {
 public:
 	version() = default;
-	version( const su::string_view &i_version );
+	version( const su_std::string_view &i_version );
 	version( int i_major, int i_minor = 0, int i_patch = 0, int i_buildNumber = 0 );
 
 	inline int major() const { return _major; }

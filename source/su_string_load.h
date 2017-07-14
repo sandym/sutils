@@ -25,7 +25,7 @@ namespace su {
    @param i_table The string table name.
    @result     The (hopefully) translated string.
 */
-std::string string_load( const su::string_view &i_key, const su::string_view &i_table );
+std::string string_load( const su_std::string_view &i_key, const su_std::string_view &i_table );
 
 }
 

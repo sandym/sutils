@@ -9,8 +9,7 @@
 #include <string>
 #include <algorithm>
 
-namespace su
-{
+namespace su_std {
 
 template<typename CHAR>
 class basic_string_view
@@ -228,8 +227,7 @@ typedef intptr_t ssize_t;
 #include <string>
 #include <algorithm>
 
-namespace su
-{
+namespace su_std {
 
 template<typename CHAR>
 class basic_string_view

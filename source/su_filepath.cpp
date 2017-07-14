@@ -55,7 +55,7 @@ const char kAliasTag[] = "ALIAS:";
    @param[in]     i_path the path to test
    @return     true the the path is absolute
 */
-inline bool isAbsolute( const su::string_view &i_path )
+inline bool isAbsolute( const su_std::string_view &i_path )
 {
 #if UPLATFORM_WIN
 	if ( i_path.length() < k_minimumAbsolutePathLength ) // unc or local path must be at least x char long ("c:\" or "\\s")
@@ -97,7 +97,7 @@ std::string getUserSysDir( sysdir_search_path_directory_t i_sysdir )
 	if ( state != 0 )
 	{
 		su::filepath fs( su::filepath::location::kHome );
-		fs.add(su::string_view( buffer + 2 ) );
+		fs.add(su_std::string_view( buffer + 2 ) );
 		return fs.path();
 	}
 	return std::string();
@@ -468,22 +468,22 @@ bool filepath::getBookmarkData( BookmarkData &o_data, const filepath *i_relative
 
 std::string filepath::name() const
 {
-	su::string_view the_name;
+	su_std::string_view the_name;
 	if ( _path.size() > k_minimumAbsolutePathLength )
 	{
 		auto pos = _path.find_last_of( k_separators );
-		the_name = su::string_view( _path ).substr( pos + 1 );
+		the_name = su_std::string_view( _path ).substr( pos + 1 );
 	}
 	return the_name;
 }
 
 std::string filepath::stem() const
 {
-	su::string_view the_name;
+	su_std::string_view the_name;
 	if ( _path.size() > k_minimumAbsolutePathLength )
 	{
 		auto pos = _path.find_last_of( k_separators );
-		the_name = su::string_view( _path ).substr( pos + 1 );
+		the_name = su_std::string_view( _path ).substr( pos + 1 );
 	}
 	auto pos = the_name.find_last_of( '.' );
 	the_name = the_name.substr( 0, pos );
@@ -497,7 +497,7 @@ std::string filepath::extension() const
 	return the_name.substr( pos + 1 );
 }
 
-void filepath::setExtension( const su::string_view &i_ext )
+void filepath::setExtension( const su_std::string_view &i_ext )
 {
 	auto filename = stem();
 	if ( not i_ext.empty() )
@@ -664,14 +664,14 @@ bool filepath::up()
 	return true;
 }
 
-bool filepath::add( const su::string_view &i_name )
+bool filepath::add( const su_std::string_view &i_name )
 {
 	if ( isAbsolute( i_name ) )
 		return false;
-	if ( i_name.find_first_of( k_illegalChars ) != su::string_view::npos )
+	if ( i_name.find_first_of( k_illegalChars ) != su_std::string_view::npos )
 		return false;
 
-	su::string_view the_name( i_name );
+	su_std::string_view the_name( i_name );
 	while ( not the_name.empty() and isSeparator( the_name.back() ) )
 		the_name.remove_suffix( 1 );
 

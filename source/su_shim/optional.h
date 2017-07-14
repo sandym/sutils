@@ -3,8 +3,7 @@
 
 #include <stdexcept>
 
-namespace su
-{
+namespace su_std {
 
 class bad_optional_access : std::exception
 {
