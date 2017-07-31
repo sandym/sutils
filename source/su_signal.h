@@ -16,10 +16,7 @@
 #include "su_statesaver.h"
 #include <ciso646>
 #include <functional>
-#include <vector>
 #include <cassert>
-#include <algorithm>
-#include <memory>
 
 namespace su {
 
@@ -44,18 +41,35 @@ public:
 	//! function type for this signal.
 	using func_type = std::function<void( Args... )>;
 
-	using conn = func_type *; //!< represent a connection
+	//! represent a connection
+	struct conn_node
+	{
+		func_type func;
+		conn_node *prev = nullptr;
+		conn_node *next = nullptr;
+	};
+	using conn = conn_node *;
 
 	signal() = default;
-	~signal() = default;
+	~signal()
+	{
+		disconnectAll();
+	}
 	signal( const signal & ) = delete;
 	signal &operator=( const signal & ) = delete;
 
 	conn connect( const func_type &i_func )
 	{
+		if ( not i_func )
+			return nullptr;
+		
 		assert( not _in_signal );
-		_connections.push_back( std::make_unique<func_type>( i_func ) );
-		return _connections.back().get();
+		auto c = new conn_node{ i_func, nullptr, _head  };
+		if ( _head )
+			_head->prev = c;
+		_head = c;
+		return c;
+		
 	}
 
 	//! invoke the signal
@@ -63,25 +77,42 @@ public:
 	{
 		assert( not _in_signal );
 		statesaver<bool> save( _in_signal, false );
-		for ( auto &it : _connections )
-			( *it )( std::forward<Args>( args )... );
+		auto ptr = _head;
+		while ( ptr != nullptr )
+		{
+			ptr->func( std::forward<Args>( args )... );
+			ptr = ptr->next;
+		}
 	}
 
 	void disconnect( conn c )
 	{
-		auto it = std::find_if( std::begin(_connections), std::end(_connections),
-								[c]( auto &p ) { return p.get() == c; } );
-		if ( it != _connections.end() )
+		if ( c == nullptr )
+			return;
+		
+		assert( not _in_signal );
+		if ( c == _head )
 		{
-			assert( not _in_signal );
-			_connections.erase( it );
+			_head = _head->next;
+			_head->prev = nullptr;
 		}
+		else
+		{
+			c->next->prev = c->prev;
+			c->next->prev->next = c->next;
+		}
+		delete c;
 	}
 
 	void disconnectAll()
 	{
 		assert( not _in_signal );
-		_connections.clear();
+		while ( _head != nullptr )
+		{
+			auto c = _head;
+			_head = _head->next;
+			delete c;
+		}
 	}
 
 	class scoped_conn
@@ -105,7 +136,7 @@ public:
 
 private:
 	bool _in_signal = false;
-	std::vector<std::unique_ptr<func_type>> _connections;
+	conn_node *_head = nullptr;
 };
 }
 

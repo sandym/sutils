@@ -8,6 +8,7 @@ various C++ utilities
 * [Logger](docs/logger.md)
 * [Concurrency](docs/concurrency.md)
 * [JSON](docs/json.md)
-* [XML / parser](docs/xml_parser.md)
+* [XML / parser](docs/parsers.md)
 * [filepath](docs/filepath.md)
+* [tests](docs/tests.md)
 

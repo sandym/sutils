@@ -37,7 +37,7 @@ std::string getPlatformKey()
 namespace su
 {
 
-void usersettings::init( const su_std::string_view &i_company, const su_std::string_view &i_application )
+void usersettings::init( const su::string_view &i_company, const su::string_view &i_application )
 {
 	g_company = i_company;
 	g_application = i_application;
@@ -56,14 +56,14 @@ usersettings::~usersettings()
 }
 
 template<typename T>
-T usersettings::read( const su_std::string_view &i_name, const T &i_default )
+T usersettings::read( const su::string_view &i_name, const T &i_default )
 {
 	assert( false );
 	return {};
 }
 
 template<typename T>
-void usersettings::write( const su_std::string_view &i_name, const T &i_value )
+void usersettings::write( const su::string_view &i_name, const T &i_value )
 {
 	assert( false );
 }
@@ -287,43 +287,43 @@ void usersettings::write( const ustring &i_name, const filepath &i_value )
 #endif
 
 
-template bool usersettings::read<bool>( const su_std::string_view &i_name, const bool &i_default );
-template int usersettings::read<int>( const su_std::string_view &i_name, const int &i_default );
-template long usersettings::read<long>( const su_std::string_view &i_name, const long &i_default );
-template long long usersettings::read<long long>( const su_std::string_view &i_name, const long long &i_default );
-template float usersettings::read<float>( const su_std::string_view &i_name, const float &i_default );
-template double usersettings::read<double>( const su_std::string_view &i_name, const double &i_default );
-template std::string usersettings::read<std::string>( const su_std::string_view &i_name, const std::string &i_default );
-template filepath usersettings::read<filepath>( const su_std::string_view &i_name, const filepath &i_default );
+template bool usersettings::read<bool>( const su::string_view &i_name, const bool &i_default );
+template int usersettings::read<int>( const su::string_view &i_name, const int &i_default );
+template long usersettings::read<long>( const su::string_view &i_name, const long &i_default );
+template long long usersettings::read<long long>( const su::string_view &i_name, const long long &i_default );
+template float usersettings::read<float>( const su::string_view &i_name, const float &i_default );
+template double usersettings::read<double>( const su::string_view &i_name, const double &i_default );
+template std::string usersettings::read<std::string>( const su::string_view &i_name, const std::string &i_default );
+template filepath usersettings::read<filepath>( const su::string_view &i_name, const filepath &i_default );
 
-template std::vector<bool> usersettings::read<std::vector<bool>>( const su_std::string_view &i_name, const std::vector<bool> &i_default );
-template std::vector<int> usersettings::read<std::vector<int>>( const su_std::string_view &i_name, const std::vector<int> &i_default );
-template std::vector<long> usersettings::read<std::vector<long>>( const su_std::string_view &i_name, const std::vector<long> &i_default );
-template std::vector<long long> usersettings::read<std::vector<long long>>( const su_std::string_view &i_name, const std::vector<long long> &i_default );
-template std::vector<float> usersettings::read<std::vector<float>>( const su_std::string_view &i_name, const std::vector<float> &i_default );
-template std::vector<double> usersettings::read<std::vector<double>>( const su_std::string_view &i_name, const std::vector<double> &i_default );
-template std::vector<std::string> usersettings::read<std::vector<std::string>>( const su_std::string_view &i_name, const std::vector<std::string> &i_default );
-template std::vector<filepath> usersettings::read<std::vector<filepath>>( const su_std::string_view &i_name, const std::vector<filepath> &i_default );
+template std::vector<bool> usersettings::read<std::vector<bool>>( const su::string_view &i_name, const std::vector<bool> &i_default );
+template std::vector<int> usersettings::read<std::vector<int>>( const su::string_view &i_name, const std::vector<int> &i_default );
+template std::vector<long> usersettings::read<std::vector<long>>( const su::string_view &i_name, const std::vector<long> &i_default );
+template std::vector<long long> usersettings::read<std::vector<long long>>( const su::string_view &i_name, const std::vector<long long> &i_default );
+template std::vector<float> usersettings::read<std::vector<float>>( const su::string_view &i_name, const std::vector<float> &i_default );
+template std::vector<double> usersettings::read<std::vector<double>>( const su::string_view &i_name, const std::vector<double> &i_default );
+template std::vector<std::string> usersettings::read<std::vector<std::string>>( const su::string_view &i_name, const std::vector<std::string> &i_default );
+template std::vector<filepath> usersettings::read<std::vector<filepath>>( const su::string_view &i_name, const std::vector<filepath> &i_default );
 
-template void usersettings::write<bool>( const su_std::string_view &i_name, const bool &i_value );
-template void usersettings::write<int>( const su_std::string_view &i_name, const int &i_value );
-template void usersettings::write<long>( const su_std::string_view &i_name, const long &i_value );
-template void usersettings::write<long long>( const su_std::string_view &i_name, const long long &i_value );
-template void usersettings::write<float>( const su_std::string_view &i_name, const float &i_value );
-template void usersettings::write<double>( const su_std::string_view &i_name, const double &i_value );
-template void usersettings::write<std::string>( const su_std::string_view &i_name, const std::string &i_value );
-template void usersettings::write<filepath>( const su_std::string_view &i_name, const filepath &i_value );
+template void usersettings::write<bool>( const su::string_view &i_name, const bool &i_value );
+template void usersettings::write<int>( const su::string_view &i_name, const int &i_value );
+template void usersettings::write<long>( const su::string_view &i_name, const long &i_value );
+template void usersettings::write<long long>( const su::string_view &i_name, const long long &i_value );
+template void usersettings::write<float>( const su::string_view &i_name, const float &i_value );
+template void usersettings::write<double>( const su::string_view &i_name, const double &i_value );
+template void usersettings::write<std::string>( const su::string_view &i_name, const std::string &i_value );
+template void usersettings::write<filepath>( const su::string_view &i_name, const filepath &i_value );
 
-template void usersettings::write<std::vector<bool>>( const su_std::string_view &i_name, const std::vector<bool> &i_value );
-template void usersettings::write<std::vector<int>>( const su_std::string_view &i_name, const std::vector<int> &i_value );
-template void usersettings::write<std::vector<long>>( const su_std::string_view &i_name, const std::vector<long> &i_value );
-template void usersettings::write<std::vector<long long>>( const su_std::string_view &i_name, const std::vector<long long> &i_value );
-template void usersettings::write<std::vector<float>>( const su_std::string_view &i_name, const std::vector<float> &i_value );
-template void usersettings::write<std::vector<double>>( const su_std::string_view &i_name, const std::vector<double> &i_value );
-template void usersettings::write<std::vector<std::string>>( const su_std::string_view &i_name, const std::vector<std::string> &i_value );
-template void usersettings::write<std::vector<filepath>>( const su_std::string_view &i_name, const std::vector<filepath> &i_value );
+template void usersettings::write<std::vector<bool>>( const su::string_view &i_name, const std::vector<bool> &i_value );
+template void usersettings::write<std::vector<int>>( const su::string_view &i_name, const std::vector<int> &i_value );
+template void usersettings::write<std::vector<long>>( const su::string_view &i_name, const std::vector<long> &i_value );
+template void usersettings::write<std::vector<long long>>( const su::string_view &i_name, const std::vector<long long> &i_value );
+template void usersettings::write<std::vector<float>>( const su::string_view &i_name, const std::vector<float> &i_value );
+template void usersettings::write<std::vector<double>>( const su::string_view &i_name, const std::vector<double> &i_value );
+template void usersettings::write<std::vector<std::string>>( const su::string_view &i_name, const std::vector<std::string> &i_value );
+template void usersettings::write<std::vector<filepath>>( const su::string_view &i_name, const std::vector<filepath> &i_value );
 
-void usersettings::write( const su_std::string_view &i_name, const char *i_value )
+void usersettings::write( const su::string_view &i_name, const char *i_value )
 {
 	write( i_name, std::string(i_value) );
 }

@@ -36,6 +36,8 @@ source_group( "tests" FILES
 					${ALL_TESTS}
 			)
 
+add_definitions( -DENABLE_SIMPLE_TESTS )
+
 add_definitions( -DBUILD_VERSION=1,2,3,4 )
 execute_process( COMMAND svn info --show-item revision
 					WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"

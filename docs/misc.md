@@ -11,6 +11,4 @@
 * UUID
 * cfauto
 * attachable
-* resource_access
 * version
-

@@ -1,6 +1,6 @@
 
-#ifndef H_SU_SHIM_STRING_VIEW
-#define H_SU_SHIM_STRING_VIEW
+#ifndef H_SHIM_STRING_VIEW
+#define H_SHIM_STRING_VIEW
 
 #include "su_platform.h"
 
@@ -9,7 +9,7 @@
 #include <string>
 #include <algorithm>
 
-namespace su_std {
+namespace su {
 
 template<typename CHAR>
 class basic_string_view
@@ -227,7 +227,7 @@ typedef intptr_t ssize_t;
 #include <string>
 #include <algorithm>
 
-namespace su_std {
+namespace su {
 
 template<typename CHAR>
 class basic_string_view

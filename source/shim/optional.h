@@ -1,9 +1,9 @@
-#ifndef H_SU_SHIM_OPTIONAL
-#define H_SU_SHIM_OPTIONAL
+#ifndef H_SHIM_OPTIONAL
+#define H_SHIM_OPTIONAL
 
 #include <stdexcept>
 
-namespace su_std {
+namespace su {
 
 class bad_optional_access : std::exception
 {

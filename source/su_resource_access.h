@@ -19,7 +19,7 @@ namespace su {
 namespace resource_access {
 
 su::filepath getFolder();
-su::filepath get( const su_std::string_view &i_name );
+su::filepath get( const su::string_view &i_name );
 
 }
 }

@@ -40,13 +40,13 @@ su::filepath getFolder()
 #endif
 }
 
-su::filepath get( const su_std::string_view &i_name )
+su::filepath get( const su::string_view &i_name )
 {
 #ifdef USE_CF_IMPLEMENTAION
 	// we have a relative path to the resource in i_name, we want to split the string in 3: sub-folder path, name and extension
 	auto p = i_name.rfind( '/' );
-	su_std::string_view subDir, name;
-	if ( p != su_std::string_view::npos )
+	su::string_view subDir, name;
+	if ( p != su::string_view::npos )
 	{
 		subDir = i_name.substr( 0, p );
 		name = i_name.substr( p + 1 );
@@ -55,8 +55,8 @@ su::filepath get( const su_std::string_view &i_name )
 		name = i_name;
 
 	p = name.rfind( '.' );
-	su_std::string_view ext;
-	if ( p != su_std::string_view::npos )
+	su::string_view ext;
+	if ( p != su::string_view::npos )
 	{
 		ext = name.substr( p + 1 );
 		name = name.substr( 0, p );

@@ -14,7 +14,7 @@
 #define H_SU_FILEPATH
 
 #include "su_platform.h"
-#include "su_shim/string_view.h"
+#include "shim/string_view.h"
 #include <vector>
 #include <memory>
 #include <ctime>
@@ -84,7 +84,7 @@ public:
 	std::string name() const;
 	std::string stem() const;
 	std::string extension() const;
-	void setExtension( const su_std::string_view &i_ext );
+	void setExtension( const su::string_view &i_ext );
 
 #if UPLATFORM_WIN
 	std::wstring ospath() const;
@@ -105,7 +105,7 @@ public:
 
 	// Navigation
 	bool up();
-	bool add( const su_std::string_view &i_name );
+	bool add( const su::string_view &i_name );
 
 	// opening files
 	std::ifstream &fsopen( std::ifstream &o_fs, std::ios_base::openmode i_mode = std::ios_base::in | std::ios_base::binary ) const;

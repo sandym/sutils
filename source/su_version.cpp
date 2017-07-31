@@ -26,7 +26,7 @@ inline bool isSeparator( char c )
 
 namespace su {
 
-version::version( const su_std::string_view &i_version )
+version::version( const su::string_view &i_version )
 {
 	auto it = i_version.begin();
 

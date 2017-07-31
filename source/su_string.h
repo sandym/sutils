@@ -15,7 +15,7 @@
 
 #include <string>
 #include <vector>
-#include "su_shim/string_view.h"
+#include "shim/string_view.h"
 #include "su_platform.h"
 
 #if UPLATFORM_MAC || UPLATFORM_IOS
@@ -27,18 +27,18 @@ namespace su {
 // conversion
 std::string to_string( const std::wstring &s );
 std::string to_string( const std::u16string &s );
-std::wstring to_wstring( const su_std::string_view &s );
+std::wstring to_wstring( const su::string_view &s );
 std::wstring to_wstring( const std::u16string &s );
-std::u16string to_u16string( const su_std::string_view &s );
+std::u16string to_u16string( const su::string_view &s );
 std::u16string to_u16string( const std::wstring &s );
 
 #if UPLATFORM_MAC || UPLATFORM_IOS
 std::string to_string( CFStringRef i_cfstring );
-CFStringRef CreateCFString( const su_std::string_view &s );
+CFStringRef CreateCFString( const su::string_view &s );
 #endif
 
-std::string tolower( const su_std::string_view &s );
-std::string toupper( const su_std::string_view &s );
+std::string tolower( const su::string_view &s );
+std::string toupper( const su::string_view &s );
 
 /*!
 	@brief Case insensitive compare.
@@ -48,7 +48,7 @@ std::string toupper( const su_std::string_view &s );
 	@param rhs string to compare to
 	@return     like strcmp()
 */
-int compare_nocase( const su_std::string_view &lhs, const su_std::string_view &rhs );
+int compare_nocase( const su::string_view &lhs, const su::string_view &rhs );
 
 /*!
    @brief compare 2 string using the current locale comparaison.
@@ -57,7 +57,7 @@ int compare_nocase( const su_std::string_view &lhs, const su_std::string_view &r
    @param[in]     rhs utf-8 string
    @return     same as strcmp
 */
-int ucompare( const su_std::string_view &lhs, const su_std::string_view &rhs );
+int ucompare( const su::string_view &lhs, const su::string_view &rhs );
 
 /*!
    @brief compare 2 string using the current locale comparaison but ignoring case.
@@ -66,7 +66,7 @@ int ucompare( const su_std::string_view &lhs, const su_std::string_view &rhs );
    @param[in]     rhs utf-8 string
    @return     same as strcmp
 */
-int ucompare_nocase( const su_std::string_view &lhs, const su_std::string_view &rhs );
+int ucompare_nocase( const su::string_view &lhs, const su::string_view &rhs );
 
 /*!
    @brief compare 2 string numerically.
@@ -76,7 +76,7 @@ int ucompare_nocase( const su_std::string_view &lhs, const su_std::string_view &
    @param[in] rhs utf-8 string
    @return     same as strcmp
 */
-int ucompare_numerically( const su_std::string_view &lhs, const su_std::string_view &rhs );
+int ucompare_numerically( const su::string_view &lhs, const su::string_view &rhs );
 
 /*!
    @brief compare 2 string numerically but ignoring case.
@@ -86,15 +86,15 @@ int ucompare_numerically( const su_std::string_view &lhs, const su_std::string_v
    @param[in] rhs utf-8 string
    @return     same as strcmp
 */
-int ucompare_nocase_numerically( const su_std::string_view &lhs, const su_std::string_view &rhs );
+int ucompare_nocase_numerically( const su::string_view &lhs, const su::string_view &rhs );
 
 
 template<typename CHAR_TYPE>
-std::vector<su_std::basic_string_view<CHAR_TYPE>> split_view( const su_std::basic_string_view<CHAR_TYPE> &s, CHAR_TYPE c )
+std::vector<su::basic_string_view<CHAR_TYPE>> split_view( const su::basic_string_view<CHAR_TYPE> &s, CHAR_TYPE c )
 {
-	std::vector<su_std::basic_string_view<CHAR_TYPE>> res;
-	typename su_std::basic_string_view<CHAR_TYPE>::size_type a = 0;
-	for ( typename su_std::basic_string_view<CHAR_TYPE>::size_type i = 0; i < s.length(); ++i )
+	std::vector<su::basic_string_view<CHAR_TYPE>> res;
+	typename su::basic_string_view<CHAR_TYPE>::size_type a = 0;
+	for ( typename su::basic_string_view<CHAR_TYPE>::size_type i = 0; i < s.length(); ++i )
 	{
 		if ( s[i] == c )
 		{
@@ -109,7 +109,7 @@ std::vector<su_std::basic_string_view<CHAR_TYPE>> split_view( const su_std::basi
 }
 
 template<typename CHAR_TYPE>
-std::vector<std::basic_string<CHAR_TYPE>> split( const su_std::basic_string_view<CHAR_TYPE> &s, CHAR_TYPE c )
+std::vector<std::basic_string<CHAR_TYPE>> split( const su::basic_string_view<CHAR_TYPE> &s, CHAR_TYPE c )
 {
 	auto viewList = split_view( s, c );
 	std::vector<std::basic_string<CHAR_TYPE>> res;
@@ -120,11 +120,11 @@ std::vector<std::basic_string<CHAR_TYPE>> split( const su_std::basic_string_view
 }
 
 template<typename CHAR_TYPE, typename COND>
-std::vector<su_std::basic_string_view<CHAR_TYPE>> split_view_if( const su_std::basic_string_view<CHAR_TYPE> &s, COND i_cond )
+std::vector<su::basic_string_view<CHAR_TYPE>> split_view_if( const su::basic_string_view<CHAR_TYPE> &s, COND i_cond )
 {
-	std::vector<su_std::basic_string_view<CHAR_TYPE>> res;
-	typename su_std::basic_string_view<CHAR_TYPE>::size_type a = 0;
-	for ( typename su_std::basic_string_view<CHAR_TYPE>::size_type i = 0; i < s.length(); ++i )
+	std::vector<su::basic_string_view<CHAR_TYPE>> res;
+	typename su::basic_string_view<CHAR_TYPE>::size_type a = 0;
+	for ( typename su::basic_string_view<CHAR_TYPE>::size_type i = 0; i < s.length(); ++i )
 	{
 		if ( i_cond( s[i] ) )
 		{
@@ -139,7 +139,7 @@ std::vector<su_std::basic_string_view<CHAR_TYPE>> split_view_if( const su_std::b
 }
 
 template<typename CHAR_TYPE, typename COND>
-std::vector<std::basic_string<CHAR_TYPE>> split_if( const su_std::basic_string_view<CHAR_TYPE> &s, COND i_cond )
+std::vector<std::basic_string<CHAR_TYPE>> split_if( const su::basic_string_view<CHAR_TYPE> &s, COND i_cond )
 {
 	auto viewList = split_view_if( s, i_cond );
 	std::vector<std::basic_string<CHAR_TYPE>> res;
@@ -198,32 +198,32 @@ STRING_TYPE join( const CONT &i_list, const STRING_TYPE &i_sep )
 /*!
    @brief Remove spaces at the begining and end of the string.
 */
-su_std::string_view trimSpaces_view( const su_std::string_view &i_s );
-inline std::string trimSpaces( const su_std::string_view &i_s ) { return trimSpaces_view( i_s ); }
+su::string_view trimSpaces_view( const su::string_view &i_s );
+inline std::string trimSpaces( const su::string_view &i_s ) { return trimSpaces_view( i_s ); }
 
-inline bool contains( const su_std::string_view &i_text, const su_std::string_view &i_s )
+inline bool contains( const su::string_view &i_text, const su::string_view &i_s )
 {
-	return i_text.find( i_s ) != su_std::string_view::npos;
+	return i_text.find( i_s ) != su::string_view::npos;
 }
 
-bool contains_nocase( const su_std::string_view &i_text, const su_std::string_view &i_s );
-bool startsWith( const su_std::string_view &i_text, const su_std::string_view &i_s );
-bool startsWith_nocase( const su_std::string_view &i_text, const su_std::string_view &i_s );
-bool endsWith( const su_std::string_view &i_text, const su_std::string_view &i_s );
-bool endsWith_nocase( const su_std::string_view &i_text, const su_std::string_view &i_s );
+bool contains_nocase( const su::string_view &i_text, const su::string_view &i_s );
+bool startsWith( const su::string_view &i_text, const su::string_view &i_s );
+bool startsWith_nocase( const su::string_view &i_text, const su::string_view &i_s );
+bool endsWith( const su::string_view &i_text, const su::string_view &i_s );
+bool endsWith_nocase( const su::string_view &i_text, const su::string_view &i_s );
 
 /*!
    @brief replace monospaced japanese ASCII.
 */
-std::string japaneseHiASCIIFix( const su_std::string_view &i_s );
+std::string japaneseHiASCIIFix( const su::string_view &i_s );
 
 /*!
    @brief replace kanji numbers with arab ones.
 */
-std::string kanjiNumberFix( const su_std::string_view &i_s );
+std::string kanjiNumberFix( const su::string_view &i_s );
 
-size_t levenshteinDistance( const su_std::string_view &i_string,
-							const su_std::string_view &i_target );
+size_t levenshteinDistance( const su::string_view &i_string,
+							const su::string_view &i_target );
 
 }
 

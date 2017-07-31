@@ -12,6 +12,8 @@
 #ifndef H_SIMPLE_TESTS
 #define H_SIMPLE_TESTS
 
+#ifdef ENABLE_SIMPLE_TESTS
+
 #include <cassert>
 #include <type_traits>
 #include <string>
@@ -29,18 +31,18 @@ class TestTimer
 {
 public:
 	//! record the start time
-	inline void start()
+	void start()
 	{
 		_start = std::chrono::high_resolution_clock::now();
 	}
 	//! record the end time
-	inline void end()
+	void end()
 	{
 		_end = std::chrono::high_resolution_clock::now();
 	}
 	
 	//! return the time elapsed, ending the timer if needed
-	int64_t nanoseconds();
+	std::int64_t nanoseconds();
 	
 private:
 	std::chrono::high_resolution_clock::time_point _start{};
@@ -59,13 +61,13 @@ public:
 		: _name( i_name ), _test( i_test ){}
 
 	//! run the test
-	inline void operator()( TestTimer &i_timer )
+	void operator()( TestTimer &i_timer )
 	{
 		_test( i_timer );
 	}
 	
-	inline const std::string &name() const { return _name; }
-	inline bool timed() const { return _name.compare( 0, 6, "timed_" ) == 0; }
+	const std::string &name() const { return _name; }
+	bool timed() const { return _name.compare( 0, 6, "timed_" ) == 0; }
 
 private:
 	std::string _name;
@@ -81,7 +83,7 @@ public:
 	virtual ~TestSuiteAbstract() = default;
 	
 	//! name of the test suite
-	inline const std::string &name() const { return _name; }
+	const std::string &name() const { return _name; }
 	
 	//! all test cases
 	virtual std::vector<TestCase> getTests() = 0;
@@ -164,6 +166,54 @@ public:
 		result.reserve( _tests.size() );
 		for ( auto it : _tests )
 		{
+//			using variant / visitor
+//			result.emplace_back( it.name, std::visit( [](auto&& arg) {
+//						using CB = std::decay_t<decltype(arg)>;
+//						if constexpr (std::is_same_v<CB,method_t>)
+//						{
+//							auto methodPtr = arg;
+//							return [methodPtr]( TestTimer &i_timer )
+//								{
+//									T obj; // don't time setup / teardown
+//									i_timer.start();
+//									(obj.*methodPtr)();
+//									i_timer.end();
+//								};
+//						}
+//						else if constexpr (std::is_same_v<CB,methodWithTimer_t>)
+//						{
+//							auto methodPtr = arg;
+//							return [methodPtr]( TestTimer &i_timer )
+//								{
+//									T obj; // don't time setup / teardown
+//									i_timer.start(); // start in case the method forget
+//									(obj.*methodPtr)( i_timer );
+//									i_timer.nanoseconds(); // this will record the end only IF it wasn't already
+//								};
+//						}
+//						else if constexpr (std::is_same_v<CB,func_t>)
+//						{
+//							auto func = arg;
+//							return [func]( TestTimer &i_timer )
+//								{
+//									i_timer.start();
+//									func();
+//									i_timer.end();
+//								};
+//						}
+//						else if constexpr (std::is_same_v<CB,funcWithTimer_t>)
+//						{
+//							auto func = arg;
+//							return [func]( TestTimer &i_timer )
+//								{
+//									i_timer.start(); // start in case the function forget
+//									func( i_timer );
+//									i_timer.nanoseconds(); // this will record the end only IF it wasn't already
+//								};
+//						}
+//						return []( TestTimer &i_timer ){};
+//					}, it.callback ) );
+			
 			if ( it.method != nullptr )
 			{
 				// a method with external timer
@@ -183,7 +233,7 @@ public:
 				result.emplace_back( it.name, [methodPtr]( TestTimer &i_timer )
 					{
 						T obj; // don't time setup / teardown
-						i_timer.start(); // start in case the method forgot
+						i_timer.start(); // start in case the method forget
 						(obj.*methodPtr)( i_timer );
 						i_timer.nanoseconds(); // this will record the end only IF it wasn't already
 					} );
@@ -205,7 +255,7 @@ public:
 				auto func = it.funcWithTimer;
 				result.emplace_back( it.name, [func]( TestTimer &i_timer )
 					{
-						i_timer.start(); // start in case the function forgot
+						i_timer.start(); // start in case the function forget
 						func( i_timer );
 						i_timer.nanoseconds(); // this will record the end only IF it wasn't already
 					} );
@@ -231,13 +281,18 @@ private:
 		
 		std::string name;
 		
+		using method_t = void (T::*)();
+		using methodWithTimer_t =  void (T::*)(TestTimer&);
+		using func_t =  std::function<void()>;
+		using funcWithTimer_t = std::function<void(TestTimer&)>;
+
 		// this should be a std::variant, only one of method,
 		// methodWithTimer, func and funcWithTimer will be set
-		// std::variant<(T::*)(),(T::*)(TestTimer&),std::function<void()>,std::function<void(TestTimer&)>> callback
-		void (T::*method)() = nullptr;
-		void (T::*methodWithTimer)(TestTimer&) = nullptr;
-		const std::function<void()> func;
-		const std::function<void(TestTimer&)> funcWithTimer;
+		// std::variant<method_t,methodWithTimer_t,func_t,funcWithTimer_t> callback
+		method_t method = nullptr;
+		methodWithTimer_t methodWithTimer = nullptr;
+		func_t func;
+		funcWithTimer_t funcWithTimer;
 	};
 	std::vector<TestCaseData> _tests;
 };
@@ -319,5 +374,35 @@ inline void Assert_not_equal( const char *i_file, int i_line, const std::string 
 #define TEST_ASSERT(...) su::Assert(__FILE__,__LINE__, #__VA_ARGS__, __VA_ARGS__ )
 #define TEST_ASSERT_EQUAL(...) su::Assert_equal( __FILE__,__LINE__, #__VA_ARGS__, __VA_ARGS__ )
 #define TEST_ASSERT_NOT_EQUAL(...) su::Assert_not_equal( __FILE__,__LINE__, #__VA_ARGS__, __VA_ARGS__ )
+
+#else
+
+#include <cstdint>
+#include <cassert>
+
+// do nothing implementation for when ENABLE_SIMPLE_TESTS is not defined
+struct TestTimer
+{
+	void start(){ assert( false ); }
+	void end(){ assert( false ); }
+	std::int64_t nanoseconds() { assert( false ); return 0; }
+};
+
+namespace su {
+template<class T>
+struct TestSuite
+{
+template<typename ...ARGS>
+void registerTestCase( ARGS... args ){ assert( false ); }
+};
+}
+
+#define REGISTER_TEST_SUITE(...)
+#define TEST_FAIL(...)
+#define TEST_ASSERT(...)
+#define TEST_ASSERT_EQUAL(...)
+#define TEST_ASSERT_NOT_EQUAL(...)
+
+#endif
 
 #endif

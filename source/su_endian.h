@@ -14,6 +14,7 @@
 #define H_SU_ENDIAN
 
 #include <type_traits>
+#include <cstdint>
 
 namespace su {
 
@@ -40,7 +41,7 @@ endian_swap( T v )
 {
 	union {
 		T v;
-		uint16_t b;
+		std::uint16_t b;
 	} u;
 	u.v = v;
 	u.b = ((u.b<<8)&0xFF00)|
@@ -54,7 +55,7 @@ endian_swap( T v )
 {
 	union {
 		T v;
-		uint32_t b;
+		std::uint32_t b;
 	} u;
 	u.v = v;
 	u.b = ((u.b<<24)&0xFF000000)|
@@ -70,7 +71,7 @@ endian_swap( T v )
 {
 	union {
 		T v;
-		uint64_t b;
+		std::uint64_t b;
 	} u;
 	u.v = v;
 	u.b = ((u.b<<56)&0xFF00000000000000)|
@@ -90,7 +91,7 @@ endian_swap( T v )
 //{
 //	union {
 //		T v;
-//		struct { uint64_t b1, b2; } b;
+//		struct { std::uint64_t b1, b2; } b;
 //	} u;
 //	u.v = v;
 //	u.b.b1 = endian_swap( u.b.b1 );

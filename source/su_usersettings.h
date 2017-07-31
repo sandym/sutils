@@ -14,7 +14,7 @@
 #define H_SU_USERSETTINGS
 
 #include "su_platform.h"
-#include "su_shim/string_view.h"
+#include "shim/string_view.h"
 
 #if UPLATFORM_MAC || UPLATFORM_IOS
 #include <CoreFoundation/CoreFoundation.h>
@@ -29,18 +29,18 @@ namespace su {
 class usersettings
 {
 public:
-	static void init( const su_std::string_view &i_company, const su_std::string_view &i_application );
+	static void init( const su::string_view &i_company, const su::string_view &i_application );
 	
 	usersettings();
 	~usersettings();
 	
 	template<typename T>
-	T read( const su_std::string_view &i_name, const T &i_default = {} );
+	T read( const su::string_view &i_name, const T &i_default = {} );
 	
 	template<typename T>
-	void write( const su_std::string_view &i_name, const T &i_value );
+	void write( const su::string_view &i_name, const T &i_value );
 	
-	void write( const su_std::string_view &i_name, const char *i_value );
+	void write( const su::string_view &i_name, const char *i_value );
 	
 private:
 #if UPLATFORM_WIN

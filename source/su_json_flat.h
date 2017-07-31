@@ -14,12 +14,12 @@
 #define H_SU_JSON_FLAT
 
 #include "su_json.h"
-#include "su_shim/optional.h"
+#include "shim/optional.h"
 
 namespace su {
 
 void flatten( const su::Json &i_json, std::ostream &ostr );
-su_std::optional<su::Json> unflatten( std::istream &istr );
+su::optional<su::Json> unflatten( std::istream &istr );
 
 }
 
