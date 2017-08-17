@@ -14,10 +14,6 @@
 
 namespace su {
 
-attachable::~attachable()
-{
-}
-
 attachment *attachable::attach( const std::string& i_name, std::unique_ptr<attachment> &&i_attachment )
 {
 	detach( i_name );

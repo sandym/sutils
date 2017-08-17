@@ -48,10 +48,6 @@ uuid uuid::create()
 	return v;
 }
 
-uuid::uuid( const std::array<uint8_t, 16> &i_value ) : _uuid( i_value )
-{
-}
-
 uuid::uuid( const std::string &i_value )
 {
 	int i = 0, j = 0;

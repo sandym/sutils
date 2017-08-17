@@ -1,7 +1,7 @@
 #ifndef H_SU_JSON
 #define H_SU_JSON
 
-#include "shim/string_view.h"
+#include <string_view>
 #include <string>
 #include "su_flat_map.h"
 
@@ -81,7 +81,7 @@ public:
 	void clean();
 
 	// Accessors
-	inline Type type() const { return _type; }
+	Type type() const { return _type; }
 	bool is_null() const { return type() == Type::NUL; }
 	bool is_number() const { return type() == Type::NUMBER; }
 	bool is_bool() const { return type() == Type::BOOL; }
@@ -136,7 +136,7 @@ public:
 	}
 
 	// Parse. If parse fails, return Json() and assign an error message to err.
-	static Json parse( const su::string_view &input, std::string &err, JsonParse strategy = JsonParse::STANDARD );
+	static Json parse( const std::string_view &input, std::string &err, JsonParse strategy = JsonParse::STANDARD );
 	static Json parse( const char *input, std::string &err, JsonParse strategy = JsonParse::STANDARD )
 	{
 		if ( input == nullptr )
@@ -144,14 +144,14 @@ public:
 			err = "null input";
 			return nullptr;
 		}
-		return parse( su::string_view( input ), err, strategy );
+		return parse( std::string_view( input ), err, strategy );
 	}
 	// Parse multiple objects, concatenated or separated by whitespace
-	static std::vector<Json> parse_multi( const su::string_view &input,
-											su::string_view::size_type &parser_stop_pos, std::string &err,
+	static std::vector<Json> parse_multi( const std::string_view &input,
+											std::string_view::size_type &parser_stop_pos, std::string &err,
 											JsonParse strategy = JsonParse::STANDARD );
 
-	static inline std::vector<Json> parse_multi( const su::string_view &input, std::string &err,
+	static inline std::vector<Json> parse_multi( const std::string_view &input, std::string &err,
 												 JsonParse strategy = JsonParse::STANDARD )
 	{
 		std::string::size_type parser_stop_pos;

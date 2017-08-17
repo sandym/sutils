@@ -43,19 +43,19 @@ public:
 	flat_set() = default;
 	~flat_set() = default;
 	
-	inline bool empty() const { return _flatlist.empty(); }
-	inline size_type size() const { return _flatlist.size(); }
-	inline void clear() { _flatlist.clear(); }
-	inline void reserve( size_t s ) { _flatlist.reserve( s ); }
-	inline const_iterator begin() const { return _flatlist.begin(); }
-	inline const_iterator end() const { return _flatlist.end(); }
-	inline const_iterator find( const value_type &v ) const
+	bool empty() const { return _flatlist.empty(); }
+	size_type size() const { return _flatlist.size(); }
+	void clear() { _flatlist.clear(); }
+	void reserve( size_t s ) { _flatlist.reserve( s ); }
+	const_iterator begin() const { return _flatlist.begin(); }
+	const_iterator end() const { return _flatlist.end(); }
+	const_iterator find( const value_type &v ) const
 	{
 		auto it = lower_bound( v );
 		return it != end() and value_equal( *it, v ) ? it : end();
 	}
-	inline const_iterator lower_bound( const value_type &v ) const { return std::lower_bound( begin(), end(), v, &value_less ); }
-	inline const_iterator upper_bound( const value_type &v ) const { return std::upper_bound( begin(), end(), v, &value_less ); }
+	const_iterator lower_bound( const value_type &v ) const { return std::lower_bound( begin(), end(), v, &value_less ); }
+	const_iterator upper_bound( const value_type &v ) const { return std::upper_bound( begin(), end(), v, &value_less ); }
 	void insert( const value_type &v )
 	{
 		auto it = std::lower_bound( _flatlist.begin(), _flatlist.end(), v, &value_less );
@@ -65,10 +65,10 @@ public:
 			_flatlist.insert( it, v );
 	}
 
-	inline void erase( const_iterator it ) { _flatlist.erase( it ); }
-	inline void swap( flat_set<T,CMP> &i_other ) { _flatlist.swap( i_other._flatlist ); }
-	inline const storage_type &storage() const { return _flatlist; }
-	inline storage_type &storage() { return _flatlist; }
+	void erase( const_iterator it ) { _flatlist.erase( it ); }
+	void swap( flat_set<T,CMP> &i_other ) { _flatlist.swap( i_other._flatlist ); }
+	const storage_type &storage() const { return _flatlist; }
+	storage_type &storage() { return _flatlist; }
 	
 private:
 	storage_type _flatlist;

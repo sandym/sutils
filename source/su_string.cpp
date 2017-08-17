@@ -116,9 +116,9 @@ std::string to_string( const std::u16string &s )
     return convert_utf<std::u16string,std::string>::convert( s );
 }
 
-std::wstring to_wstring( const su::string_view &s )
+std::wstring to_wstring( const std::string_view &s )
 {
-    return convert_utf<su::string_view,std::wstring>::convert( s );
+    return convert_utf<std::string_view,std::wstring>::convert( s );
 }
 
 std::wstring to_wstring( const std::u16string &s )
@@ -126,9 +126,9 @@ std::wstring to_wstring( const std::u16string &s )
     return convert_utf<std::u16string,std::wstring>::convert( s );
 }
 
-std::u16string to_u16string( const su::string_view &s )
+std::u16string to_u16string( const std::string_view &s )
 {
-    return convert_utf<su::string_view,std::u16string>::convert( s );
+    return convert_utf<std::string_view,std::u16string>::convert( s );
 }
 
 std::u16string to_u16string( const std::wstring &s )
@@ -149,13 +149,13 @@ std::string to_string( CFStringRef i_cfstring )
 	return to_string( s16 );
 }
 
-CFStringRef CreateCFString( const su::string_view &s )
+CFStringRef CreateCFString( const std::string_view &s )
 {
 	return CFStringCreateWithBytes( 0, (const UInt8 *)s.data(), s.length(), kCFStringEncodingUTF8, false );
 }
 #endif
 
-std::string tolower( const su::string_view &s )
+std::string tolower( const std::string_view &s )
 {
 	std::string other( s );
 	for ( auto &it : other )
@@ -166,7 +166,7 @@ std::string tolower( const su::string_view &s )
 	return other;
 }
 
-std::string toupper( const su::string_view &s )
+std::string toupper( const std::string_view &s )
 {
 	std::string other( s );
 	for ( auto &it : other )
@@ -177,7 +177,7 @@ std::string toupper( const su::string_view &s )
 	return other;
 }
 
-int compare_nocase( const su::string_view &lhs, const su::string_view &rhs )
+int compare_nocase( const std::string_view &lhs, const std::string_view &rhs )
 {
 #if UPLATFORM_MAC || UPLATFORM_IOS
 	cfauto<CFStringRef> lhsRef( CFStringCreateWithBytesNoCopy( 0, (const UInt8 *)lhs.data(), lhs.length(), kCFStringEncodingUTF8, false, kCFAllocatorNull ) );
@@ -190,7 +190,7 @@ int compare_nocase( const su::string_view &lhs, const su::string_view &rhs )
 #endif
 }
 
-int ucompare( const su::string_view &lhs, const su::string_view &rhs )
+int ucompare( const std::string_view &lhs, const std::string_view &rhs )
 {
 #if UPLATFORM_MAC || UPLATFORM_IOS
 	cfauto<CFStringRef> lhsRef( CFStringCreateWithBytesNoCopy( 0, (const UInt8 *)lhs.data(), lhs.length(), kCFStringEncodingUTF8, false, kCFAllocatorNull ) );
@@ -203,7 +203,7 @@ int ucompare( const su::string_view &lhs, const su::string_view &rhs )
 #endif
 }
 
-int ucompare_nocase( const su::string_view &lhs, const su::string_view &rhs )
+int ucompare_nocase( const std::string_view &lhs, const std::string_view &rhs )
 {
 #if UPLATFORM_MAC || UPLATFORM_IOS
 	cfauto<CFStringRef> lhsRef( CFStringCreateWithBytesNoCopy( 0, (const UInt8 *)lhs.data(), lhs.length(), kCFStringEncodingUTF8, false, kCFAllocatorNull ) );
@@ -216,7 +216,7 @@ int ucompare_nocase( const su::string_view &lhs, const su::string_view &rhs )
 #endif
 }
 
-int ucompare_numerically( const su::string_view &lhs, const su::string_view &rhs )
+int ucompare_numerically( const std::string_view &lhs, const std::string_view &rhs )
 {
 	size_t la = lhs.length(), lb = rhs.length();
 	size_t shortest = std::min( la, lb );
@@ -261,7 +261,7 @@ int ucompare_numerically( const su::string_view &lhs, const su::string_view &rhs
 	}
 }
 
-int ucompare_nocase_numerically( const su::string_view &lhs, const su::string_view &rhs )
+int ucompare_nocase_numerically( const std::string_view &lhs, const std::string_view &rhs )
 {
 	size_t la = lhs.length(), lb = rhs.length();
 	size_t shortest = std::min( la, lb );
@@ -306,31 +306,31 @@ int ucompare_nocase_numerically( const su::string_view &lhs, const su::string_vi
 	}
 }
 
-su::string_view trimSpaces_view( const su::string_view &i_s )
+std::string_view trimSpaces_view( const std::string_view &i_s )
 {
 	auto f = i_s.find_first_not_of( "\r\n\t " );
 	auto l = i_s.find_last_not_of( "\r\n\t " );
-	if ( f != su::string_view::npos )
+	if ( f != std::string_view::npos )
 	{
-		assert( l != su::string_view::npos );
+		assert( l != std::string_view::npos );
 		return i_s.substr( f, l - f + 1 );
 	}
 	else
-		return su::string_view();
+        return {};
 }
 
-//bool contains_nocase( const su::string_view &i_text, const su::string_view &i_s );
-bool startsWith( const su::string_view &i_text, const su::string_view &i_s )
+//bool contains_nocase( const std::string_view &i_text, const std::string_view &i_s );
+bool startsWith( const std::string_view &i_text, const std::string_view &i_s )
 {
 	if ( i_s.size() > i_text.size() )
 		return false;
     return i_text.substr( 0, i_s.size() ) == i_s;
 }
-//bool startsWith_nocase( const su::string_view &i_text, const su::string_view &i_s );
-//bool endsWith( const su::string_view &i_text, const su::string_view &i_s );
-//bool endsWith_nocase( const su::string_view &i_text, const su::string_view &i_s );
+//bool startsWith_nocase( const std::string_view &i_text, const std::string_view &i_s );
+//bool endsWith( const std::string_view &i_text, const std::string_view &i_s );
+//bool endsWith_nocase( const std::string_view &i_text, const std::string_view &i_s );
 
-std::string japaneseHiASCIIFix( const su::string_view &i_s )
+std::string japaneseHiASCIIFix( const std::string_view &i_s )
 {
 	auto s16 = to_u16string( i_s );
 	for ( auto &c : s16 )
@@ -466,7 +466,7 @@ int kanjiNumberValue( std::u16string s )
 
 namespace su {
 
-std::string kanjiNumberFix( const su::string_view &i_s )
+std::string kanjiNumberFix( const std::string_view &i_s )
 {
 	auto s16 = to_u16string( i_s );
 	std::u16string result;
@@ -510,13 +510,13 @@ std::string kanjiNumberFix( const su::string_view &i_s )
 	return to_string( result );
 }
 
-size_t levenshteinDistance( const su::string_view &i_string,
-							const su::string_view &i_target )
+size_t levenshteinDistance( const std::string_view &i_string,
+							const std::string_view &i_target )
 {
 	auto string16 = to_u16string( i_string );
 	auto target16 = to_u16string( i_target );
 
-	using su::u16string_view;
+	using std::u16string_view;
 
 	struct key_t
 	{

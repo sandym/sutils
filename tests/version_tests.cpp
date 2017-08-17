@@ -25,23 +25,22 @@ struct version_tests
 {
 	void test_case_1()
 	{
-		TEST_ASSERT_EQUAL( su::CURRENT_VERSION.major(), 1 );
-		TEST_ASSERT_EQUAL( su::CURRENT_VERSION.minor(), 2 );
-		TEST_ASSERT_EQUAL( su::CURRENT_VERSION.patch(), 3 );
-		TEST_ASSERT_EQUAL( su::CURRENT_VERSION.buildNumber(), 4 );
-		TEST_ASSERT( not su::CURRENT_VERSION.revision().empty() );
+		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().major(), 1 );
+		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().minor(), 2 );
+		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().patch(), 3 );
+		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().build(), 4 );
+		TEST_ASSERT( not su::build_revision().empty() );
 	}
 
 	void test_case_2()
 	{
 		// parsing
-		su::version v( "v1-2.3,4xxx" );
+		auto v = su::version::from_string( "v1-2.3,4xxx" );
 		
 		TEST_ASSERT_EQUAL( v.major(), 1 );
 		TEST_ASSERT_EQUAL( v.minor(), 2 );
 		TEST_ASSERT_EQUAL( v.patch(), 3 );
-		TEST_ASSERT_EQUAL( v.buildNumber(), 4 );
-		TEST_ASSERT( v.revision().empty() );
+		TEST_ASSERT_EQUAL( v.build(), 4 );
 	}
 
 };

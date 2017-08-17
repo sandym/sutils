@@ -94,12 +94,14 @@ public:
 		if ( c == _head )
 		{
 			_head = _head->next;
-			_head->prev = nullptr;
+			if ( _head )
+				_head->prev = nullptr;
 		}
 		else
 		{
-			c->next->prev = c->prev;
-			c->next->prev->next = c->next;
+			if ( c->next )
+				c->next->prev = c->prev;
+			c->prev->next = c->next;
 		}
 		delete c;
 	}

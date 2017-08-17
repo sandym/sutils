@@ -30,7 +30,7 @@ public:
 	attachable( const attachable & ) = delete;
 	attachable &operator=( const attachable & ) = delete;
 
-	virtual ~attachable();
+	virtual ~attachable() = default;
 
 	// ownership is transfered
 	attachment *attach( const std::string &i_name, std::unique_ptr<attachment> &&i_attachment );
@@ -38,7 +38,7 @@ public:
 	// will delete attachment with that name
 	void detach( const std::string &i_name );
 
-	inline attachment *getRaw( const std::string &i_name ) const
+	attachment *getRaw( const std::string &i_name ) const
 	{
 		auto it = _attachments.find( i_name );
 		return it != _attachments.end() ? it->second.get() : nullptr;
@@ -64,8 +64,8 @@ public:
 	virtual ~attachment() = default;
 
 protected:
-	inline class attachable *attachable() { return _attachable; }
-	inline const class attachable *attachable() const { return _attachable; }
+	class attachable *attachable() { return _attachable; }
+	const class attachable *attachable() const { return _attachable; }
 
 private:
 	class attachable *_attachable = nullptr;

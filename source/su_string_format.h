@@ -19,7 +19,7 @@
 
 #include <ciso646>
 #include <string>
-#include "shim/string_view.h"
+#include <string_view>
 #include "su_always_inline.h"
 
 namespace su { namespace details {
@@ -28,6 +28,7 @@ struct FormatSpec;
 class FormatArg
 {
 public:
+	FormatArg( bool v ) : _which( arg_type::kBool ){ u._bool = v; }
 	FormatArg( short v ) : _which( arg_type::kShort ){ u._short = v; }
 	FormatArg( int v ) : _which( arg_type::kInt ){ u._int = v; }
 	FormatArg( long v ) : _which( arg_type::kLong ){ u._long = v; }
@@ -41,10 +42,10 @@ public:
 	FormatArg( char v ) : _which( arg_type::kChar ){ u._char = v; }
 	FormatArg( const void *v ) : _which( arg_type::kPtr ){ u._ptr = v; }
 	FormatArg( void *v ) : _which( arg_type::kPtr ){ u._ptr = v; }
-	FormatArg( const char *v ) : _which( arg_type::kString ), _string( v ){}
-	FormatArg( char *v ) : _which( arg_type::kString ), _string( v ){}
-	FormatArg( const std::string &v ) : _which( arg_type::kString ), _string( v ){}
-	FormatArg( const su::string_view &v ) : _which( arg_type::kString ), _string( v ){}
+	FormatArg( const char *v ) : _which( arg_type::kString ), u( std::string_view(v) ){}
+	FormatArg( char *v ) : _which( arg_type::kString ), u( std::string_view(v) ){}
+	FormatArg( const std::string &v ) : _which( arg_type::kString ), u( std::string_view(v) ){}
+	FormatArg( const std::string_view &v ) : _which( arg_type::kString ), u( std::string_view(v) ){}
 
 	template<typename T,typename = std::enable_if_t<not std::is_base_of<std::string,T>::value>>
 	FormatArg( const T &v ) : _which( arg_type::kOther ){ u._other = new any<T>( v ); }
@@ -73,13 +74,17 @@ private:
 
 	enum class arg_type : uint8_t
 	{
-		kShort, kInt, kLong, kLongLong,
+		kBool, kShort, kInt, kLong, kLongLong,
 		kUnsignedShort, kUnsignedInt, kUnsignedLong, kUnsignedLongLong,
 		kSize, kPtrDiff,
 		kDouble, kChar, kPtr, kString, kOther
 	} _which;
-	union
+	union U
 	{
+        U() : _bool( false ){}
+        U( const std::string_view &s ) : _string( s ){}
+        
+		bool _bool;
 		short _short;
 		int _int;
 		long _long;
@@ -94,8 +99,8 @@ private:
 		char _char;
 		const void *_ptr;
 		any_base *_other;
+		std::string_view _string;
 	} u;
-	su::string_view _string;
 
 	template<typename T>
 	struct any : public any_base
@@ -110,7 +115,7 @@ private:
 class format_impl
 {
 public:
-	format_impl( const su::string_view &i_format, const su::details::FormatArg *i_args, size_t i_argsSize );
+	format_impl( const std::string_view &i_format, const su::details::FormatArg *i_args, size_t i_argsSize );
 
 	std::string result;
 	
@@ -132,9 +137,9 @@ private:
    @param[in] i_format a format string
    @return     formatted string
 */
-std::string format( const su::string_view &i_format ); // overloaded fast path
+std::string format( const std::string_view &i_format ); // overloaded fast path
 template<typename ...Args>
-std::string never_inline_func format( const su::string_view &i_format, Args... args )
+std::string never_inline_func format( const std::string_view &i_format, Args... args )
 {
 	// sizeof...(Args) is an upper limit on the number of arguments to format
 	su::details::FormatArg arr[sizeof...(Args)] = {args...};

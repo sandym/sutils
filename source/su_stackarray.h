@@ -106,13 +106,13 @@ public:
 		}
 	}
 
-	inline size_t size() const { return _size; }
-	inline const T &operator[]( size_t i ) const { return _array[i]; }
-	inline T &operator[]( size_t i ) { return _array[i]; }
-	inline const T *data() const { return _array; }
-	inline T *data() { return _array; }
-	inline operator T *() { return _array; }
-	inline operator const T *() const { return _array; }
+	size_t size() const { return _size; }
+	const T &operator[]( size_t i ) const { return _array[i]; }
+	T &operator[]( size_t i ) { return _array[i]; }
+	const T *data() const { return _array; }
+	T *data() { return _array; }
+	operator T *() { return _array; }
+	operator const T *() const { return _array; }
 private:
 	T _stackArray[S];
 	std::unique_ptr<T[]> _heapArray;

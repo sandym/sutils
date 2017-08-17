@@ -40,7 +40,7 @@ class MyParser : public su::saxparser
 			++_seenEndDoc;
 		}
 		virtual bool startElement( const su::NameURI &i_nameURI,
-										const su::flat_map<su::NameURI,su::string_view> &i_attribs )
+										const su::flat_map<su::NameURI,std::string_view> &i_attribs )
 		{
 			_startElem.emplace_back( i_nameURI.name, i_nameURI.URI, i_attribs );
 			return true;
@@ -50,16 +50,16 @@ class MyParser : public su::saxparser
 			_endElem.emplace_back( i_nameURI.name, i_nameURI.URI );
 			return true;
 		}
-		virtual bool characters( const su::string_view &i_s )
+		virtual bool characters( const std::string_view &i_s )
 		{
-			su::string_view s( i_s );
+			std::string_view s( i_s );
 			while ( not s.empty() and std::isspace(s[0]) )
 				s.remove_prefix( 1 );
 			while ( not s.empty() and std::isspace(s.back()) )
 				s.remove_suffix( 1 );
 			
 			if ( not s.empty() )
-				_characters.push_back( s );
+                _characters.push_back( std::string{ s } );
 			return true;
 		}
 	
@@ -68,17 +68,17 @@ class MyParser : public su::saxparser
 	
 		struct Elem
 		{
-			Elem( const su::string_view &i_localname,
-					const su::string_view &i_URI,
-					const su::flat_map<su::NameURI,su::string_view> &i_attribs )
+			Elem( const std::string_view &i_localname,
+					const std::string_view &i_URI,
+					const su::flat_map<su::NameURI,std::string_view> &i_attribs )
 				: localname( i_localname ),
 					URI( i_URI )
 			{
 				for ( auto &it : i_attribs )
-					attribs[std::make_pair(it.first.name,it.first.URI)] = it.second;
+                    attribs[std::make_pair(std::string{it.first.name},std::string{it.first.URI})] = it.second;
 			}
-			Elem( const su::string_view &i_localname,
-					const su::string_view &i_URI )
+			Elem( const std::string_view &i_localname,
+					const std::string_view &i_URI )
 				: localname( i_localname ),
 					URI( i_URI )
 			{}

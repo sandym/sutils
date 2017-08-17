@@ -97,9 +97,6 @@ protected:
 //! record a new test suite
 void addTestSuite( TestSuiteAbstract *i_testsuite );
 
-//! get all recorded test suites
-const std::vector<TestSuiteAbstract *> &getTestSuites();
-
 /*!
 	A test suite
 		record a list of test cases
@@ -166,54 +163,6 @@ public:
 		result.reserve( _tests.size() );
 		for ( auto it : _tests )
 		{
-//			using variant / visitor
-//			result.emplace_back( it.name, std::visit( [](auto&& arg) {
-//						using CB = std::decay_t<decltype(arg)>;
-//						if constexpr (std::is_same_v<CB,method_t>)
-//						{
-//							auto methodPtr = arg;
-//							return [methodPtr]( TestTimer &i_timer )
-//								{
-//									T obj; // don't time setup / teardown
-//									i_timer.start();
-//									(obj.*methodPtr)();
-//									i_timer.end();
-//								};
-//						}
-//						else if constexpr (std::is_same_v<CB,methodWithTimer_t>)
-//						{
-//							auto methodPtr = arg;
-//							return [methodPtr]( TestTimer &i_timer )
-//								{
-//									T obj; // don't time setup / teardown
-//									i_timer.start(); // start in case the method forget
-//									(obj.*methodPtr)( i_timer );
-//									i_timer.nanoseconds(); // this will record the end only IF it wasn't already
-//								};
-//						}
-//						else if constexpr (std::is_same_v<CB,func_t>)
-//						{
-//							auto func = arg;
-//							return [func]( TestTimer &i_timer )
-//								{
-//									i_timer.start();
-//									func();
-//									i_timer.end();
-//								};
-//						}
-//						else if constexpr (std::is_same_v<CB,funcWithTimer_t>)
-//						{
-//							auto func = arg;
-//							return [func]( TestTimer &i_timer )
-//								{
-//									i_timer.start(); // start in case the function forget
-//									func( i_timer );
-//									i_timer.nanoseconds(); // this will record the end only IF it wasn't already
-//								};
-//						}
-//						return []( TestTimer &i_timer ){};
-//					}, it.callback ) );
-			
 			if ( it.method != nullptr )
 			{
 				// a method with external timer
@@ -226,7 +175,7 @@ public:
 						i_timer.end();
 					} );
 			}
-			if ( it.methodWithTimer != nullptr )
+			else if ( it.methodWithTimer != nullptr )
 			{
 				// a method that handle timing
 				auto methodPtr = it.methodWithTimer;

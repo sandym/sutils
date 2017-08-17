@@ -14,8 +14,13 @@
 #include "su_platform.h"
 #include "su_string.h"
 
-#if UPLATFORM_MAC || UPLATFORM_IOS
-#define USE_CF_IMPLEMENTAION
+#if (UPLATFORM_MAC || UPLATFORM_IOS) && !defined(USE_CF_IMPLEMENTAION)
+#define USE_CF_IMPLEMENTAION 1
+#else
+#define USE_CF_IMPLEMENTAION 0
+#endif
+
+#if USE_CF_IMPLEMENTAION
 #include "cfauto.h"
 #endif
 
@@ -28,25 +33,29 @@ namespace resource_access {
 
 su::filepath getFolder()
 {
-#ifdef USE_CF_IMPLEMENTAION
+#if USE_CF_IMPLEMENTAION
 	cfauto<CFURLRef> urlRef( CFBundleCopyResourcesDirectoryURL( CFBundleGetMainBundle() ) );
 	// get the filespec for the resource's url
 	cfauto<CFStringRef> pathRef( CFURLCopyFileSystemPath( urlRef, kCFURLPOSIXPathStyle ) );
 	return su::filepath( su::to_string( pathRef ) );
 #else
 	su::filepath fs( su::filepath::kApplicationFolder );
+#if defined(RSRC_FOLDER_NAME)
+	fs.add( RSRC_FOLDER_NAME );
+#else
 	fs.add( "Resources" );
+#endif
 	return fs;
 #endif
 }
 
-su::filepath get( const su::string_view &i_name )
+su::filepath get( const std::string_view &i_name )
 {
-#ifdef USE_CF_IMPLEMENTAION
+#if USE_CF_IMPLEMENTAION
 	// we have a relative path to the resource in i_name, we want to split the string in 3: sub-folder path, name and extension
 	auto p = i_name.rfind( '/' );
-	su::string_view subDir, name;
-	if ( p != su::string_view::npos )
+	std::string_view subDir, name;
+	if ( p != std::string_view::npos )
 	{
 		subDir = i_name.substr( 0, p );
 		name = i_name.substr( p + 1 );
@@ -55,8 +64,8 @@ su::filepath get( const su::string_view &i_name )
 		name = i_name;
 
 	p = name.rfind( '.' );
-	su::string_view ext;
-	if ( p != su::string_view::npos )
+	std::string_view ext;
+	if ( p != std::string_view::npos )
 	{
 		ext = name.substr( p + 1 );
 		name = name.substr( 0, p );
@@ -72,35 +81,59 @@ su::filepath get( const su::string_view &i_name )
 	cfauto<CFStringRef> pathRef( CFURLCopyFileSystemPath( urlRef, kCFURLPOSIXPathStyle ) );
 	return su::filepath( su::to_string( pathRef ) );
 #else
-	static ustring s_locale;
+	static su::filepath rsrc = getFolder();
+	static su::filepath s_locale;
 	if ( s_locale.empty() )
 	{
-		// predefined languages
-		const std::vector<ustring> supportedLocal = { "en" /*, "en_US", "ja", "fr"*/ };
+		std::string specific;
 
-		wchar_t lang[32];
-		/*int s =*/ GetLocaleInfoW( LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, lang, 32 );
-		s_locale.assign( lang );
-		if ( s_locale == "en" and SUBLANGID( ::GetUserDefaultLangID() ) == SUBLANG_ENGLISH_US )
+		wchar_t lang[8];
+		/*int s =*/ GetLocaleInfoW( LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, lang, 8 );
+		auto locale = su::to_string( lang );
+		specific = locale;
+		if ( locale == "en" )
 		{
-			s_locale += "_US";
+			switch ( SUBLANGID( ::GetUserDefaultLangID() ) )
+			{
+				case SUBLANG_ENGLISH_US:
+					specific += "_US";
+					break;
+				default:
+					break;
+			}
 		}
-		if ( su::find( supportedLocal, s_locale ) == supportedLocal.end() )
-			s_locale = "en";
+		if ( specific != locale )
+		{
+			auto f = rsrc;
+			f.add( specific + ".lproj" );
+			if ( f.isFolder() )
+				s_locale = f;
+		}
+		if ( s_locale.empty() )
+		{
+			auto f = rsrc;
+			f.add( locale + ".lproj" );
+			if ( f.isFolder() )
+				s_locale = f;
+		}
+		if ( s_locale.empty() )
+		{
+			s_locale = rsrc;
+			s_locale.add( "en.lproj" );
+		}
 	}
-	auto rsrc = getFolder();
 	
 	// todo: optimise by building a map of available resources on first call
 	// instead of 3 disk access for each call...
 
 	// try to find the localised resource
-	auto resourceFile = rsrc;
-	resourceFile.add( s_locale + ".lproj/" + i_name );
+	auto resourceFile = s_locale;
+	resourceFile.add( i_name );
 	if ( resourceFile.exists() ) // file access
 		return resourceFile;
 	
 	// try english
-	resourceFile = rsrc'
+	resourceFile = rsrc;
 	resourceFile.add( "en.lproj/" + i_name );
 	if ( resourceFile.exists() ) // file access
 		return resourceFile;

@@ -38,7 +38,7 @@ source_group( "tests" FILES
 
 add_definitions( -DENABLE_SIMPLE_TESTS )
 
-add_definitions( -DBUILD_VERSION=1,2,3,4 )
+add_definitions( -DPRODUCT_VERSION_FULL=1,2,3,4 )
 execute_process( COMMAND svn info --show-item revision
 					WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 					OUTPUT_VARIABLE SVN_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )

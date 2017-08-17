@@ -15,12 +15,17 @@
 #include "su_string.h"
 #include "su_platform.h"
 
-#if UPLATFORM_MAC || UPLATFORM_IOS
-#define USE_CF_IMPLEMENTAION
+#if (UPLATFORM_MAC || UPLATFORM_IOS) && !defined(USE_CF_IMPLEMENTAION)
+#define USE_CF_IMPLEMENTAION 1
+#else
+#define USE_CF_IMPLEMENTAION 0
+#endif
+
+#if USE_CF_IMPLEMENTAION
 #include "cfauto.h"
 #endif
 
-#ifndef USE_CF_IMPLEMENTAION
+#if !USE_CF_IMPLEMENTAION
 
 #include "resource_access.h"
 #include "uabstractparser.h"
@@ -179,26 +184,19 @@ namespace su
 /*!
  * load string from table
  */
-std::string string_load( const su::string_view &i_key, const su::string_view &i_table )
+std::string string_load( const std::string_view &i_key, const std::string_view &i_table )
 {
-#ifdef USE_CF_IMPLEMENTAION
+#if USE_CF_IMPLEMENTAION
 	// use CoreFoundation
 	
 	cfauto<CFStringRef> key( su::CreateCFString(i_key) );
 	cfauto<CFStringRef> tableName( not i_table.empty() ? su::CreateCFString(i_table) : nullptr );
 	cfauto<CFStringRef> resRef( CFBundleCopyLocalizedString( CFBundleGetMainBundle(), key, key, tableName ) );
-	auto res = su::to_string( resRef );
+	return su::to_string( resRef );
 
-	if ( res == i_key )
-		log_debug() << "possible key not found " << i_key <<", " << i_table;
-
-	return res;
 #else
 	// use the code above
-	ustring tableName( i_table );
-	if ( tableName.empty() )
-		tableName = "Localizable";
-	auto table = g_stringTable.find( tableName );
+	auto table = g_stringTable.find( i_table );
 	if ( table == g_stringTable.end() )
 		loadStringTable( i_table );
 	table = g_stringTable.find( i_table );
@@ -208,7 +206,7 @@ std::string string_load( const su::string_view &i_key, const su::string_view &i_
 		return it->second;
 	else
 	{
-		log_debug() << "possible key not found " << i_key <<", " << i_table;
+		log_debug() << "key not found " << i_key <<", " << i_table;
 		return i_key;
 	}
 #endif

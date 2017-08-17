@@ -71,20 +71,20 @@ public:
 		}
 	}
 
-	inline operator bool() const { return obj != nullptr; }
-	inline operator T() const { return obj; }
-	inline T *addr() { return &obj; }
+	operator bool() const { return obj != nullptr; }
+	operator T() const { return obj; }
+	T *addr() { return &obj; }
 	
-	inline T get() const { return obj; }
-	inline bool isNull() const { return obj == nullptr; }
-	inline bool isOfType( CFTypeID i_type ) const { return not isNull() and CFGetTypeID( obj ) == i_type; }
-	inline bool isArray() const { return isOfType( CFArrayGetTypeID() ); }
-	inline bool isDictionary() const { return isOfType( CFDictionaryGetTypeID() ); }
-	inline bool isString() const { return isOfType( CFStringGetTypeID() ); }
-	inline bool isNumber() const { return isOfType( CFNumberGetTypeID() ); }
-	inline bool isBoolean() const { return isOfType( CFBooleanGetTypeID() ); }
-	inline bool isURL() const { return isOfType( CFURLGetTypeID() ); }
-	inline bool isUUID() const { return isOfType( CFUUIDGetTypeID() ); }
+	T get() const { return obj; }
+	bool isNull() const { return obj == nullptr; }
+	bool isOfType( CFTypeID i_type ) const { return not isNull() and CFGetTypeID( obj ) == i_type; }
+	bool isArray() const { return isOfType( CFArrayGetTypeID() ); }
+	bool isDictionary() const { return isOfType( CFDictionaryGetTypeID() ); }
+	bool isString() const { return isOfType( CFStringGetTypeID() ); }
+	bool isNumber() const { return isOfType( CFNumberGetTypeID() ); }
+	bool isBoolean() const { return isOfType( CFBooleanGetTypeID() ); }
+	bool isURL() const { return isOfType( CFURLGetTypeID() ); }
+	bool isUUID() const { return isOfType( CFUUIDGetTypeID() ); }
 private:
 	T obj = nullptr;
 };

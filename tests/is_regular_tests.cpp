@@ -20,23 +20,23 @@
 #include "tests/simple_tests.h"
 #include "su_is_regular.h"
 
-struct not_default_constructible
-{
-	not_default_constructible(int){}
-};
-
-struct not_copy_constructible
-{
-	not_copy_constructible(){}
-	not_copy_constructible( const not_copy_constructible & ) = delete;
-};
-
-struct empty_struct
-{
-};
-
 struct is_regular_tests
 {
+	struct not_default_constructible
+	{
+		not_default_constructible(int){}
+	};
+
+	struct not_copy_constructible
+	{
+		not_copy_constructible(){}
+		not_copy_constructible( const not_copy_constructible & ) = delete;
+	};
+
+	struct empty_struct
+	{
+	};
+
 	void test_case_1()
 	{
 		TEST_ASSERT( su::is_regular<int>::value );

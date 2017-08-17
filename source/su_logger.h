@@ -73,9 +73,9 @@ struct source_location
 	int _line = -1;
 	const char *_func = nullptr;
 
-	inline const char *function_name() const { return _func; }
-	inline const char *file_name() const { return _file; }
-	inline int line() const { return _line; }
+	const char *function_name() const { return _func; }
+	const char *file_name() const { return _file; }
+	int line() const { return _line; }
 };
 
 //! record on log event
@@ -101,7 +101,7 @@ private:
 	// info
 	int _level;
 	source_location _sl;
-	std::thread::id _threadID;
+	pthread_t _threadID;
 	uint64_t _timestamp;
 	
 public:
@@ -127,9 +127,16 @@ public:
 	log_event &operator<<( unsigned long long v );
 	log_event &operator<<( double v );
 
-	inline log_event &operator<<( const std::string &v )
+	log_event &operator<<( const std::string &v )
 	{
 		encode_string_data( v.c_str(), v.size() );
+		return *this;
+	}
+
+	template<size_t N>
+	log_event &operator<<( char (&v)[N] )
+	{
+		encode_string_data( v, N - 1 );
 		return *this;
 	}
 
@@ -141,7 +148,7 @@ public:
 	}
 	
 	template<typename T>
-	inline typename std::enable_if_t<std::is_same<std::remove_cv_t<T>,char *>::value,log_event &>
+	typename std::enable_if_t<std::is_same<std::remove_cv_t<T>,char *>::value,log_event &>
 	operator<<( const T &v )
 	{
 		encode_string_data( v, strlen( v ) );
@@ -150,7 +157,7 @@ public:
 	
 	int level() const { return _level; }
 	uint64_t timestamp() const { return _timestamp; }
-	std::thread::id threadID() const { return _threadID; }
+	pthread_t threadID() const { return _threadID; }
 	const source_location &sl() const { return _sl; }
 	
 	std::string message() const;
@@ -181,8 +188,8 @@ public:
 
 	std::unique_ptr<logger_output> exchangeOutput( std::unique_ptr<logger_output> &&i_output );
 
-	inline logger_output *output() const { return _output.get(); }
-	inline const std::string &subsystem() const { return _subsystem; }
+	logger_output *output() const { return _output.get(); }
+	const std::string &subsystem() const { return _subsystem; }
 
 	// don't call those directly.
 	bool operator==( log_event &i_event );
@@ -203,7 +210,7 @@ public:
 	void setLogMask( int l ) { _runtimeLogMask = l & COMPILETIME_LOG_MASK; }
 	
 	template<int LEVEL>
-	inline bool shouldLog() const { return (COMPILETIME_LOG_MASK&LEVEL) != 0 and (_runtimeLogMask&LEVEL) != 0; }
+	bool shouldLog() const { return (COMPILETIME_LOG_MASK&LEVEL) != 0 and (_runtimeLogMask&LEVEL) != 0; }
 
 private:
 	int _runtimeLogMask = COMPILETIME_LOG_MASK;
@@ -222,7 +229,7 @@ always_inline_func su::Logger<L> &GET_LOGGER( su::Logger<L> &i_logger ) { return
 #define log_debug(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kDEBUG>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event(su::kDEBUG,{__FILE__,__LINE__,__FUNCTION__})
 #define log_trace(...) su::GET_LOGGER(__VA_ARGS__).shouldLog<su::kTRACE>() and su::GET_LOGGER(__VA_ARGS__) == su::log_event(su::kTRACE,{__FILE__,__LINE__,__FUNCTION__})
 
-//! instanciate one of those to defer the logging out put to a thread
+//! instanciate one of those to defer the logging output to a thread
 class logger_thread final
 {
 public:

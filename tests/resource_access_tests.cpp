@@ -36,5 +36,5 @@ void resource_access_tests::test_case_getFolder()
 {
 	auto fs = su::resource_access::getFolder();
 	TEST_ASSERT( not fs.empty() );
-	TEST_ASSERT_EQUAL( fs.name(), "Resources" );
+	TEST_ASSERT( fs.isFolder() );
 }

@@ -78,7 +78,7 @@ class abstractparserbase
 {
 public:
 	abstractparserbase( std::istream &i_str, const std::string &i_name = std::string() );
-	virtual ~abstractparserbase();
+	virtual ~abstractparserbase() = default;
 
 	/*!
 	   @brief read from the current position to the end of the line.
@@ -116,7 +116,7 @@ public:
 	using token_type = token<TOKEN_TYPE>;
 
 	abstractparser( std::istream &i_str, const std::string &i_name = std::string() );
-	virtual ~abstractparser();
+	virtual ~abstractparser() = default;
 	
 	/*!
 	   @brief get a token.
@@ -166,11 +166,6 @@ protected:
 template<typename TOKEN_TYPE>
 abstractparser<TOKEN_TYPE>::abstractparser( std::istream &i_str, const std::string &i_name )
 	: abstractparserbase( i_str, i_name )
-{
-}
-
-template<typename TOKEN_TYPE>
-abstractparser<TOKEN_TYPE>::~abstractparser()
 {
 }
 

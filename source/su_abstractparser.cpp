@@ -112,10 +112,6 @@ abstractparserbase::abstractparserbase( std::istream &i_str, const std::string &
 	}
 }
 
-abstractparserbase::~abstractparserbase()
-{
-}
-
 char abstractparserbase::nextNonSpaceChar()
 {
 	char c;

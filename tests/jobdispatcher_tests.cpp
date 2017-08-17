@@ -24,6 +24,13 @@
 #include <ciso646>
 #include <cassert>
 
+const std::chrono::microseconds kNanoSleep{ 100 };
+const std::chrono::microseconds kTenthSleep{ 1000 };
+const std::chrono::microseconds kFifthSleep{ 2000 };
+const std::chrono::microseconds kQuarterSleep{ 2500 };
+const std::chrono::microseconds kHalfSleep{ 5000 };
+const std::chrono::microseconds kLongSleep{ 10000 };
+
 class MyDispatcher;
 
 struct jobdispatcher_tests
@@ -109,7 +116,7 @@ class MyAsyncAndCompletionJob : public su::job
 {
 	public:
 		MyAsyncAndCompletionJob( bool &io_completedAsync, bool &io_completed );
-		virtual ~MyAsyncAndCompletionJob();
+		virtual ~MyAsyncAndCompletionJob() = default;
 		virtual void runAsync();
 		virtual void runIdle();
 		
@@ -120,10 +127,6 @@ class MyAsyncAndCompletionJob : public su::job
 MyAsyncAndCompletionJob::MyAsyncAndCompletionJob( bool &io_completedAsync, bool &io_completed )
 	: _completedAsync( io_completedAsync ),
 		_completed( io_completed )
-{
-}
-
-MyAsyncAndCompletionJob::~MyAsyncAndCompletionJob()
 {
 }
 
@@ -147,7 +150,7 @@ void jobdispatcher_tests::test_case_async_completion()
 	su::jobdispatcher::instance()->postAsync( job );
 	su::job_weak_ptr wjob( job );
 	job.reset();
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	std::this_thread::sleep_for( kLongSleep );
 	TEST_ASSERT( completedAsync );
 	TEST_ASSERT( not completed );
 	TEST_ASSERT( not wjob.expired() );
@@ -169,7 +172,7 @@ void jobdispatcher_tests::test_case_no_async_completion()
 	su::jobdispatcher::instance()->postIdle( job );
 	su::job_weak_ptr wjob( job );
 	job.reset();
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	std::this_thread::sleep_for( kLongSleep );
 	TEST_ASSERT( not completedAsync );
 	TEST_ASSERT( not completed );
 	TEST_ASSERT( not wjob.expired() );
@@ -184,15 +187,15 @@ void jobdispatcher_tests::test_case_no_async_completion()
 class LongAsyncJob : public su::job
 {
   public:
-	LongAsyncJob( int &i_nbFinished, int i_msec );
+	LongAsyncJob( int &i_nbFinished, std::chrono::microseconds i_msec );
 	virtual ~LongAsyncJob();
 	virtual void runAsync();
 
 	int &_nbFinished;
-	int _msec;
+	std::chrono::microseconds _msec;
 };
 
-LongAsyncJob::LongAsyncJob( int &i_nbFinished, int i_msec )
+LongAsyncJob::LongAsyncJob( int &i_nbFinished, std::chrono::microseconds i_msec )
 	: _nbFinished( i_nbFinished ), 
 		_msec( i_msec )
 {
@@ -205,7 +208,7 @@ LongAsyncJob::~LongAsyncJob()
 
 void LongAsyncJob::runAsync()
 {
-	std::this_thread::sleep_for(std::chrono::milliseconds(_msec));
+	std::this_thread::sleep_for( _msec );
 }
 
 void jobdispatcher_tests::test_case_cancel_1()
@@ -216,7 +219,7 @@ void jobdispatcher_tests::test_case_cancel_1()
 	const int nbStarted = 20;
 	int	nbFinished = 0;
 	for ( int i = 0 ; i < nbStarted; ++i )
-		su::jobdispatcher::instance()->postAsync( std::make_shared<LongAsyncJob>( nbFinished, 500 ) );
+		su::jobdispatcher::instance()->postAsync( std::make_shared<LongAsyncJob>( nbFinished, kHalfSleep ) );
 	
 	bool completedAsync = false, completed = false;
 	auto job = std::make_shared<MyAsyncAndCompletionJob>( completedAsync, completed );
@@ -225,14 +228,14 @@ void jobdispatcher_tests::test_case_cancel_1()
 	TEST_ASSERT( not completed );
 	
 	su::jobdispatcher::instance()->postAsync( job );
-	std::this_thread::sleep_for(std::chrono::milliseconds(250));
+	std::this_thread::sleep_for( kQuarterSleep );
 	job->cancel();
 	su::job_weak_ptr wjob( job );
 	job.reset();
 	
 	while ( nbFinished < nbStarted or _needIdleTime )
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		std::this_thread::sleep_for( kQuarterSleep );
 		if ( _needIdleTime )
 		{
 			_dispatcher->idle();
@@ -249,7 +252,7 @@ class TestAsyncCancelJob : public su::job
 {
 	public:
 		TestAsyncCancelJob( bool &i_isRunningAsync, bool &i_isRunningIdle, bool &i_finished );
-		virtual ~TestAsyncCancelJob();
+		virtual ~TestAsyncCancelJob() = default;
 		virtual void runAsync();
 		virtual void runIdle();
 	
@@ -265,16 +268,12 @@ TestAsyncCancelJob::TestAsyncCancelJob( bool &i_isRunningAsync, bool &i_isRunnin
 {
 }
 
-TestAsyncCancelJob::~TestAsyncCancelJob()
-{
-}
-
 void TestAsyncCancelJob::runAsync()
 {
 	_isRunningAsync = true;
 	for ( int i = 0; i < 2000; ++i )
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for( kNanoSleep );
 		cancellationPoint();
 	}
 	_isRunningAsync = false;
@@ -300,9 +299,9 @@ void jobdispatcher_tests::test_case_cancel_2()
 	const int nbStarted = 20;
 	int nbFinished = 0;
 	for ( int i = 0 ; i < nbStarted; ++i )
-		su::jobdispatcher::instance()->postAsync( std::make_shared<LongAsyncJob>( nbFinished, 500 ) );
+		su::jobdispatcher::instance()->postAsync( std::make_shared<LongAsyncJob>( nbFinished, kHalfSleep ) );
 	
-	std::this_thread::sleep_for(std::chrono::milliseconds(250));
+	std::this_thread::sleep_for( kQuarterSleep );
 	TEST_ASSERT( isRunningAsync );
 	longJob->cancel();
 	longJob.reset();
@@ -311,7 +310,7 @@ void jobdispatcher_tests::test_case_cancel_2()
 	
 	while ( nbFinished < nbStarted or _needIdleTime )
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		std::this_thread::sleep_for( kQuarterSleep );
 		if ( _needIdleTime )
 		{
 			_dispatcher->idle();
@@ -333,7 +332,7 @@ void jobdispatcher_tests::test_case_cancel_3()
 				isRunningAsync = true;
 				for ( int i = 0; i < 100; ++i )
 				{
-					std::this_thread::sleep_for(std::chrono::milliseconds(10));
+					std::this_thread::sleep_for( kNanoSleep );
 					i_job->cancellationPoint();
 				}
 				isRunningAsync = false;
@@ -357,7 +356,7 @@ void jobdispatcher_tests::test_case_cancel_3()
 				{
 					for ( int i = 0; i < 100; ++i )
 					{
-						std::this_thread::sleep_for(std::chrono::milliseconds(10));
+						std::this_thread::sleep_for( kNanoSleep );
 						i_job->cancellationPoint();
 					}
 				},
@@ -368,7 +367,7 @@ void jobdispatcher_tests::test_case_cancel_3()
 			) );
 	}
 	
-	std::this_thread::sleep_for(std::chrono::milliseconds(250));
+	std::this_thread::sleep_for( kQuarterSleep );
 	TEST_ASSERT( isRunningAsync );
 	longJob->cancel();
 	longJob.reset();
@@ -377,7 +376,7 @@ void jobdispatcher_tests::test_case_cancel_3()
 	
 	while ( nbFinished < nbStarted or _needIdleTime )
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		std::this_thread::sleep_for( kQuarterSleep );
 		if ( _needIdleTime )
 		{
 			_dispatcher->idle();
@@ -417,21 +416,21 @@ void FirstToFinishJob::runAsync()
 {
 	for ( int i = 0; i < 10; ++i )
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for( kNanoSleep );
 		cancellationPoint();
 	}
 }
 
 void FirstToFinishJob::runIdle()
 {
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	std::this_thread::sleep_for( kTenthSleep );
 }
 
 class FirstToFinishJobLog : public FirstToFinishJob
 {
 	public:
 		FirstToFinishJobLog( int &i_nbFinished, int &o_result, bool &i_didAsync, bool &i_didIdle, int i_id );
-		virtual ~FirstToFinishJobLog();
+		virtual ~FirstToFinishJobLog() = default;
 		virtual void runAsync();
 		virtual void runIdle();
 	
@@ -442,10 +441,6 @@ FirstToFinishJobLog::FirstToFinishJobLog( int &i_nbFinished, int &o_result, bool
 	:FirstToFinishJob( i_nbFinished, o_result, i_id ),
 		didAsync( i_didAsync ),
 		didIdle( i_didIdle )
-{
-}
-
-FirstToFinishJobLog::~FirstToFinishJobLog()
 {
 }
 
@@ -486,7 +481,7 @@ void jobdispatcher_tests::test_case_sprint_1()
 	// wait
 	while ( nbFinished < nbStarted or _needIdleTime )
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for( kTenthSleep );
 		if ( _needIdleTime )
 		{
 			_dispatcher->idle();
@@ -505,7 +500,7 @@ void jobdispatcher_tests::test_case_sprint_2()
 			{
 				for ( int i = 0; i < 100; ++i )
 				{
-					std::this_thread::sleep_for(std::chrono::milliseconds(10));
+					std::this_thread::sleep_for( kNanoSleep );
 					i_job->cancellationPoint();
 				}
 			},
@@ -515,7 +510,7 @@ void jobdispatcher_tests::test_case_sprint_2()
 			}
 		);
 	su::jobdispatcher::instance()->postAsync( job );
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	std::this_thread::sleep_for( kFifthSleep );
 	job->sprint();
 	TEST_ASSERT_EQUAL( nbOfIdle, 1 );
 //	TEST_ASSERT( not _needIdleTime );
@@ -548,7 +543,7 @@ void jobdispatcher_tests::test_case_prioritise_1()
 	int counter = 0, rank = 0;
 	while ( nbFinished < nbStarted or _needIdleTime )
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for( kTenthSleep );
 		if ( _needIdleTime )
 		{
 			_dispatcher->idle();

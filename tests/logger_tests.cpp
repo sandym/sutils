@@ -22,6 +22,8 @@
 #include "su_logger_file.h"
 #include "su_filepath.h"
 #include "su_platform.h"
+#include "su_string.h"
+#include "su_thread.h"
 #include <iostream>
 #include <sstream>
 #if UPLATFORM_WIN
@@ -147,6 +149,56 @@ struct logger_tests
 		TEST_ASSERT_NOT_EQUAL( s.find( "test 3" ), std::string::npos );
 	}
 
+	void test_case_all_type()
+	{
+		// redirect
+		std::ostringstream ss;
+		
+		{
+			su::Logger<> test_logger( ss, "test" );
+			
+			bool b = true;
+			uint8_t u8 = 3;
+			char c = 4;
+			char buff[] = "1234567890";
+			char *ptr = buff;
+			
+			log_debug(test_logger) << b;
+			log_debug(test_logger) << u8;
+			log_debug(test_logger) << c;
+			log_debug(test_logger) << buff;
+			buff[0] = '0';
+			log_debug(test_logger) << ptr;
+			buff[0] = 'x';
+			log_debug(test_logger) << "literal";
+		}
+		
+		auto res = ss.str();
+		auto lines = su::split_view( std::string_view{ res }, '\n' );
+		TEST_ASSERT_EQUAL( lines.size(), 6 );
+		TEST_ASSERT_NOT_EQUAL( lines[0].find( "] true" ), std::string::npos );
+		TEST_ASSERT_NOT_EQUAL( lines[1].find( "] 3" ), std::string::npos );
+		//TEST_ASSERT_NOT_EQUAL( lines[2].find( "4" ), std::string::npos );
+		TEST_ASSERT_NOT_EQUAL( lines[3].find( "] 1234567890" ), std::string::npos );
+		TEST_ASSERT_NOT_EQUAL( lines[4].find( "] 0234567890" ), std::string::npos );
+		TEST_ASSERT_NOT_EQUAL( lines[5].find( "] literal" ), std::string::npos );
+	}
+
+	void test_case_thread_name()
+	{
+		// redirect
+		std::ostringstream ss;
+		
+		su::this_thread::set_name( "funny_thread_name" );
+		{
+			su::Logger<> test_logger( ss, "test" );
+			
+			log_debug(test_logger) << "literal";
+		}
+		
+		auto res = ss.str();
+		TEST_ASSERT_NOT_EQUAL( res.find( "[funny_thread_name]" ), std::string::npos );
+	}
 };
 
 REGISTER_TEST_SUITE( logger_tests,
@@ -154,4 +206,6 @@ REGISTER_TEST_SUITE( logger_tests,
 	TEST_CASE(logger_tests,test_case_2),
 	TEST_CASE(logger_tests,test_case_3),
 	TEST_CASE(logger_tests,test_case_4),
-	TEST_CASE(logger_tests,test_case_5) );
+	TEST_CASE(logger_tests,test_case_5),
+	TEST_CASE(logger_tests,test_case_all_type),
+	TEST_CASE(logger_tests,test_case_thread_name) );

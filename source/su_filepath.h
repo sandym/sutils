@@ -14,7 +14,7 @@
 #define H_SU_FILEPATH
 
 #include "su_platform.h"
-#include "shim/string_view.h"
+#include <string_view>
 #include <vector>
 #include <memory>
 #include <ctime>
@@ -58,8 +58,8 @@ public:
 
 		void assign( const char *i_data, size_t i_len );
 
-		inline size_t size() const { return _len; }
-		inline const char *data() const { return _data.get(); }
+		size_t size() const { return _len; }
+		const char *data() const { return _data.get(); }
 	private:
 		std::unique_ptr<char[]> _data;
 		size_t _len = 0;
@@ -70,21 +70,21 @@ public:
 	filepath( const BookmarkData &i_fileBookmark, const filepath *i_relativeTo = nullptr );
 	bool getBookmarkData( BookmarkData &o_data, const filepath *i_relativeTo = nullptr ) const;
 
-	inline bool empty() const { return _path.empty(); }
+	bool empty() const { return _path.empty(); }
 	
-	inline void clear() { _path.clear(); }
+	void clear() { _path.clear(); }
 	
 	// info
-	inline bool operator==( const filepath &rhs ) const { return _path == rhs._path; }
-	inline bool operator!=( const filepath &rhs ) const { return _path != rhs._path; }
-	inline bool operator<( const filepath &rhs ) const { return _path < rhs._path; }
+	bool operator==( const filepath &rhs ) const { return _path == rhs._path; }
+	bool operator!=( const filepath &rhs ) const { return _path != rhs._path; }
+	bool operator<( const filepath &rhs ) const { return _path < rhs._path; }
 
-	inline const std::string &path() const { return _path; }
+	const std::string &path() const { return _path; }
 	
 	std::string name() const;
 	std::string stem() const;
 	std::string extension() const;
-	void setExtension( const su::string_view &i_ext );
+	void setExtension( const std::string_view &i_ext );
 
 #if UPLATFORM_WIN
 	std::wstring ospath() const;
@@ -105,7 +105,7 @@ public:
 
 	// Navigation
 	bool up();
-	bool add( const su::string_view &i_name );
+	bool add( const std::string_view &i_name );
 
 	// opening files
 	std::ifstream &fsopen( std::ifstream &o_fs, std::ios_base::openmode i_mode = std::ios_base::in | std::ios_base::binary ) const;

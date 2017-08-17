@@ -23,12 +23,12 @@ private:
 	std::atomic_flag _locked = ATOMIC_FLAG_INIT;
 	
 public:
-	inline void lock()
+	void lock()
 	{
 		while ( _locked.test_and_set(std::memory_order_acquire) );
 	}
 	
-	inline void unlock()
+	void unlock()
 	{
 		_locked.clear(std::memory_order_release);
 	}

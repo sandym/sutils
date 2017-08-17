@@ -24,9 +24,9 @@ su::NameURI extractNameURI( const char *s )
 	auto end = s + std::strlen( s );
 	auto p = std::find( s, end, 0x0C );
 	if ( p != end )
-		return su::NameURI{ su::string_view( p+1, end-(p+1) ), su::string_view( s, p-s ) };
+		return su::NameURI{ std::string_view( p+1, end-(p+1) ), std::string_view( s, p-s ) };
 	else
-		return su::NameURI{ su::string_view( s, end-s ), su::string_view() };
+		return su::NameURI{ std::string_view( s, end-s ), std::string_view() };
 }
 
 void startElement( void *userData, const char *name, const char **atts )
@@ -34,7 +34,7 @@ void startElement( void *userData, const char *name, const char **atts )
 	auto parser = static_cast<XML_Parser>( userData );
 	auto _this = static_cast<su::saxparser *>( XML_GetUserData( parser ) );
 	
-	su::flat_map<su::NameURI,su::string_view> attribs;
+	su::flat_map<su::NameURI,std::string_view> attribs;
 	
 	for ( int i = 0; atts[i] != nullptr; i += 2 )
 		attribs[extractNameURI(atts[i])] = atts[i+1];
@@ -57,7 +57,7 @@ void characters( void *userData, const char *s, int len )
 	auto parser = static_cast<XML_Parser>( userData );
 	auto _this = static_cast<su::saxparser *>( XML_GetUserData( parser ) );
 
-	if ( not _this->characters( su::string_view( s, len ) ) )
+	if ( not _this->characters( std::string_view( s, len ) ) )
 		XML_StopParser( parser, false );
 }
 
@@ -72,10 +72,6 @@ bool NameURI::operator<( const NameURI &rhs ) const
 
 saxparser::saxparser( std::istream &i_stream )
 	: _stream( i_stream )
-{
-}
-
-saxparser::~saxparser()
 {
 }
 
@@ -123,7 +119,7 @@ void saxparser::endDocument()
 }
 
 bool saxparser::startElement( const NameURI &i_nameURI,
-									const flat_map<NameURI,su::string_view> &i_attribs )
+									const flat_map<NameURI,std::string_view> &i_attribs )
 {
 	return true;
 }
@@ -133,7 +129,7 @@ bool saxparser::endElement( const NameURI &i_nameURI )
 	return true;
 }
 
-bool saxparser::characters( const su::string_view &i_text )
+bool saxparser::characters( const std::string_view &i_text )
 {
 	return true;
 }

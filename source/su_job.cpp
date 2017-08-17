@@ -60,10 +60,6 @@ asyncJob::asyncJob( const std::function< void(job*) > &i_async, const std::funct
 {
 }
 
-asyncJob::~asyncJob()
-{
-}
-
 void asyncJob::runAsync()
 {
 	if ( _async )

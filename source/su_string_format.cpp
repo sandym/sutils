@@ -19,7 +19,7 @@
 
 namespace su {
 
-std::string format( const su::string_view &i_format )
+std::string format( const std::string_view &i_format )
 {
 	std::string res;
 	if ( not i_format.empty() )
@@ -55,8 +55,20 @@ struct FormatSpec
 
 FormatArg::~FormatArg()
 {
-	if ( _which == arg_type::kOther )
-		delete u._other;
+	switch ( _which )
+	{
+		case arg_type::kOther:
+			delete u._other;
+			break;
+		case arg_type::kString:
+        {
+            using namespace std;
+            u._string.~string_view();
+			break;
+        }
+        default:
+			break;
+	}
 }
 
 template<>
@@ -228,7 +240,7 @@ std::string FormatArg::to_string() const
 		case arg_type::kDouble: return std::to_string( u._double );
 		case arg_type::kChar: return std::string( 1, u._char );
 		case arg_type::kPtr: return std::string( "xx" );
-		case arg_type::kString: return _string;
+        case arg_type::kString: return std::string{ u._string };
 		case arg_type::kOther: return u._other->to_string();
 		default:
 			break;
@@ -257,7 +269,7 @@ enum : uint16_t
 	kPtrDiffLength = 0x0500,
 };
 
-su::details::FormatSpec parseFormat( const su::string_view &i_ptr )
+su::details::FormatSpec parseFormat( const std::string_view &i_ptr )
 {
 	//%[index$][flags][width][.precision][length]specifier
 	
@@ -568,7 +580,7 @@ void appendIntegerSimple( char *&io_ptr, int i_arg )
 
 namespace su { namespace details {
 
-format_impl::format_impl( const su::string_view &i_format, const FormatArg *i_args, size_t i_argsSize )
+format_impl::format_impl( const std::string_view &i_format, const FormatArg *i_args, size_t i_argsSize )
 {
 	std::vector<su::details::FormatSpec> formatSpecs;
 	formatSpecs.reserve( i_argsSize );
@@ -776,8 +788,7 @@ void format_impl::appendFormattedArg( const su::details::FormatSpec &i_formatSpe
 		case '@':
 		{
 			// only width, prec and kLeftAdjustFlag are relevant
-			std::string s;
-			s = arg.to_string();
+			auto s = arg.to_string();
 			if ( prec == -1 )
 				prec = (int)s.size();
 			else

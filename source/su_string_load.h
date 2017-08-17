@@ -13,7 +13,7 @@
 #ifndef H_SU_STRINGLOAD
 #define H_SU_STRINGLOAD
 
-#include "shim/string_view.h"
+#include <string_view>
 
 namespace su {
 
@@ -25,7 +25,7 @@ namespace su {
    @param i_table The string table name.
    @result     The (hopefully) translated string.
 */
-std::string string_load( const su::string_view &i_key, const su::string_view &i_table );
+std::string string_load( const std::string_view &i_key, const std::string_view &i_table );
 
 }
 

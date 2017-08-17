@@ -179,20 +179,37 @@ void logger_thread_data::func()
 	}
 }
 
+
+inline pthread_t current_thread() { return pthread_self(); }
+
+struct thread_name
+{
+	pthread_t _t;
+	thread_name( pthread_t t ) : _t( t ){}
+};
+std::ostream &operator<<( std::ostream &os, const thread_name &t )
+{
+	char buffer[20];
+	if ( pthread_getname_np( t._t, buffer, 20 ) == 0 and buffer[0] != 0 )
+		return os << buffer;
+	else
+		return os << t._t;
+}
+
 }
 
 namespace su {
 
 log_event::log_event( int i_level )
 	: _level( i_level ),
-		_threadID( std::this_thread::get_id() ),
+		_threadID( current_thread() ),
 		_timestamp( get_timestamp() )
 {
 }
 log_event::log_event( int i_level, su::source_location &&i_sl )
 	: _level( i_level ),
 		_sl( std::move(i_sl) ),
-		_threadID( std::this_thread::get_id() ),
+		_threadID( current_thread() ),
 		_timestamp( get_timestamp() )
 {
 }
@@ -283,7 +300,7 @@ std::ostream &log_event::message( std::ostream &ostr ) const
 				ptr += sizeof( char );
 				break;
 			case log_data_type::kUnsignedChar:
-				ostr << *reinterpret_cast<const unsigned char *>(ptr);
+				ostr << (int)*reinterpret_cast<const unsigned char *>(ptr);
 				ptr += sizeof( unsigned char );
 				break;
 			case log_data_type::kShort:
@@ -426,7 +443,7 @@ void logger_base::dump( const su::log_event &i_event )
 	
 	auto &ostr = _output->ostr;
 	
-	ostr << "[" << isoTime << ms << "][" << level << "][" << i_event.threadID() << "]";
+	ostr << "[" << isoTime << ms << "][" << level << "][" << thread_name(i_event.threadID()) << "]";
 	if ( not _subsystem.empty() )
 		ostr << "[" << _subsystem << "]";
 

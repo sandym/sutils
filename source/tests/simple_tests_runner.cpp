@@ -100,7 +100,11 @@ std::string displayName( const std::string &s )
 }
 
 //! all the test suites
-std::vector<su::TestSuiteAbstract *> *g_testSuites;
+std::vector<su::TestSuiteAbstract *> &getTestSuites()
+{
+	static std::vector<su::TestSuiteAbstract *> s_testSuites;
+	return s_testSuites;
+}
 
 class SimpleTestDB
 {
@@ -252,9 +256,7 @@ namespace su {
 
 void addTestSuite( TestSuiteAbstract *i_testsuite )
 {
-	if ( g_testSuites == nullptr )
-		g_testSuites = new std::vector<su::TestSuiteAbstract *>;
-	g_testSuites->push_back( i_testsuite );
+	getTestSuites().push_back( i_testsuite );
 }
 
 FailedTest::FailedTest( Type i_type, const char *i_file, int i_line, const std::string &i_text, const std::string &i_msg )
@@ -315,61 +317,58 @@ int main( int argc, char **argv )
 	// do all tests
 	int total = 0;
 	int failure = 0;
-	if ( g_testSuites )
+	for ( auto testSuite : getTestSuites() )
 	{
-		for ( auto testSuite : *g_testSuites )
+		std::cout << styleTTY{ttyUnderline|ttyBold} << "Test case:" << styleTTY{} << " "
+					<< displayName(testSuite->name()) << std::endl;
+		auto tests = testSuite->getTests();
+		for ( auto test : tests )
 		{
-			std::cout << styleTTY{ttyUnderline|ttyBold} << "Test case:" << styleTTY{} << " "
-						<< displayName(testSuite->name()) << std::endl;
-			auto tests = testSuite->getTests();
-			for ( auto test : tests )
+			++total;
+			
+			std::cout << "  " << displayName(test.name()) << " : ";
+			std::cout.flush();
+			
+			int64_t duration;
+			std::string result;
+			try
 			{
-				++total;
-				
-				std::cout << "  " << displayName(test.name()) << " : ";
-				std::cout.flush();
-				
-				int64_t duration;
-				std::string result;
-				try
+				su::TestTimer timer;
+				test( timer );
+				duration = timer.nanoseconds();
+				// test succeed, an exception would have occured otherwise
+				std::cout << styleTTY{ttyGreen|ttyBold} << "OK" << styleTTY{};
+				if ( test.timed() )
 				{
-					su::TestTimer timer;
-					test( timer );
-					duration = timer.nanoseconds();
-					// test succeed, an exception would have occured otherwise
-					std::cout << styleTTY{ttyGreen|ttyBold} << "OK" << styleTTY{};
-					if ( test.timed() )
-					{
-						// a timed test, compare to last run
-						auto prev = db.mostRecentDuration( testSuite->name(), test.name() );
-						std::cout << " (" << duration << "ns";
-						if ( duration > prev )
-							std::cout << styleTTY{ttyRed} << " regression: " << duration - prev << "ns slower" << styleTTY{};
-						std::cout << ")";
-					}
+					// a timed test, compare to last run
+					auto prev = db.mostRecentDuration( testSuite->name(), test.name() );
+					std::cout << " (" << duration << "ns";
+					if ( duration > prev )
+						std::cout << styleTTY{ttyRed} << " regression: " << duration - prev << "ns slower" << styleTTY{};
+					std::cout << ")";
 				}
-				catch ( su::FailedTest &ex )
-				{
-					result = std::string("TEST FAIL - ") + ex.what();
-					++failure;
-				}
-				catch ( std::exception &ex )
-				{
-					result = std::string("EXCEPTION CAUGHT - ") + ex.what();
-					++failure;
-				}
-				catch ( ... )
-				{
-					result = "UNKNOWN EXCEPTION CAUGHT";
-					++failure;
-				}
-				if ( not result.empty() )
-					std::cout << styleTTY{ttyRed} << result << styleTTY{};
-				std::cout << std::endl;
-				
-				// record results
-				db.addResult( testSuite->name(), test.name(), result, duration );
 			}
+			catch ( su::FailedTest &ex )
+			{
+				result = std::string("TEST FAIL - ") + ex.what();
+				++failure;
+			}
+			catch ( std::exception &ex )
+			{
+				result = std::string("EXCEPTION CAUGHT - ") + ex.what();
+				++failure;
+			}
+			catch ( ... )
+			{
+				result = "UNKNOWN EXCEPTION CAUGHT";
+				++failure;
+			}
+			if ( not result.empty() )
+				std::cout << styleTTY{ttyRed} << result << styleTTY{};
+			std::cout << std::endl;
+			
+			// record results
+			db.addResult( testSuite->name(), test.name(), result, duration );
 		}
 	}
 	std::cout << styleTTY{ttyBold} << "Success: " << styleTTY{} << (total-failure) << "/" << total << std::endl;

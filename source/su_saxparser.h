@@ -16,14 +16,14 @@
 #ifdef HAS_EXPAT
 
 #include "su_flat_map.h"
-#include "shim/string_view.h"
+#include <string_view>
 
 namespace su {
 
 struct NameURI
 {
-	su::string_view name;
-	su::string_view URI;
+	std::string_view name;
+	std::string_view URI;
 	bool operator<( const NameURI &rhs ) const;
 };
 
@@ -38,16 +38,16 @@ public:
 	saxparser( const saxparser & ) = delete;
 	saxparser &operator=( const saxparser & ) = delete;
 
-	virtual ~saxparser();
+	virtual ~saxparser() = default;
 	
 	virtual bool parse();
 	
 	virtual void startDocument();
 	virtual void endDocument();
 	virtual bool startElement( const NameURI &i_nameURI,
-									const flat_map<NameURI,su::string_view> &i_attribs );
+									const flat_map<NameURI,std::string_view> &i_attribs );
 	virtual bool endElement( const NameURI &i_nameURI );
-	virtual bool characters( const su::string_view &i_text );
+	virtual bool characters( const std::string_view &i_text );
 	
 private:
 	std::istream &_stream;

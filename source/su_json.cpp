@@ -2080,7 +2080,7 @@ inline bool in_range( long x, long lower, long upper )
 	return ( x >= lower && x <= upper );
 }
 
-long hexstrtol( const su::string_view &s )
+long hexstrtol( const std::string_view &s )
 {
 	long r = 0;
 	for ( auto it : s )
@@ -2097,8 +2097,8 @@ long hexstrtol( const su::string_view &s )
  */
 struct JsonParser final
 {
-	const su::string_view &str;
-	su::string_view::const_iterator it;
+	const std::string_view &str;
+	std::string_view::const_iterator it;
 	bool failed = false;
 	std::string &err;
 	JsonParse strategy;
@@ -2165,7 +2165,7 @@ struct JsonParser final
 	std::vector<Json> collect_array_data;
 	std::vector<std::pair<std::string,Json>> collect_object_data;
 
-	JsonParser( const su::string_view &i_in, std::string &i_err, JsonParse i_strategy )
+	JsonParser( const std::string_view &i_in, std::string &i_err, JsonParse i_strategy )
 		: str( i_in ), err( i_err ), strategy( i_strategy )
 	{
 		it = str.begin();
@@ -2713,7 +2713,7 @@ struct JsonParser final
 	 * Expect that 'str' starts at the character that was just read. If it does, advance
 	 * the input and return res. If not, flag an error.
 	 */
-	Json expect( const su::string_view &expected, Json res )
+	Json expect( const std::string_view &expected, Json res )
 	{
 		assert( it != str.begin() );
 		--it;
@@ -2883,7 +2883,7 @@ struct JsonParser final
 };
 }
 
-Json Json::parse( const su::string_view &input, std::string &err, JsonParse strategy )
+Json Json::parse( const std::string_view &input, std::string &err, JsonParse strategy )
 {
 	Json result;
 	details::JsonParser parser( input, err, strategy );
@@ -2898,8 +2898,8 @@ Json Json::parse( const su::string_view &input, std::string &err, JsonParse stra
 }
 
 // Documented in sjson.h
-std::vector<Json> Json::parse_multi( const su::string_view &input,
-									 su::string_view::size_type &parser_stop_pos, std::string &err,
+std::vector<Json> Json::parse_multi( const std::string_view &input,
+									 std::string_view::size_type &parser_stop_pos, std::string &err,
 									 JsonParse strategy )
 {
 	std::vector<Json> json_vec;

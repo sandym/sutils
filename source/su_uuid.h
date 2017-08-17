@@ -28,16 +28,20 @@ public:
 	uuid() = default;
 	uuid( const uuid & ) = default;
 	uuid( uuid && ) = default;
-	uuid( const std::array<uint8_t, 16> &i_value );
+	uuid( const std::array<uint8_t, 16> &i_value ) : _uuid( i_value ){}
 	uuid( const std::string &i_value );
 
 	uuid &operator=( const uuid & ) = default;
 	uuid &operator=( uuid && ) = default;
 
-	inline bool operator==( const uuid &i_other ) const { return _uuid == i_other._uuid; }
-	inline bool operator!=( const uuid &i_other ) const { return _uuid != i_other._uuid; }
-	inline bool operator<( const uuid &i_other ) const { return _uuid < i_other._uuid; }
-	inline const std::array<uint8_t, 16> &value() const { return _uuid; }
+	bool operator==( const uuid &i_other ) const { return _uuid == i_other._uuid; }
+	bool operator!=( const uuid &i_other ) const { return _uuid != i_other._uuid; }
+	bool operator<( const uuid &i_other ) const { return _uuid < i_other._uuid; }
+	bool operator<=( const uuid &i_other ) const { return _uuid <= i_other._uuid; }
+	bool operator>( const uuid &i_other ) const { return _uuid > i_other._uuid; }
+	bool operator>=( const uuid &i_other ) const { return _uuid >= i_other._uuid; }
+	
+	const std::array<uint8_t, 16> &value() const { return _uuid; }
 	std::string string() const;
 
 private:

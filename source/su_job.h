@@ -40,7 +40,7 @@ public:
 	*/
 	void cancel();
 
-	inline void cancellationPoint() const
+	void cancellationPoint() const
 	{
 		if ( _cancelled.load() )
 			throw job_cancelled();
@@ -101,7 +101,7 @@ class asyncJob : public job
 {
 public:
 	asyncJob( const std::function< void(job*) > &i_async, const std::function< void(job*) > &i_idle );
-	virtual ~asyncJob();
+	virtual ~asyncJob() = default;
 
 private:
 	std::function< void(job*) > _async, _idle;
