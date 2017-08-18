@@ -246,6 +246,22 @@ private:
 	std::vector<TestCaseData> _tests;
 };
 
+//! @todo: remove once in std
+struct tests_source_location
+{
+	tests_source_location() = default;
+	tests_source_location(const char *i_file, int i_line, const char *i_func)
+		: _file(i_file), _line(i_line), _func(i_func) {}
+
+	const char *_file = nullptr;
+	int _line = -1;
+	const char *_func = nullptr;
+
+	const char *function_name() const { return _func; }
+	const char *file_name() const { return _file; }
+	int line() const { return _line; }
+};
+
 //! when a test fails
 class FailedTest : public std::exception
 {
@@ -257,13 +273,12 @@ public:
 		kEqual,
 		kNotEqual
 	};
-	FailedTest( Type i_type, const char *i_file, int i_line, const std::string &i_text, const std::string &i_msg );
+	FailedTest( Type i_type, const tests_source_location &i_loc, const std::string_view &i_text, const std::string_view &i_msg );
 	
 	virtual const char *what() const noexcept;
 
 	const Type _type;
-	const char *_file;
-	const int _line;
+	tests_source_location _location;
 	const std::string _text;
 	const std::string _msg;
 
@@ -272,45 +287,45 @@ private:
 };
 
 // helpers to raise exceptions
-inline void Fail( const char *i_file, int i_line, const std::string &i_msg )
+inline void Fail( const tests_source_location &i_loc, const std::string_view &i_msg )
 {
-	throw FailedTest( FailedTest::Type::kFail, i_file, i_line, {}, i_msg );
+	throw FailedTest( FailedTest::Type::kFail, i_loc, {}, i_msg );
 }
-inline void Assert( const char *i_file, int i_line, const std::string &i_text, bool i_result, const std::string &i_msg = {} )
+inline void Assert( const tests_source_location &i_loc, const std::string_view &i_text, bool i_result, const std::string_view &i_msg = {} )
 {
 	if ( i_result )
 		return;
-	throw FailedTest( FailedTest::Type::kAssert, i_file, i_line, i_text, i_msg );
+	throw FailedTest( FailedTest::Type::kAssert, i_loc, i_text, i_msg );
 }
 
 template<typename LHS, typename RHS>
-inline void Assert_equal( const char *i_file, int i_line, const std::string &i_text, const LHS &i_lhs, const RHS &i_rhs, const std::string &i_msg = {} )
+inline void Assert_equal( const tests_source_location &i_loc, const std::string_view &i_text, const LHS &i_lhs, const RHS &i_rhs, const std::string_view &i_msg = {} )
 {
 	if ( i_lhs == i_rhs )
 		return;
-	throw FailedTest( FailedTest::Type::kEqual, i_file, i_line, i_text, i_msg );
+	throw FailedTest( FailedTest::Type::kEqual, i_loc, i_text, i_msg );
 }
 template<typename LHS, typename RHS,typename DELTA>
-inline void Assert_equal( const char *i_file, int i_line, const std::string &i_text, const LHS &i_lhs, const RHS &i_rhs, const DELTA &i_delta, const std::string &i_msg = {} )
+inline void Assert_equal( const tests_source_location &i_loc, const std::string_view &i_text, const LHS &i_lhs, const RHS &i_rhs, const DELTA &i_delta, const std::string_view &i_msg = {} )
 {
 	if ( std::abs( i_lhs - i_rhs ) < i_delta )
 		return;
-	throw FailedTest( FailedTest::Type::kEqual, i_file, i_line, i_text, i_msg );
+	throw FailedTest( FailedTest::Type::kEqual, i_loc, i_text, i_msg );
 }
 
 template<typename LHS, typename RHS>
-inline void Assert_not_equal( const char *i_file, int i_line, const std::string &i_text, const LHS &i_lhs, const RHS &i_rhs, const std::string &i_msg = {} )
+inline void Assert_not_equal( const tests_source_location &i_loc, const std::string_view &i_text, const LHS &i_lhs, const RHS &i_rhs, const std::string_view &i_msg = {} )
 {
 	if ( i_lhs != i_rhs )
 		return;
-	throw FailedTest( FailedTest::Type::kNotEqual, i_file, i_line, i_text, i_msg );
+	throw FailedTest( FailedTest::Type::kNotEqual, i_loc, i_text, i_msg );
 }
 template<typename LHS, typename RHS,typename DELTA>
-inline void Assert_not_equal( const char *i_file, int i_line, const std::string &i_text, const LHS &i_lhs, const RHS &i_rhs, const DELTA &i_delta, const std::string &i_msg = {} )
+inline void Assert_not_equal( const tests_source_location &i_loc, const std::string_view &i_text, const LHS &i_lhs, const RHS &i_rhs, const DELTA &i_delta, const std::string_view &i_msg = {} )
 {
 	if ( std::abs( i_lhs - i_rhs ) > i_delta )
 		return;
-	throw FailedTest( FailedTest::Type::kNotEqual, i_file, i_line, i_text, i_msg );
+	throw FailedTest( FailedTest::Type::kNotEqual, i_loc, i_text, i_msg );
 }
 
 }
@@ -319,10 +334,10 @@ inline void Assert_not_equal( const char *i_file, int i_line, const std::string 
 #define REGISTER_TEST_SUITE(T,...) su::TestSuite<T> g_##T##_registration(#T,__VA_ARGS__)
 #define TEST_CASE(C,N) #N,&C::N
 
-#define TEST_FAIL(...) su::Fail(__FILE__,__LINE__, __VA_ARGS__ )
-#define TEST_ASSERT(...) su::Assert(__FILE__,__LINE__, #__VA_ARGS__, __VA_ARGS__ )
-#define TEST_ASSERT_EQUAL(...) su::Assert_equal( __FILE__,__LINE__, #__VA_ARGS__, __VA_ARGS__ )
-#define TEST_ASSERT_NOT_EQUAL(...) su::Assert_not_equal( __FILE__,__LINE__, #__VA_ARGS__, __VA_ARGS__ )
+#define TEST_FAIL(...) su::Fail({__FILE__,__LINE__,__FUNCTION__},__VA_ARGS__)
+#define TEST_ASSERT(...) su::Assert({__FILE__,__LINE__,__FUNCTION__},#__VA_ARGS__,__VA_ARGS__)
+#define TEST_ASSERT_EQUAL(...) su::Assert_equal({__FILE__,__LINE__,__FUNCTION__},#__VA_ARGS__,__VA_ARGS__)
+#define TEST_ASSERT_NOT_EQUAL(...) su::Assert_not_equal({__FILE__,__LINE__,__FUNCTION__},#__VA_ARGS__,__VA_ARGS__)
 
 #else
 

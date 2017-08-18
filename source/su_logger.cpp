@@ -450,22 +450,22 @@ void logger_base::dump( const su::log_event &i_event )
 	// output location, if available
 	if ( i_event.sl().file_name() != nullptr )
 	{
-		//	remove the path base, just write the filename
-		const char *file = i_event.sl().file_name();
-		std::reverse_iterator<const char *> begin( file + strlen( file ) );
-		std::reverse_iterator<const char *> end( file );
-		std::reverse_iterator<const char *> pos = std::find( begin, end, UPLATFORM_WIN ? '\\' : '/' );
-		if ( pos != end )
-			file = pos.base();
+		//	just write the basename
+		std::string_view file{ i_event.sl().file_name() };
+		auto pos = file.find_last_of( UPLATFORM_WIN ? '\\' : '/' );
+		if ( pos != std::string_view::npos )
+			file = file.substr( pos + 1 );
 		ostr << "[" << file;
 		if ( i_event.sl().function_name() != nullptr )
 			ostr << ":" << i_event.sl().function_name();
-		ostr << ":" << i_event.sl().line() << "] ";
+		if ( i_event.sl().line() != -1 )
+			ostr << ":" << i_event.sl().line();
+		ostr << "]";
 	}
 	else if ( i_event.sl().function_name() != nullptr )
-		ostr << "[" << i_event.sl().function_name() << "] ";
-	else
-		ostr << " ";
+		ostr << "[" << i_event.sl().function_name() << "]";
+	
+	ostr << " ";
 	
 	i_event.message( ostr );
 	ostr.write( "\n", 1 );

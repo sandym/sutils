@@ -83,7 +83,7 @@ struct logger_tests
 		auto tmpLog = get_tmp_file();
 
 		{
-			su::logger_file lf( tmpLog, su::logger_file::Roll{}, false );
+			su::logger_file lf( su::filepath(tmpLog), su::logger_file::Roll{}, false );
 
 			log_debug() << "test " << 1;
 			log_warn() << "test " << 3;
@@ -125,7 +125,7 @@ struct logger_tests
 		log_debug(stringLogger) << "first!";
 		
 		{
-			su::logger_file lf( stringLogger, tmpLog, su::logger_file::Roll{}, true );
+			su::logger_file lf( stringLogger, su::filepath(tmpLog), su::logger_file::Roll{}, true );
 
 			log_debug(stringLogger) << "test " << 1;
 			log_warn(stringLogger) << "test " << 3;

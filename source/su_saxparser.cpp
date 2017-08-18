@@ -19,17 +19,16 @@
 
 namespace {
 
-su::NameURI extractNameURI( const char *s )
+su::NameURI extractNameURI( const std::string_view &s )
 {
-	auto end = s + std::strlen( s );
-	auto p = std::find( s, end, 0x0C );
-	if ( p != end )
-		return su::NameURI{ std::string_view( p+1, end-(p+1) ), std::string_view( s, p-s ) };
+	auto p = s.find( 0x0C );
+	if ( p != std::string_view::npos )
+		return su::NameURI{ s.substr( p+1 ), s.substr( 0, p ) };
 	else
-		return su::NameURI{ std::string_view( s, end-s ), std::string_view() };
+		return su::NameURI{ s, std::string_view() };
 }
 
-void startElement( void *userData, const char *name, const char **atts )
+void startElement_cb( void *userData, const char *name, const char **atts )
 {
 	auto parser = static_cast<XML_Parser>( userData );
 	auto _this = static_cast<su::saxparser *>( XML_GetUserData( parser ) );
@@ -43,7 +42,7 @@ void startElement( void *userData, const char *name, const char **atts )
 	if ( not _this->startElement( n, attribs ) )
 		XML_StopParser( parser, false );
 }
-void endElement( void *userData, const char *name )
+void endElement_cb( void *userData, const char *name )
 {
 	auto parser = static_cast<XML_Parser>( userData );
 	auto _this = static_cast<su::saxparser *>( XML_GetUserData( parser ) );
@@ -52,7 +51,7 @@ void endElement( void *userData, const char *name )
 	if ( not _this->endElement( n ) )
 		XML_StopParser( parser, false );
 }
-void characters( void *userData, const char *s, int len )
+void characters_cb( void *userData, const char *s, int len )
 {
 	auto parser = static_cast<XML_Parser>( userData );
 	auto _this = static_cast<su::saxparser *>( XML_GetUserData( parser ) );
@@ -81,8 +80,8 @@ bool saxparser::parse()
 
 	XML_SetUserData( parser, this );
 	XML_UseParserAsHandlerArg( parser );
-	XML_SetElementHandler( parser, ::startElement, ::endElement );
-	XML_SetCharacterDataHandler( parser, ::characters );
+	XML_SetElementHandler( parser, ::startElement_cb, ::endElement_cb );
+	XML_SetCharacterDataHandler( parser, ::characters_cb );
 
 	bool ret = true;
 

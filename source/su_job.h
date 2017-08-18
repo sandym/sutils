@@ -100,11 +100,11 @@ using job_weak_ptr = std::weak_ptr<job>;
 class asyncJob : public job
 {
 public:
-	asyncJob( const std::function< void(job*) > &i_async, const std::function< void(job*) > &i_idle );
+	asyncJob( const std::function< void(job&) > &i_async, const std::function< void(job&) > &i_idle );
 	virtual ~asyncJob() = default;
 
 private:
-	std::function< void(job*) > _async, _idle;
+	std::function< void(job&) > _async, _idle;
 	
 	virtual void runAsync();
 	virtual void runIdle();

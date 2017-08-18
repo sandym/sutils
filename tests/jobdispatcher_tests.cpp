@@ -327,18 +327,18 @@ void jobdispatcher_tests::test_case_cancel_3()
 	// add one very long job
 	bool isRunningAsync = false, isRunningIdle = false, finished = false;
 	auto longJob = std::make_shared<su::asyncJob>(
-			[&isRunningAsync, &finished]( su::job *i_job )
+			[&isRunningAsync, &finished]( su::job &i_job )
 			{
 				isRunningAsync = true;
 				for ( int i = 0; i < 100; ++i )
 				{
 					std::this_thread::sleep_for( kNanoSleep );
-					i_job->cancellationPoint();
+					i_job.cancellationPoint();
 				}
 				isRunningAsync = false;
 				finished = true;
 			},
-			[&isRunningIdle]( su::job * /*i_job*/ )
+			[&isRunningIdle]( su::job & /*i_job*/ )
 			{
 				isRunningIdle = true;
 			}
@@ -352,15 +352,15 @@ void jobdispatcher_tests::test_case_cancel_3()
 	for ( int i = 0 ; i < nbStarted; ++i )
 	{
 		su::jobdispatcher::instance()->postAsync( std::make_shared<su::asyncJob>(
-				[]( su::job *i_job )
+				[]( su::job &i_job )
 				{
 					for ( int i = 0; i < 100; ++i )
 					{
 						std::this_thread::sleep_for( kNanoSleep );
-						i_job->cancellationPoint();
+						i_job.cancellationPoint();
 					}
 				},
-				[&nbFinished]( su::job * /*i_job*/ )
+				[&nbFinished]( su::job & /*i_job*/ )
 				{
 					++nbFinished;
 				}
@@ -496,15 +496,15 @@ void jobdispatcher_tests::test_case_sprint_2()
 	int nbOfIdle = 0;
 
 	auto job = std::make_shared<su::asyncJob>(
-			[]( su::job *i_job )
+			[]( su::job &i_job )
 			{
 				for ( int i = 0; i < 100; ++i )
 				{
 					std::this_thread::sleep_for( kNanoSleep );
-					i_job->cancellationPoint();
+					i_job.cancellationPoint();
 				}
 			},
-			[&nbOfIdle]( su::job * /*i_job*/ )
+			[&nbOfIdle]( su::job & /*i_job*/ )
 			{
 				++nbOfIdle;
 			}

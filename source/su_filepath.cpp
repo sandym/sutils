@@ -104,7 +104,7 @@ std::string getUserSysDir( sysdir_search_path_directory_t i_sysdir )
 }
 
 #elif UPLATFORM_UNIX
-std::string getUserSysDir( const char *i_key, const char *i_default )
+std::string getUserSysDir( const std::string_view &i_key, const std::string_view &i_default )
 {
 	su::filepath home( su::filepath::location::kHome );
 	su::filepath fs( home );
@@ -153,7 +153,7 @@ std::string getUserSysDir( const char *i_key, const char *i_default )
 
 namespace su {
 
-filepath::filepath( const std::string &i_path, const filepath *i_relativeTo )
+filepath::filepath( const std::string_view &i_path, const filepath *i_relativeTo )
 {
 	if ( isAbsolute( i_path ) )
 	{
@@ -165,39 +165,6 @@ filepath::filepath( const std::string &i_path, const filepath *i_relativeTo )
 		_path = i_relativeTo->_path;
 		add( i_path );
 	}
-}
-
-filepath::filepath( const char *i_path )
-	: filepath( i_path, nullptr )
-{
-}
-
-filepath::filepath( const filepath &rhs )
-	: _path( rhs._path )
-{
-}
-
-filepath &filepath::operator=( const filepath &rhs )
-{
-	if ( this != &rhs )
-	{
-		_path = rhs._path;
-	}
-	return *this;
-}
-
-filepath::filepath( filepath &&rhs )
-	: _path( std::move(rhs._path) )
-{
-}
-
-filepath &filepath::operator=( filepath &&rhs )
-{
-	if ( this != &rhs )
-	{
-		_path = std::move(rhs._path);
-	}
-	return *this;
 }
 
 filepath::filepath( location i_folder )

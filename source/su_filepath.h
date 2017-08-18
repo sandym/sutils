@@ -26,13 +26,12 @@ class filepath final
 {
 public:
 	filepath() = default;
-	filepath( const char *i_path );
-	filepath( const std::string &i_path, const filepath *i_relativeTo = nullptr );
+	filepath( const std::string_view &i_path, const filepath *i_relativeTo = nullptr );
 	
-	filepath( const filepath &rhs );
-	filepath &operator=( const filepath &rhs );
-	filepath( filepath &&rhs );
-	filepath &operator=( filepath &&rhs );
+	filepath( const filepath &rhs ) = default;
+	filepath &operator=( const filepath &rhs ) = default;
+	filepath( filepath &&rhs ) = default;
+	filepath &operator=( filepath &&rhs ) = default;
 	
 	//	file spec initialization from special file system location
 	enum class location

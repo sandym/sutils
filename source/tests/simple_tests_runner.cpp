@@ -109,7 +109,7 @@ std::vector<su::TestSuiteAbstract *> &getTestSuites()
 class SimpleTestDB
 {
 public:
-	SimpleTestDB( const std::string &i_processName );
+	SimpleTestDB( const std::string_view &i_processName );
 	~SimpleTestDB();
 	
 	void addResult( const std::string &i_testSuiteName, const std::string &i_testName, const std::string &i_result, int64_t i_duration );
@@ -151,7 +151,7 @@ private:
 #endif
 };
 
-SimpleTestDB::SimpleTestDB( const std::string &i_processName )
+SimpleTestDB::SimpleTestDB( const std::string_view &i_processName )
 	: _processName( i_processName )
 {
 #ifdef HAS_SQLITE3
@@ -259,10 +259,9 @@ void addTestSuite( TestSuiteAbstract *i_testsuite )
 	getTestSuites().push_back( i_testsuite );
 }
 
-FailedTest::FailedTest( Type i_type, const char *i_file, int i_line, const std::string &i_text, const std::string &i_msg )
+FailedTest::FailedTest( Type i_type, const tests_source_location &i_loc, const std::string_view &i_text, const std::string_view &i_msg )
 	: _type( i_type ),
-		_file( i_file ),
-		_line( i_line ),
+		_location( i_loc ),
 		_text( i_text ),
 		_msg( i_msg )
 {
@@ -281,7 +280,7 @@ const char *FailedTest::what() const noexcept
 			default: break;
 		}
 		str << _text << ")\n";
-		str << _file << ":" << _line << "\n";
+		str << _location.file_name() << ":" << _location.function_name() << ":" << _location.line() << "\n";
 		if ( not _msg.empty() )
 			str << _msg << "\n";
 		_storage = str.str();
@@ -301,12 +300,10 @@ int64_t TestTimer::nanoseconds()
 int main( int argc, char **argv )
 {
 	//	remove the path base, just find the process name
-	const char *processName = argv[0];
-	std::reverse_iterator<const char *> begin( processName + strlen( processName ) );
-	std::reverse_iterator<const char *> end( processName );
-	std::reverse_iterator<const char *> pos = std::find_if( begin, end, []( char c ){ return c == '/' or c == '\\'; } );
-	if ( pos != end )
-		processName = pos.base();
+	std::string_view processName{ argv[0] };
+	auto pos = processName.find_last_of( "/\\" );
+	if ( pos != std::string_view::npos )
+		processName = processName.substr( pos+1 );
 	
 	// check for colour support
 	styleTTY::check( argc, argv );

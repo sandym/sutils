@@ -55,7 +55,7 @@ void job::prioritise()
 #pragma mark -
 #endif
 
-asyncJob::asyncJob( const std::function< void(job*) > &i_async, const std::function< void(job*) > &i_idle )
+asyncJob::asyncJob( const std::function< void(job&) > &i_async, const std::function< void(job&) > &i_idle )
 	: _async( i_async ), _idle( i_idle )
 {
 }
@@ -63,13 +63,13 @@ asyncJob::asyncJob( const std::function< void(job*) > &i_async, const std::funct
 void asyncJob::runAsync()
 {
 	if ( _async )
-		_async( this );
+		_async( *this );
 }
 
 void asyncJob::runIdle()
 {
 	if ( _idle )
-		_idle( this );
+		_idle( *this );
 }
 
 }
