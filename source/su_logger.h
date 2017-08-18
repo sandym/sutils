@@ -127,9 +127,9 @@ public:
 	log_event &operator<<( unsigned long long v );
 	log_event &operator<<( double v );
 
-	log_event &operator<<( const std::string &v )
+	log_event &operator<<( const std::string_view &v )
 	{
-		encode_string_data( v.c_str(), v.size() );
+		encode_string_data( v.data(), v.size() );
 		return *this;
 	}
 

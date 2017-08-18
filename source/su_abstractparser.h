@@ -77,7 +77,7 @@ private:
 class abstractparserbase
 {
 public:
-	abstractparserbase( std::istream &i_str, const std::string &i_name = std::string() );
+	abstractparserbase( std::istream &i_str, const std::string_view &i_name = {} );
 	virtual ~abstractparserbase() = default;
 
 	/*!
@@ -115,7 +115,7 @@ class abstractparser : public abstractparserbase
 public:
 	using token_type = token<TOKEN_TYPE>;
 
-	abstractparser( std::istream &i_str, const std::string &i_name = std::string() );
+	abstractparser( std::istream &i_str, const std::string_view &i_name = {} );
 	virtual ~abstractparser() = default;
 	
 	/*!
@@ -164,7 +164,7 @@ protected:
 };
 
 template<typename TOKEN_TYPE>
-abstractparser<TOKEN_TYPE>::abstractparser( std::istream &i_str, const std::string &i_name )
+abstractparser<TOKEN_TYPE>::abstractparser( std::istream &i_str, const std::string_view &i_name )
 	: abstractparserbase( i_str, i_name )
 {
 }

@@ -223,15 +223,29 @@ void flattener::operator()( const su::Json &i_json )
 	// collect the string dictionary
 	CollectStrings( i_json );
 	
-	// save the string dictionary
-	flatten_value<size_t>( _stringDict.size() );
-	size_t index = 0;
-	for ( auto &it : _stringDict )
-	{
-		it.second = ++index;
-		flatten_value<std::string>( it.first );
-	}
+	// process the string dictionary
+	// strings with the most occurences should have the lowest ids,
+	// build a processed list sorted by occurences
+	std::vector<su::flat_map<std::string,size_t>::pointer> processed;
+	processed.reserve( _stringDict.size() );
+	for ( auto &it : _stringDict.storage() )
+		processed.push_back( &it );
 	
+	std::sort( processed.begin(), processed.end(),
+				[]( auto &lhs, auto &rhs )
+				{
+					return lhs->second > rhs->second;
+				});
+	
+	// save the string dictionary, in the processed order
+	flatten_value<size_t>( _stringDict.storage().size() );
+	size_t index = 0;
+	for ( auto &it : processed )
+	{
+		it->second = ++index; // set index
+		flatten_value<std::string>( it->first );
+	}
+
 	// flatten using the dictionary
 	flatten( i_json );
 }
@@ -245,7 +259,9 @@ enum encoding_t
 	encoding_int,
 	encoding_int64,
 	encoding_array,
-	encoding_object
+	encoding_object,
+	
+	encoding_invalid
 };
 
 uint8_t encoding_type( const su::Json &i_json )
@@ -274,14 +290,14 @@ uint8_t encoding_type( const su::Json &i_json )
 	}
 	return 0;
 }
-su::optional<uint8_t> homogeneousType( const su::Json::array &i_array )
+uint8_t homogeneousType( const su::Json::array &i_array )
 {
 	assert( not i_array.empty() );
 	auto type = encoding_type( i_array.front() );
 	
 	// reject arrays
 	if ( type == encoding_array )
-		return {};
+		return encoding_invalid;
 	
 	for ( auto &it : i_array )
 	{
@@ -396,10 +412,10 @@ void flattener::flatten( const su::Json &i_json )
 			else
 			{
 				auto hType = homogeneousType( a );
-				if ( hType )
+				if ( hType != encoding_invalid )
 				{
 					type |= 0x40;
-					type |= (*hType<<3);
+					type |= (hType<<3);
 					flatten_value<uint8_t>( type );
 					flatten_value<size_t>( a.size() );
 					for ( auto &it : a )
@@ -500,8 +516,7 @@ void flattener::writeString( const std::string &i_string )
 
 void flattener::CollectString( const std::string &i_string )
 {
-	if ( _stringDict.find( i_string ) == _stringDict.end() )
-		_stringDict[i_string] = _stringDict.size() + 1;
+	_stringDict[i_string] += 1;
 }
 
 void flattener::CollectStrings( const su::Json &i_json )
@@ -742,7 +757,7 @@ su::Json unflattener::unflatten_type( uint8_t type )
 
 namespace su {
 
-su::optional<su::Json> unflatten( std::istream &istr )
+su::Json unflatten( std::istream &istr )
 {
 	try
 	{

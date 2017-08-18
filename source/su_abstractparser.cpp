@@ -17,7 +17,7 @@
 
 namespace su {
 
-abstractparserbase::abstractparserbase( std::istream &i_str, const std::string &i_name )
+abstractparserbase::abstractparserbase( std::istream &i_str, const std::string_view &i_name )
 	: _stream( i_str ),
 		_name( i_name )
 {

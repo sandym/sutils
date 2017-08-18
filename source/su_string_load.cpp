@@ -27,16 +27,17 @@
 
 #if !USE_CF_IMPLEMENTAION
 
-#include "resource_access.h"
-#include "uabstractparser.h"
+#include "su_resource_access.h"
+#include "su_abstractparser.h"
+#include <unordered_map>
 
 //! .strings file parsing and loading for non-Mac platform
 namespace
 {
 
 //! the global localized string repository
-using ustring_hash_map = su::flat_map<std::string,std::string>;
-su::flat_map<std::string,ustring_hash_map> g_stringTable;
+using string_hash_map = std::unordered_map<std::string,std::string>;
+std::unordered_map<std::string,string_hash_map> g_stringTable;
 
 enum token_t
 {
@@ -51,22 +52,22 @@ enum token_t
  *      take a FILE* and break it into tokens (lexical analysis)
  *      skip comments
  */
-class Tokenizer : public su::uabstractparser<token_t>
+class Tokenizer : public su::abstractparser<token_t>
 {
 public:
-	Tokenizer( std::istream &i_str, const std::string &i_name )
-		: su::uabstractparser<token_t>( i_str, i_name )
+	Tokenizer( std::istream &i_str, const std::string_view &i_name )
+		: su::abstractparser<token_t>( i_str, i_name )
 	{}
 	
 protected:
-	virtual bool parseAToken( su::utoken<token_t> &o_token );
+	virtual bool parseAToken( su::token<token_t> &o_token );
 };
 
 /*!
  *  get the next lexical element from the stream
  *      return false if none found
  */
-bool Tokenizer::parseAToken( su::utoken<token_t> &o_token )
+bool Tokenizer::parseAToken( su::token<token_t> &o_token )
 {
 	char aChar;
 	do
@@ -92,7 +93,7 @@ bool Tokenizer::parseAToken( su::utoken<token_t> &o_token )
 						while ( not (prev == '*' and aChar == '/') )
 						{
 							prev = aChar;
-							if ( not nextChar( aChar ) )
+							if ( (aChar = nextChar()) == 0 )
 								break;
 						}
 					}
@@ -116,12 +117,12 @@ bool Tokenizer::parseAToken( su::utoken<token_t> &o_token )
 				else
 					throwTokenizerException();
 			}
-			else if ( aChar < 255 and (isalnum( aChar ) or aChar == '_') )
+			else if ( isalnum( aChar ) or aChar == '_' )
 			{
 				std::string s( 1, aChar );
-				while ( nextChar( aChar ) )
+				while ( (aChar = nextChar()) != 0 )
 				{
-					if ( aChar > 255 or not (isalnum( aChar ) or aChar == '_') )
+					if ( not isalnum( aChar ) and aChar != '_' )
 						break;
 					s.append( 1, aChar );
 				}
@@ -132,7 +133,7 @@ bool Tokenizer::parseAToken( su::utoken<token_t> &o_token )
 				throwTokenizerException();
 		}
 	}
-	while ( not o_token.isValid() and res  );
+	while ( not o_token.isValid() and aChar != 0  );
 	return o_token.isValid();
 }
 
@@ -142,7 +143,7 @@ bool Tokenizer::parseAToken( su::utoken<token_t> &o_token )
  */
 void loadStringTable( const std::string &i_table )
 {
-	ustring_hash_map table;
+	string_hash_map table;
 	try
 	{
 		std::ifstream file;
@@ -165,9 +166,9 @@ void loadStringTable( const std::string &i_table )
 	}
 	catch ( std::exception &ex )
 	{
-		TRACE( "%s : %s", i_table, ex.what() );
+		log_trace() << i_table << " : " << ex.what();
 	}
-	g_stringTable[i_table] = table;
+	g_stringTable[i_table] = std::move(table);
 }
 
 }
@@ -196,18 +197,19 @@ std::string string_load( const std::string_view &i_key, const std::string_view &
 
 #else
 	// use the code above
-	auto table = g_stringTable.find( i_table );
+	std::string tableStr( i_table );
+	auto table = g_stringTable.find( tableStr );
 	if ( table == g_stringTable.end() )
-		loadStringTable( i_table );
-	table = g_stringTable.find( i_table );
+		loadStringTable( tableStr );
+	table = g_stringTable.find( tableStr );
 	assert( table != g_stringTable.end() );
-	auto it = table->second.find( i_key );
+	auto it = table->second.find( std::string(i_key) );
 	if ( it != table->second.end() )
 		return it->second;
 	else
 	{
 		log_debug() << "key not found " << i_key <<", " << i_table;
-		return i_key;
+		return std::string(i_key);
 	}
 #endif
 }

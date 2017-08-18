@@ -14,13 +14,7 @@
 #include "su_platform.h"
 #include "su_string.h"
 
-#if (UPLATFORM_MAC || UPLATFORM_IOS) && !defined(USE_CF_IMPLEMENTAION)
-#define USE_CF_IMPLEMENTAION 1
-#else
-#define USE_CF_IMPLEMENTAION 0
-#endif
-
-#if USE_CF_IMPLEMENTAION
+#if (UPLATFORM_MAC || UPLATFORM_IOS)
 #include "cfauto.h"
 #endif
 
@@ -33,13 +27,13 @@ namespace resource_access {
 
 su::filepath getFolder()
 {
-#if USE_CF_IMPLEMENTAION
+#if (UPLATFORM_MAC || UPLATFORM_IOS)
 	cfauto<CFURLRef> urlRef( CFBundleCopyResourcesDirectoryURL( CFBundleGetMainBundle() ) );
 	// get the filespec for the resource's url
 	cfauto<CFStringRef> pathRef( CFURLCopyFileSystemPath( urlRef, kCFURLPOSIXPathStyle ) );
 	return su::filepath( su::to_string( pathRef ) );
 #else
-	su::filepath fs( su::filepath::kApplicationFolder );
+	su::filepath fs( su::filepath::location::kApplicationFolder );
 #if defined(RSRC_FOLDER_NAME)
 	fs.add( RSRC_FOLDER_NAME );
 #else
@@ -51,7 +45,7 @@ su::filepath getFolder()
 
 su::filepath get( const std::string_view &i_name )
 {
-#if USE_CF_IMPLEMENTAION
+#if (UPLATFORM_MAC || UPLATFORM_IOS)
 	// we have a relative path to the resource in i_name, we want to split the string in 3: sub-folder path, name and extension
 	auto p = i_name.rfind( '/' );
 	std::string_view subDir, name;
