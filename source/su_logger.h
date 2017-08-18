@@ -31,7 +31,7 @@
 #include <ciso646>
 #include <iosfwd>
 #include <memory>
-#include <string>
+#include <string_view>
 #include <thread>
 #include "su_always_inline.h"
 
@@ -101,7 +101,7 @@ private:
 	// info
 	int _level;
 	source_location _sl;
-	pthread_t _threadID;
+	std::thread::native_handle_type _threadID;
 	uint64_t _timestamp;
 	
 public:
@@ -157,7 +157,7 @@ public:
 	
 	int level() const { return _level; }
 	uint64_t timestamp() const { return _timestamp; }
-	pthread_t threadID() const { return _threadID; }
+	std::thread::native_handle_type threadID() const { return _threadID; }
 	const source_location &sl() const { return _sl; }
 	
 	std::string message() const;

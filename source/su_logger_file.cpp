@@ -14,6 +14,7 @@
 #include "su_filepath.h"
 #include "su_teebuf.h"
 #include <chrono>
+#include <string>
 
 namespace {
 

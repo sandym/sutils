@@ -594,7 +594,7 @@ format_impl::format_impl( const std::string_view &i_format, const FormatArg *i_a
 			++ptr;
 			if ( ptr < i_format.end() and *ptr != '%' )
 			{
-				formatSpecs.push_back( parseFormat( ptr ) );
+				formatSpecs.push_back( parseFormat( i_format.substr( ptr - i_format.begin() ) ) );
 				ptr += formatSpecs.back().size;
 				continue;
 			}

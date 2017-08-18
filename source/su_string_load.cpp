@@ -14,16 +14,15 @@
 #include "su_logger.h"
 #include "su_string.h"
 #include "su_platform.h"
+#include <cassert>
 
-#if (UPLATFORM_MAC || UPLATFORM_IOS) && !defined(USE_CF_IMPLEMENTAION)
+#if (UPLATFORM_MAC || UPLATFORM_IOS)
 #define USE_CF_IMPLEMENTAION 1
+#include "cfauto.h"
 #else
 #define USE_CF_IMPLEMENTAION 0
 #endif
 
-#if USE_CF_IMPLEMENTAION
-#include "cfauto.h"
-#endif
 
 #if !USE_CF_IMPLEMENTAION
 

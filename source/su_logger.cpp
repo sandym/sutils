@@ -20,7 +20,12 @@
 #include <condition_variable>
 #include <cassert>
 #include <sstream>
+#include <algorithm>
 #include <string.h>
+
+#if UPLATFORM_WIN
+#include <windows.h>
+#endif
 
 namespace {
 
@@ -180,20 +185,31 @@ void logger_thread_data::func()
 }
 
 
-inline pthread_t current_thread() { return pthread_self(); }
+inline std::thread::native_handle_type current_thread()
+{
+#if UPLATFORM_WIN
+	return GetCurrentThread();
+#else
+	return pthread_self();
+#endif
+}
 
 struct thread_name
 {
-	pthread_t _t;
-	thread_name( pthread_t t ) : _t( t ){}
+	std::thread::native_handle_type _t;
+	thread_name( std::thread::native_handle_type t ) : _t( t ){}
 };
 std::ostream &operator<<( std::ostream &os, const thread_name &t )
 {
+#if UPLATFORM_WIN
+	return os << t._t;
+#else
 	char buffer[20];
 	if ( pthread_getname_np( t._t, buffer, 20 ) == 0 and buffer[0] != 0 )
 		return os << buffer;
 	else
 		return os << t._t;
+#endif
 }
 
 }
@@ -220,7 +236,7 @@ void log_event::ensure_extra_capacity( size_t extra )
 	auto newSize = currentSize + extra;
 	if ( newSize > _capacity )
 	{
-		auto newCap = std::max( newSize, _capacity * 2 );
+		auto newCap = (std::max)( newSize, _capacity * 2 );
 		auto newBuffer = new char[newCap];
 		memcpy( newBuffer, _buffer, currentSize );
 		_capacity = newCap;

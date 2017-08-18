@@ -128,7 +128,7 @@ su::filepath get( const std::string_view &i_name )
 	
 	// try english
 	resourceFile = rsrc;
-	resourceFile.add( "en.lproj/" + i_name );
+	resourceFile.add( "en.lproj/" + std::string(i_name) );
 	if ( resourceFile.exists() ) // file access
 		return resourceFile;
 

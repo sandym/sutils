@@ -19,6 +19,7 @@
 
 #include "tests/simple_tests.h"
 #include "su_resource_access.h"
+#include <ciso646>
 
 struct resource_access_tests
 {

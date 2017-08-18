@@ -18,6 +18,7 @@
 #include <string.h>
 #include <cassert>
 #include <map>
+#include <algorithm>
 
 #if !UPLATFORM_WIN
 #include <sys/stat.h>

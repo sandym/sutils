@@ -19,6 +19,7 @@
 
 #include "tests/simple_tests.h"
 #include "su_json.h"
+#include "su_platform.h"
 #include <list>
 #include <set>
 #include <map>
