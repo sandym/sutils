@@ -16,6 +16,7 @@
 
 #include <cassert>
 #include <type_traits>
+#include <string>
 #include <string_view>
 #include <functional>
 #include <vector>

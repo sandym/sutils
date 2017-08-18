@@ -31,6 +31,7 @@
 #include <ciso646>
 #include <iosfwd>
 #include <memory>
+#include <string>
 #include <string_view>
 #include <thread>
 #include "su_always_inline.h"
