@@ -83,14 +83,27 @@ struct source_location
 class log_event final
 {
 private:
-	const static int kInlineBufferSize = 128;
+	//! a heap buffer and capacity
+	struct HeapBuffer
+	{
+ 		char *data;
+		size_t capacity; //!< current capacity
+	};
 	
-	// event serialisation
-	char _inlineBuffer[kInlineBufferSize]; //!< initial buffer, stack allocated
-	char *_buffer = _inlineBuffer; //!< ptr to the buffer in use
+	//! event message storage: either inline in the object (no extra allocation)
+	//  or on the heap
+	const static int kInlineBufferSize = 128;
+	union
+	{
+		char inlineBuffer[kInlineBufferSize]; //!< initial buffer, inline
+		HeapBuffer heapBuffer; //!< if more space is needed, heap allocated
+	} _storage;
+	
+	// buffer in use
+	char *_buffer = _storage.inlineBuffer; //!< ptr to the buffer in use
 	char *_ptr = _buffer; //!< current position in the buffer
-	std::unique_ptr<char []> _heapBuffer; //!< if more space is needed, heap allocated
-	size_t _capacity = kInlineBufferSize; //!< current capacity
+	
+	bool storageIsInline() const { return _buffer == _storage.inlineBuffer; }
 	
 	void ensure_extra_capacity( size_t extra );
 	
@@ -102,10 +115,10 @@ private:
 	// info
 	int _level;
 	source_location _sl;
-	std::thread::native_handle_type _threadID;
-	uint64_t _timestamp;
 	
 public:
+	~log_event();
+	
 	log_event( const log_event & ) = delete;
 	log_event &operator=( const log_event & ) = delete;
 
@@ -157,8 +170,6 @@ public:
 	}
 	
 	int level() const { return _level; }
-	uint64_t timestamp() const { return _timestamp; }
-	std::thread::native_handle_type threadID() const { return _threadID; }
 	const source_location &sl() const { return _sl; }
 	
 	std::string message() const;
@@ -194,7 +205,7 @@ public:
 
 	// don't call those directly.
 	bool operator==( log_event &i_event );
-	void dump( const log_event &i_event );
+	void dump( uint64_t i_timestamp, std::thread::native_handle_type i_threadId, const log_event &i_event );
 };
 
 template <int COMPILETIME_LOG_MASK=kCOMPILETIME_LOG_MASK>

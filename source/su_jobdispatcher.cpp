@@ -138,8 +138,7 @@ void jobdispatcher::workerThread( int i_threadIndex )
 		{
 			// mutex is locked here
 			++_nbOfWorkersFree;
-			while ( _asyncQueue.empty() and _isRunning )
-				_JDCond.wait( l );
+			_JDCond.wait( l, [this](){ return not this->_asyncQueue.empty() or not this->_isRunning; } );
 			--_nbOfWorkersFree;
 			
 			if ( _isRunning )

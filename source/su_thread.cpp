@@ -39,36 +39,28 @@ bool is_main()
 
 void set_name( const char *n )
 {
-#if UPLATFORM_MAC
+	if ( n == nullptr or n[0] == 0 )
+		return;
+	
+#if UPLATFORM_WIN
+	typedef HRESULT(WINAPI* SetThreadDescriptionPtr)( HANDLE, PCWSTR );
+
+	auto SetThreadDescriptionFunc = reinterpret_cast<SetThreadDescriptionPtr>(
+							::GetProcAddress( ::GetModuleHandle(L"Kernel32.dll"), "SetThreadDescription" ) );
+	if ( SetThreadDescriptionFunc )
+	{
+		wchar_t name[64];
+		int l = MultiByteToWideChar( CP_UTF8, MB_COMPOSITE, n, strlen(n), name, 64 );
+		if ( l > 0 )
+		{
+			name[l] = 0;
+			SetThreadDescriptionFunc( ::GetCurrentThread(), name );
+		}
+	}
+#elif UPLATFORM_MAC
 	pthread_setname_np( n );
-#elif !UPLATFORM_WIN
-	pthread_setname_np( pthread_self(), n );
 #else
-
-#pragma pack(push, 8)
-	struct THREADNAME_INFO
-	{
-		DWORD dwType;
-		LPCSTR szName;
-		DWORD dwThreadID;
-		DWORD dwFlags;
-	};
-#pragma pack(pop)
-
-	const DWORD kVsThreadNameException = 0x406D1388;
-
-	THREADNAME_INFO info = {0};
-	info.dwType = 0x1000;
-	info.szName = n;
-	info.dwThreadID = GetCurrentThreadId();
-
-	__try
-	{
-		RaiseException( kVsThreadNameException, 0, sizeof( info ) / sizeof( ULONG_PTR ), (ULONG_PTR *)&info );
-	}
-	__except ( EXCEPTION_EXECUTE_HANDLER )
-	{
-	}
+	pthread_setname_np( pthread_self(), n );
 #endif
 }
 

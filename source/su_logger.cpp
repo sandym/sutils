@@ -62,6 +62,58 @@ inline uint64_t get_timestamp()
 	return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
+struct RecordedEvent
+{
+	su::logger_base *logger = nullptr;
+	su::log_event event{ -1, {} };
+	uint64_t timestamp;
+	std::thread::native_handle_type threadId;
+};
+
+inline std::thread::native_handle_type current_thread()
+{
+#if UPLATFORM_WIN
+	return GetCurrentThread();
+#else
+	return pthread_self();
+#endif
+}
+
+struct thread_name
+{
+	std::thread::native_handle_type _t;
+	thread_name( std::thread::native_handle_type t ) : _t( t ){}
+};
+std::ostream &operator<<( std::ostream &os, const thread_name &t )
+{
+#if UPLATFORM_WIN
+	typedef HRESULT(WINAPI* GetThreadDescriptionPtr)( HANDLE, PWSTR* );
+
+	auto GetThreadDescriptionFunc = reinterpret_cast<GetThreadDescriptionPtr>(
+							::GetProcAddress( ::GetModuleHandle(L"Kernel32.dll"), "GetThreadDescription" ) );
+	if ( GetThreadDescriptionFunc )
+	{
+		wchar_t *name = nullptr;
+		if ( SUCCEEDED(GetThreadDescriptionFunc( ::GetCurrentThread(), &name )) )
+		{
+			char buffer[64];
+			int l = WideCharToMultiByte( CP_UTF8, WC_COMPOSITECHECK name, wcslen(name), buffer, 64, nullptr, nullptr );
+			if ( l > 0 )
+			{
+				buffer[i] = 0;
+				return os << buffer;
+			}
+			LocalFree( name );
+		}
+	}
+#else
+	char buffer[20];
+	if ( pthread_getname_np( t._t, buffer, 20 ) == 0 and buffer[0] != 0 )
+		return os << buffer;
+#endif
+	return os << t._t;
+}
+
 class logger_thread_data
 {
 private:
@@ -70,7 +122,7 @@ private:
 	std::condition_variable queueCond;
 	su::spinlock queueSpinLock;
 	std::thread t;
-	std::vector<std::pair<su::logger_base *,su::log_event>> logQueue;
+	std::vector<RecordedEvent> logQueue;
 	
 	bool logQueueIsEmpty();
 	
@@ -101,7 +153,7 @@ void logger_thread_data::dec()
 	{
 		// push kill message
 		std::unique_lock<su::spinlock> l( queueSpinLock );
-		logQueue.emplace_back( nullptr, su::log_event( -1, {} ) );
+		logQueue.emplace_back( RecordedEvent{} );
 		l.unlock();
 		queueCond.notify_one();
 		
@@ -121,7 +173,7 @@ bool logger_thread_data::logQueueIsEmpty()
 void logger_thread_data::push( su::logger_base *i_logger, su::log_event &&i_event )
 {
 	std::unique_lock<su::spinlock> l( queueSpinLock );
-	logQueue.emplace_back( i_logger, std::move(i_event) );
+	logQueue.emplace_back( RecordedEvent{ i_logger, std::move(i_event), get_timestamp(), current_thread() } );
 	l.unlock();
 	queueCond.notify_one();
 }
@@ -132,8 +184,7 @@ void logger_thread_data::flush()
 	{
 		std::unique_lock<std::mutex> l( queueMutex );
 		queueCond.notify_one();
-		while ( not logQueueIsEmpty() )
-			queueCond.wait( l );
+		queueCond.wait( l, [this](){ return this->logQueueIsEmpty(); } );
 	}
 }
 
@@ -143,7 +194,7 @@ void logger_thread_data::func()
 	
 	std::unique_lock<std::mutex> l( queueMutex, std::defer_lock );
 	
-	std::vector<std::pair<su::logger_base *,su::log_event>> localCopy;
+	std::vector<RecordedEvent> localCopy;
 	su::flat_set<su::logger_base *> toFlush;
 	
 	bool exitLoop = false;
@@ -151,8 +202,7 @@ void logger_thread_data::func()
 	{
 		l.lock();
 		// wait for logs
-		while ( logQueueIsEmpty() )
-			queueCond.wait( l );
+		queueCond.wait( l, [this](){ return not this->logQueueIsEmpty(); } );
 		l.unlock();
 		
 		// quickly grab a local copy
@@ -161,14 +211,14 @@ void logger_thread_data::func()
 		sl.unlock();
 		
 		// dump all events
-		for ( auto &ev : localCopy )
+		for ( auto &rec : localCopy )
 		{
-			if ( ev.first == nullptr )
+			if ( rec.logger == nullptr )
 				exitLoop = true;
-			else if ( ev.first->output() )
+			else if ( rec.logger->output() )
 			{
-				ev.first->dump( ev.second );
-				toFlush.insert( ev.first );
+				rec.logger->dump( rec.timestamp, rec.threadId, rec.event );
+				toFlush.insert( rec.logger );
 			}
 		}
 		
@@ -184,63 +234,39 @@ void logger_thread_data::func()
 	}
 }
 
-
-inline std::thread::native_handle_type current_thread()
-{
-#if UPLATFORM_WIN
-	return GetCurrentThread();
-#else
-	return pthread_self();
-#endif
-}
-
-struct thread_name
-{
-	std::thread::native_handle_type _t;
-	thread_name( std::thread::native_handle_type t ) : _t( t ){}
-};
-std::ostream &operator<<( std::ostream &os, const thread_name &t )
-{
-#if UPLATFORM_WIN
-	return os << t._t;
-#else
-	char buffer[20];
-	if ( pthread_getname_np( t._t, buffer, 20 ) == 0 and buffer[0] != 0 )
-		return os << buffer;
-	else
-		return os << t._t;
-#endif
-}
-
 }
 
 namespace su {
 
 log_event::log_event( int i_level )
-	: _level( i_level ),
-		_threadID( current_thread() ),
-		_timestamp( get_timestamp() )
+	: _level( i_level )
 {
 }
 log_event::log_event( int i_level, su::source_location &&i_sl )
 	: _level( i_level ),
-		_sl( std::move(i_sl) ),
-		_threadID( current_thread() ),
-		_timestamp( get_timestamp() )
+		_sl( std::move(i_sl) )
 {
 }
-
+log_event::~log_event()
+{
+	if ( not storageIsInline() )
+		delete [] _storage.heapBuffer.data;
+}
 void log_event::ensure_extra_capacity( size_t extra )
 {
 	auto currentSize = _ptr - _buffer;
 	auto newSize = currentSize + extra;
-	if ( newSize > _capacity )
+	size_t cap = storageIsInline() ? kInlineBufferSize : _storage.heapBuffer.capacity;
+	if ( newSize > cap )
 	{
-		auto newCap = (std::max)( newSize, _capacity * 2 );
+		auto newCap = (std::max)( newSize, cap * 2 );
 		auto newBuffer = new char[newCap];
 		memcpy( newBuffer, _buffer, currentSize );
-		_capacity = newCap;
-		_heapBuffer.reset( newBuffer );
+		if ( not storageIsInline() )
+			delete [] _storage.heapBuffer.data;
+		
+		_storage.heapBuffer.capacity = newCap;
+		_storage.heapBuffer.data = newBuffer;
 		_buffer = newBuffer;
 		_ptr = _buffer + currentSize;
 	}
@@ -397,7 +423,7 @@ bool logger_base::operator==( log_event &i_event )
 	if ( g_thread != nullptr )
 		g_thread->push( this, std::move(i_event) );
 	else
-		dump( i_event );
+		dump( get_timestamp(), current_thread(), i_event );
 	return false;
 }
 
@@ -410,7 +436,7 @@ std::unique_ptr<logger_output> logger_base::exchangeOutput( std::unique_ptr<logg
 	return std::exchange( _output, std::move(i_output) );
 }
 
-void logger_base::dump( const su::log_event &i_event )
+void logger_base::dump( uint64_t i_timestamp, std::thread::native_handle_type i_threadId, const su::log_event &i_event )
 {
 	if ( _output.get() == nullptr )
 		return;
@@ -442,7 +468,7 @@ void logger_base::dump( const su::log_event &i_event )
 			return;
 	}
 
-	std::time_t t = i_event.timestamp() / 1000000;
+	std::time_t t = i_timestamp / 1000000;
 	char isoTime[32] = "";
 	char ms[8] = "";
 	struct tm tmdata;
@@ -450,16 +476,16 @@ void logger_base::dump( const su::log_event &i_event )
 	if ( localtime_s( &tmdata, &t ) == 0 )
 	{
 		strftime(isoTime, 32, "%Y-%m-%dT%T", &tmdata);
-		sprintf_s(ms, ".%06lu", (unsigned long)(i_event.timestamp() % 1000000));
+		sprintf_s(ms, ".%06lu", (unsigned long)(i_timestamp % 1000000));
 	}
 #else
 	strftime( isoTime, 32, "%Y-%m-%dT%T", localtime_r( &t, &tmdata ) );
-	sprintf(ms, ".%06lu", (unsigned long)(i_event.timestamp() % 1000000));
+	sprintf(ms, ".%06lu", (unsigned long)(i_timestamp % 1000000));
 #endif
 	
 	auto &ostr = _output->ostr;
 	
-	ostr << "[" << isoTime << ms << "][" << level << "][" << thread_name(i_event.threadID()) << "]";
+	ostr << "[" << isoTime << ms << "][" << level << "][" << thread_name(i_threadId) << "]";
 	if ( not _subsystem.empty() )
 		ostr << "[" << _subsystem << "]";
 
