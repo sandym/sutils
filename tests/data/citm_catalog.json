@@ -1,4 +1,3 @@
-const char *kCITM = R"END(
 {
     "areaNames": {
         "205705993": "Arrière-scène central",
@@ -50468,4 +50467,3 @@ const char *kCITM = R"END(
         "PLEYEL_PLEYEL": "Salle Pleyel"
     }
 }
-)END";

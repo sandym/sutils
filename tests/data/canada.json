@@ -1,5 +1,3 @@
-const char *kCanada = R"END(
-
 { "type": "FeatureCollection",
   "features": [
 {
@@ -9,4 +7,3 @@ const char *kCanada = R"END(
 }
 ]
 }
-)END";

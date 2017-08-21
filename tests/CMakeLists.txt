@@ -69,7 +69,7 @@ if(SQLITE3_LIBRARY)
 	add_definitions( -DHAS_SQLITE3 )
 endif()
 
-
+add_definitions( -DDATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/data" )
 
 find_package( Threads )
 target_link_libraries( sutils_tests ${CMAKE_THREAD_LIBS_INIT} )

@@ -23,19 +23,13 @@
 #include <list>
 #include <set>
 #include <map>
+#include <fstream>
 #include <unordered_map>
 #include <cstring>
 #include <iostream>
 
 using namespace su;
 using std::string;
-
-// MSVC does not like those big strings
-#if !UPLATFORM_WIN
-#include "data/twitter.json"
-#include "data/citm_catalog.json"
-#include "data/canada.json"
-#endif
 
 // Check that Json has the properties we want.
 #define CHECK_TRAIT(x) static_assert(std::x::value, #x)
@@ -49,6 +43,12 @@ CHECK_TRAIT(is_nothrow_destructible<Json>);
 
 struct json_tests
 {
+	json_tests();
+	
+	std::string kTwitter;
+	std::string kCITM;
+	std::string kCanada;
+
 	//	declare all test cases here...
 	void timed_test_case_1();
 	void timed_test_case_2();
@@ -59,6 +59,27 @@ REGISTER_TEST_SUITE( json_tests,
 			   TEST_CASE(json_tests,timed_test_case_1),
 			   TEST_CASE(json_tests,timed_test_case_2),
 			   TEST_CASE(json_tests,timed_test_case_3) );
+
+std::string loadFile( const std::string &i_path )
+{
+	std::string s;
+	
+	std::ifstream f( i_path );
+	while ( f )
+	{
+		char buf[4096];
+		f.read( buf, 4096 );
+		s.append( buf, f.gcount() );
+	}
+	return s;
+}
+
+json_tests::json_tests()
+{
+	kCanada = loadFile( DATA_FOLDER "/canada.json" );
+	kCITM = loadFile( DATA_FOLDER "/citm_catalog.json" );
+	kTwitter = loadFile( DATA_FOLDER "/twitter.json" );
+}
 
 // MARK: -
 // MARK:  === test cases ===
@@ -293,7 +314,6 @@ void json_tests::timed_test_case_2()
 	std::string err;
 	Stat stat;
 
-#if !UPLATFORM_WIN
 	auto json = su::Json::parse( kTwitter, err );
 	TEST_ASSERT( err.empty() );
 	getStat( json, stat );
@@ -339,7 +359,6 @@ void json_tests::timed_test_case_2()
 	TEST_ASSERT_EQUAL( stat.memberCount, 8 );
 	TEST_ASSERT_EQUAL( stat.elementCount, 167170 );
 	TEST_ASSERT_EQUAL( stat.stringLength, 90 );
-#endif
 }
 
 void json_tests::timed_test_case_3()

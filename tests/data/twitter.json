@@ -1,4 +1,3 @@
-const char *kTwitter = R"END(
 {
   "statuses": [
     {
@@ -15481,4 +15480,3 @@ const char *kTwitter = R"END(
     "since_id_str": "0"
   }
 }
-)END";
