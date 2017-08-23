@@ -122,8 +122,8 @@ public:
 	log_event( const log_event & ) = delete;
 	log_event &operator=( const log_event & ) = delete;
 
-	log_event( log_event &&lhs ) = default;
-	log_event &operator=( log_event &&lhs ) = default;
+	log_event( log_event &&lhs );
+	log_event &operator=( log_event &&lhs );
 	
 	log_event( int i_level );
 	log_event( int i_level, su::source_location &&i_sl );
@@ -205,7 +205,6 @@ public:
 
 	// don't call those directly.
 	bool operator==( log_event &i_event );
-	void dump( uint64_t i_timestamp, std::thread::native_handle_type i_threadId, const log_event &i_event );
 };
 
 template <int COMPILETIME_LOG_MASK=kCOMPILETIME_LOG_MASK>

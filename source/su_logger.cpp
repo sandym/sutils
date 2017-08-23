@@ -56,33 +56,19 @@ template<> struct TypeToEnum<long long>{ static const log_data_type value = log_
 template<> struct TypeToEnum<unsigned long long>{ static const log_data_type value = log_data_type::kUnsignedLongLong; };
 template<> struct TypeToEnum<double>{ static const log_data_type value = log_data_type::kDouble; };
 
-//! generate timestamp in microseconds
-inline uint64_t get_timestamp()
-{
-	return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-}
-
 struct RecordedEvent
 {
 	su::logger_base *logger = nullptr;
 	su::log_event event{ -1, {} };
-	uint64_t timestamp;
+	std::chrono::system_clock::time_point timestamp;
 	std::thread::native_handle_type threadId;
 };
 
-inline std::thread::native_handle_type current_thread()
-{
-#if UPLATFORM_WIN
-	return GetCurrentThread();
-#else
-	return pthread_self();
-#endif
-}
-
+// helper to print thread's name
 struct thread_name
 {
-	std::thread::native_handle_type _t;
-	thread_name( std::thread::native_handle_type t ) : _t( t ){}
+	std::thread::native_handle_type threadId;
+	thread_name( std::thread::native_handle_type i_threadId ) : threadId( i_threadId ){}
 };
 std::ostream &operator<<( std::ostream &os, const thread_name &t )
 {
@@ -94,24 +80,102 @@ std::ostream &operator<<( std::ostream &os, const thread_name &t )
 	if ( GetThreadDescriptionFunc )
 	{
 		wchar_t *name = nullptr;
-		if ( SUCCEEDED(GetThreadDescriptionFunc( ::GetCurrentThread(), &name )) )
+		if ( SUCCEEDED(GetThreadDescriptionFunc( t.threadId, &name )) )
 		{
 			char buffer[64];
-			int l = WideCharToMultiByte( CP_UTF8, WC_COMPOSITECHECK name, wcslen(name), buffer, 64, nullptr, nullptr );
+			int l = WideCharToMultiByte( CP_UTF8, WC_COMPOSITECHECK, name, wcslen(name), buffer, 64, nullptr, nullptr );
+			LocalFree( name );
 			if ( l > 0 )
 			{
 				buffer[i] = 0;
 				return os << buffer;
 			}
-			LocalFree( name );
 		}
 	}
 #else
 	char buffer[20];
-	if ( pthread_getname_np( t._t, buffer, 20 ) == 0 and buffer[0] != 0 )
+	if ( pthread_getname_np( t.threadId, buffer, 20 ) == 0 and buffer[0] != 0 )
 		return os << buffer;
 #endif
-	return os << t._t;
+	return os << t.threadId;
+}
+
+void dump( su::logger_base *i_logger, const std::chrono::system_clock::time_point &i_timestamp, std::thread::native_handle_type i_threadId, const su::log_event &i_event )
+{
+	if ( i_logger->output() == nullptr )
+		return;
+	
+	// [TIME][LEVEL][thread][subsystem][file:func:line] msg
+	
+	const char *level = "";
+	switch ( i_event.level() )
+	{
+		case su::kFAULT:
+			level = "FAULT";
+			break;
+		case su::kERROR:
+			level = "ERROR";
+			break;
+		case su::kWARN:
+			level = "WARN";
+			break;
+		case su::kINFO:
+			level = "INFO";
+			break;
+		case su::kDEBUG:
+			level = "DEBUG";
+			break;
+		case su::kTRACE:
+			level = "TRACE";
+			break;
+		default:
+			return;
+	}
+
+	auto us = std::chrono::duration_cast<std::chrono::microseconds>(i_timestamp.time_since_epoch()).count();
+	std::time_t t = us / 1000000;
+	char isoTime[32] = "";
+	char ms[8] = "";
+	struct tm tmdata;
+#if UPLATFORM_WIN
+	if ( localtime_s( &tmdata, &t ) == 0 )
+	{
+		strftime(isoTime, 32, "%Y-%m-%dT%T", &tmdata);
+		sprintf_s(ms, ".%06lu", (unsigned long)(us % 1000000));
+	}
+#else
+	strftime( isoTime, 32, "%Y-%m-%dT%T", localtime_r( &t, &tmdata ) );
+	sprintf(ms, ".%06lu", (unsigned long)(us % 1000000));
+#endif
+	
+	auto &ostr = i_logger->output()->ostr;
+	
+	ostr << "[" << isoTime << ms << "][" << level << "][" << thread_name(i_threadId) << "]";
+	if ( not i_logger->subsystem().empty() )
+		ostr << "[" << i_logger->subsystem() << "]";
+
+	// output location, if available
+	if ( i_event.sl().file_name() != nullptr )
+	{
+		//	just write the basename
+		std::string_view file{ i_event.sl().file_name() };
+		auto pos = file.find_last_of( UPLATFORM_WIN ? '\\' : '/' );
+		if ( pos != std::string_view::npos )
+			file = file.substr( pos + 1 );
+		ostr << "[" << file;
+		if ( i_event.sl().function_name() != nullptr )
+			ostr << ":" << i_event.sl().function_name();
+		if ( i_event.sl().line() != -1 )
+			ostr << ":" << i_event.sl().line();
+		ostr << "]";
+	}
+	else if ( i_event.sl().function_name() != nullptr )
+		ostr << "[" << i_event.sl().function_name() << "]";
+	
+	ostr << " ";
+	
+	i_event.message( ostr );
+	ostr.write( "\n", 1 );
 }
 
 class logger_thread_data
@@ -134,7 +198,7 @@ public:
 	inline void inc() { ++refCount; }
 	void dec();
 	
-	void push( su::logger_base *i_logger, su::log_event &&i_event );
+	void push( su::logger_base *i_logger, const std::chrono::system_clock::time_point &i_timestamp, std::thread::native_handle_type i_thread, su::log_event &&i_event );
 	void flush();
 };
 logger_thread_data *g_thread = nullptr;
@@ -170,10 +234,10 @@ bool logger_thread_data::logQueueIsEmpty()
 	return logQueue.empty();
 }
 
-void logger_thread_data::push( su::logger_base *i_logger, su::log_event &&i_event )
+void logger_thread_data::push( su::logger_base *i_logger, const std::chrono::system_clock::time_point &i_timestamp, std::thread::native_handle_type i_thread, su::log_event &&i_event )
 {
 	std::unique_lock<su::spinlock> l( queueSpinLock );
-	logQueue.emplace_back( RecordedEvent{ i_logger, std::move(i_event), get_timestamp(), current_thread() } );
+	logQueue.emplace_back( RecordedEvent{ i_logger, std::move(i_event), i_timestamp, i_thread } );
 	l.unlock();
 	queueCond.notify_one();
 }
@@ -217,7 +281,7 @@ void logger_thread_data::func()
 				exitLoop = true;
 			else if ( rec.logger->output() )
 			{
-				rec.logger->dump( rec.timestamp, rec.threadId, rec.event );
+				dump( rec.logger, rec.timestamp, rec.threadId, rec.event );
 				toFlush.insert( rec.logger );
 			}
 		}
@@ -242,16 +306,47 @@ log_event::log_event( int i_level )
 	: _level( i_level )
 {
 }
+
 log_event::log_event( int i_level, su::source_location &&i_sl )
 	: _level( i_level ),
 		_sl( std::move(i_sl) )
 {
 }
+
 log_event::~log_event()
 {
 	if ( not storageIsInline() )
 		delete [] _storage.heapBuffer.data;
 }
+
+log_event::log_event( log_event &&lhs )
+{
+	_storage = lhs._storage;
+	_buffer = lhs._buffer;
+	_ptr = lhs._ptr;
+	_level = lhs._level;
+	_sl = lhs._sl;
+	
+	lhs._buffer = lhs._storage.inlineBuffer;
+	lhs._ptr = lhs._buffer;
+}
+
+log_event &log_event::operator=( log_event &&lhs )
+{
+	if ( this != &lhs )
+	{
+		_storage = lhs._storage;
+		_buffer = lhs._buffer;
+		_ptr = lhs._ptr;
+		_level = lhs._level;
+		_sl = lhs._sl;
+		
+		lhs._buffer = lhs._storage.inlineBuffer;
+		lhs._ptr = lhs._buffer;
+	}
+	return *this;
+}
+
 void log_event::ensure_extra_capacity( size_t extra )
 {
 	auto currentSize = _ptr - _buffer;
@@ -420,10 +515,16 @@ logger_base::~logger_base()
 
 bool logger_base::operator==( log_event &i_event )
 {
+#if UPLATFORM_WIN
+	auto t = GetCurrentThread();
+#else
+	auto t = pthread_self();
+#endif
+
 	if ( g_thread != nullptr )
-		g_thread->push( this, std::move(i_event) );
+		g_thread->push( this, std::chrono::system_clock::now(), t, std::move(i_event) );
 	else
-		dump( get_timestamp(), current_thread(), i_event );
+		dump( this, std::chrono::system_clock::now(), t, i_event );
 	return false;
 }
 
@@ -434,83 +535,6 @@ std::unique_ptr<logger_output> logger_base::exchangeOutput( std::unique_ptr<logg
 	else if ( _output )
 		_output->flush();
 	return std::exchange( _output, std::move(i_output) );
-}
-
-void logger_base::dump( uint64_t i_timestamp, std::thread::native_handle_type i_threadId, const su::log_event &i_event )
-{
-	if ( _output.get() == nullptr )
-		return;
-	
-	// [TIME][LEVEL][thread][subsystem][file:func:line] msg
-	
-	const char *level = "";
-	switch ( i_event.level() )
-	{
-		case su::kFAULT:
-			level = "FAULT";
-			break;
-		case su::kERROR:
-			level = "ERROR";
-			break;
-		case su::kWARN:
-			level = "WARN";
-			break;
-		case su::kINFO:
-			level = "INFO";
-			break;
-		case su::kDEBUG:
-			level = "DEBUG";
-			break;
-		case su::kTRACE:
-			level = "TRACE";
-			break;
-		default:
-			return;
-	}
-
-	std::time_t t = i_timestamp / 1000000;
-	char isoTime[32] = "";
-	char ms[8] = "";
-	struct tm tmdata;
-#if UPLATFORM_WIN
-	if ( localtime_s( &tmdata, &t ) == 0 )
-	{
-		strftime(isoTime, 32, "%Y-%m-%dT%T", &tmdata);
-		sprintf_s(ms, ".%06lu", (unsigned long)(i_timestamp % 1000000));
-	}
-#else
-	strftime( isoTime, 32, "%Y-%m-%dT%T", localtime_r( &t, &tmdata ) );
-	sprintf(ms, ".%06lu", (unsigned long)(i_timestamp % 1000000));
-#endif
-	
-	auto &ostr = _output->ostr;
-	
-	ostr << "[" << isoTime << ms << "][" << level << "][" << thread_name(i_threadId) << "]";
-	if ( not _subsystem.empty() )
-		ostr << "[" << _subsystem << "]";
-
-	// output location, if available
-	if ( i_event.sl().file_name() != nullptr )
-	{
-		//	just write the basename
-		std::string_view file{ i_event.sl().file_name() };
-		auto pos = file.find_last_of( UPLATFORM_WIN ? '\\' : '/' );
-		if ( pos != std::string_view::npos )
-			file = file.substr( pos + 1 );
-		ostr << "[" << file;
-		if ( i_event.sl().function_name() != nullptr )
-			ostr << ":" << i_event.sl().function_name();
-		if ( i_event.sl().line() != -1 )
-			ostr << ":" << i_event.sl().line();
-		ostr << "]";
-	}
-	else if ( i_event.sl().function_name() != nullptr )
-		ostr << "[" << i_event.sl().function_name() << "]";
-	
-	ostr << " ";
-	
-	i_event.message( ostr );
-	ostr.write( "\n", 1 );
 }
 
 logger_thread::logger_thread()

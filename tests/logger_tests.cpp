@@ -199,6 +199,66 @@ struct logger_tests
 		auto res = ss.str();
 		TEST_ASSERT_NOT_EQUAL( res.find( "[funny_thread_name]" ), std::string::npos );
 	}
+	
+	void test_case_long_message()
+	{
+		std::ostringstream ss;
+		
+		{
+			su::Logger<> test_logger( ss, "test" );
+			
+			log_debug(test_logger) << "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message ";
+		}
+		
+		auto res = ss.str();
+		TEST_ASSERT_NOT_EQUAL( res.find( "very long message" ), std::string::npos );
+		
+		su::log_event ev1(su::kERROR);
+		ev1 << "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message "
+									<< "very long message ";
+		su::log_event ev2( std::move(ev1) );
+	}
 };
 
 REGISTER_TEST_SUITE( logger_tests,
@@ -208,4 +268,5 @@ REGISTER_TEST_SUITE( logger_tests,
 	TEST_CASE(logger_tests,test_case_4),
 	TEST_CASE(logger_tests,test_case_5),
 	TEST_CASE(logger_tests,test_case_all_type),
-	TEST_CASE(logger_tests,test_case_thread_name) );
+	TEST_CASE(logger_tests,test_case_thread_name),
+	TEST_CASE(logger_tests,test_case_long_message) );
