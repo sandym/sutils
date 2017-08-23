@@ -47,25 +47,7 @@ public:
 	};
 	filepath( location i_folder );
 
-	class BookmarkData
-	{
-	public:
-		BookmarkData() = default;
-		BookmarkData( BookmarkData && ) noexcept;
-		~BookmarkData() = default;
-		BookmarkData &operator=( BookmarkData && ) noexcept;
-
-		void assign( const char *i_data, size_t i_len );
-
-		size_t size() const { return _len; }
-		const char *data() const { return _data.get(); }
-	private:
-		std::unique_ptr<char[]> _data;
-		size_t _len = 0;
-
-		BookmarkData( const BookmarkData & ) = delete;
-		BookmarkData &operator=( const BookmarkData & ) = delete;
-	};
+	using BookmarkData = std::vector<char>;
 	filepath( const BookmarkData &i_fileBookmark, const filepath *i_relativeTo = nullptr );
 	bool getBookmarkData( BookmarkData &o_data, const filepath *i_relativeTo = nullptr ) const;
 

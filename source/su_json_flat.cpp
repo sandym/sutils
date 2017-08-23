@@ -2,7 +2,6 @@
 #include "su_json_flat.h"
 #include "su_endian.h"
 #include "su_logger.h"
-#include "su_stackarray.h"
 #include <iostream>
 #include <cassert>
 
@@ -597,9 +596,10 @@ std::string unflattener::unflatten_value<std::string>()
 	size_t len = unflatten_value<size_t>();
 	if ( len > kSaneValueForNbOfEntry )
 		throw std::out_of_range( "string too big in flat json" );
-	su::stackarray<char> buffer( len );
+	std::string buffer;
+	buffer.resize( len );
 	_istr.read( buffer.data(), len );
-	return std::string( buffer.data(), len );
+	return buffer;
 }
 template<typename T>
 T unflattener::unflatten_value()

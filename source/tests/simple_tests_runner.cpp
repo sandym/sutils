@@ -15,9 +15,11 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
+#include <set>
 #include <string.h>
 
-#ifdef HAS_SQLITE3
+#if __has_include(<sqlite3.h>)
+#define HAS_SQLITE3
 #include <sqlite3.h>
 #endif
 
@@ -44,14 +46,6 @@ struct styleTTY
 	int v = 0;
 
 	static bool s_ttySupportColour;
-	static void check( int argc, char **argv)
-	{
-		for ( int i = 1; i < argc; ++i )
-		{
-			if ( strcmp( argv[i], "--colour" ) == 0 )
-				s_ttySupportColour = true;
-		}
-	}
 };
 bool styleTTY::s_ttySupportColour = false;
 
@@ -305,25 +299,95 @@ int main( int argc, char **argv )
 	if ( pos != std::string_view::npos )
 		processName = processName.substr( pos+1 );
 	
-	// check for colour support
-	styleTTY::check( argc, argv );
+	enum class Action
+	{
+		kRunAll,
+		kRunSome,
+		kList
+	};
+	Action action = Action::kRunAll;
+	std::set<std::string> testsToRun, testsToSkip;
+	for ( int i = 1; i < argc; ++i )
+	{
+		// check for colour support
+		if ( strcmp( argv[i], "--colour" ) == 0 )
+			styleTTY::s_ttySupportColour = true;
+		else if ( strcmp( argv[i], "--list" ) == 0 )
+			action = Action::kList;
+		else if ( strcmp( argv[i], "--run" ) == 0 and (i+1) < argc )
+		{
+			++i;
+			testsToRun.emplace( argv[i] );
+			action = Action::kRunSome;
+		}
+		else if ( strcmp( argv[i], "--skip" ) == 0 and (i+1) < argc )
+		{
+			++i;
+			testsToSkip.emplace( argv[i] );
+			action = Action::kRunSome;
+		}
+	}
 	
-	// open db
-	SimpleTestDB db( processName );
+	switch ( action )
+	{
+		case Action::kRunAll:
+			std::cout << "Running all tests" << std::endl;
+			break;
+		case Action::kRunSome:
+			std::cout << "Running selected tests" << std::endl;
+			break;
+		case Action::kList:
+			std::cout << "Listing all tests" << std::endl;
+			break;
+	}
+	std::unique_ptr<SimpleTestDB> db;
+	if ( action != Action::kList )
+	{
+		// open db
+		db = std::make_unique<SimpleTestDB>( processName );
+	}
 	
 	// do all tests
 	int total = 0;
 	int failure = 0;
 	for ( auto testSuite : getTestSuites() )
 	{
-		std::cout << styleTTY{ttyUnderline|ttyBold} << "Test case:" << styleTTY{} << " "
-					<< displayName(testSuite->name()) << std::endl;
+		auto testSuiteDisplayName = displayName(testSuite->name());
+		if ( action == Action::kRunSome )
+		{
+			if ( not testsToSkip.empty() )
+			{
+				if ( testsToSkip.find( testSuite->name() ) != testsToSkip.end() or
+					testsToSkip.find( testSuiteDisplayName ) != testsToSkip.end() )
+				{
+					continue;
+				}
+			}
+			else
+			{
+				if ( testsToRun.find( testSuite->name() ) == testsToRun.end() and
+						testsToRun.find( testSuiteDisplayName ) == testsToRun.end() )
+				{
+					continue;
+				}
+			}
+		}
+		
+		std::cout << styleTTY{ttyUnderline|ttyBold} << "Test suite:" << styleTTY{} << " "
+					<< testSuiteDisplayName << std::endl;
 		auto tests = testSuite->getTests();
 		for ( auto test : tests )
 		{
+			std::cout << "  " << displayName(test.name());
+			if ( action == Action::kList )
+			{
+				std::cout << std::endl;
+				continue;
+			}
+
 			++total;
-			
-			std::cout << "  " << displayName(test.name()) << " : ";
+
+			std::cout << " : ";
 			std::cout.flush();
 			
 			int64_t duration;
@@ -338,7 +402,7 @@ int main( int argc, char **argv )
 				if ( test.timed() )
 				{
 					// a timed test, compare to last run
-					auto prev = db.mostRecentDuration( testSuite->name(), test.name() );
+					auto prev = db->mostRecentDuration( testSuite->name(), test.name() );
 					std::cout << " (" << duration << "ns";
 					if ( duration > prev )
 						std::cout << styleTTY{ttyRed} << " regression: " << duration - prev << "ns slower" << styleTTY{};
@@ -365,11 +429,14 @@ int main( int argc, char **argv )
 			std::cout << std::endl;
 			
 			// record results
-			db.addResult( testSuite->name(), test.name(), result, duration );
+			db->addResult( testSuite->name(), test.name(), result, duration );
 		}
 	}
-	std::cout << styleTTY{ttyBold} << "Success: " << styleTTY{} << (total-failure) << "/" << total << std::endl;
-	if ( failure == 0 )
-		std::cout << styleTTY{ttyGreen|ttyBold} << "All good!" << styleTTY{} << std::endl;
+	if ( action != Action::kList )
+	{
+		std::cout << styleTTY{ttyBold} << "Success: " << styleTTY{} << (total-failure) << "/" << total << std::endl;
+		if ( failure == 0 )
+			std::cout << styleTTY{ttyGreen|ttyBold} << "All good!" << styleTTY{} << std::endl;
+	}
 	std::cout << std::endl;
 }

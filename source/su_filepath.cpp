@@ -315,13 +315,6 @@ filepath::filepath( location i_folder )
 	}
 }
 
-void filepath::BookmarkData::assign( const char *i_data, size_t i_len )
-{
-	_data.reset( new char[i_len] );
-	_len = i_len;
-	memcpy( _data.get(), i_data, _len );
-}
-
 filepath::filepath( const BookmarkData &i_fileBookmark, const filepath *i_relativeTo )
 {
 	// make sure that the data start with "PATH:"
@@ -350,14 +343,14 @@ filepath::filepath( const BookmarkData &i_fileBookmark, const filepath *i_relati
 // fallback to the path.
 #endif
 
-	std::string the_path( i_fileBookmark.data() + 5 );
+	std::string_view the_path( i_fileBookmark.data() + 5 );
 	filepath fs( the_path, i_relativeTo );
 	_path = std::move(fs._path);
 }
 
 bool filepath::getBookmarkData( BookmarkData &o_data, const filepath *i_relativeTo ) const
 {
-	o_data.assign( nullptr, 0 );
+	o_data.clear();
 	
 	if ( empty() )
 		return false;
@@ -402,9 +395,8 @@ bool filepath::getBookmarkData( BookmarkData &o_data, const filepath *i_relative
 	}
 	
 	//	append the path data
-	std::string	data;
-	data.append( kPathTag );
-	data.append( the_path );
+	o_data.insert( o_data.end(), kPathTag, kPathTag + sizeof(kPathTag)-1 );
+	o_data.insert( o_data.end(), the_path.begin(), the_path.end() );
 	
 #if UPLATFORM_MAC
 	//	add the "ALIAS:" tag for the Mac
@@ -419,9 +411,10 @@ bool filepath::getBookmarkData( BookmarkData &o_data, const filepath *i_relative
 													error.addr() ) );
 	if ( bm )
 	{
-		data.append( 1, '\0' );	//	I know, binary data in a string, bad
-		data.append( kAliasTag );
-		data.append( (const char *)CFDataGetBytePtr( bm ), CFDataGetLength( bm ) );
+		o_data.push_back( '\0' );
+		o_data.insert( o_data.end(), kAliasTag, kAliasTag + sizeof(kAliasTag)-1 );
+		auto ptr = (const char *)CFDataGetBytePtr( bm );
+		o_data.insert( o_data.end(), ptr, ptr + CFDataGetLength( bm ) );
 	}
 	else if ( error )
 	{
@@ -430,7 +423,6 @@ bool filepath::getBookmarkData( BookmarkData &o_data, const filepath *i_relative
 	}
 #endif
 
-	o_data.assign( data.c_str(), data.length()+1 );
 	return true;
 }
 

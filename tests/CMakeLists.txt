@@ -66,7 +66,6 @@ endif()
 find_library( SQLITE3_LIBRARY sqlite3 )
 if(SQLITE3_LIBRARY)
 	target_link_libraries( sutils_tests ${SQLITE3_LIBRARY} )
-	add_definitions( -DHAS_SQLITE3 )
 endif()
 
 add_definitions( -DDATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/data" )
