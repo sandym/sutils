@@ -262,11 +262,11 @@ struct logger_tests
 };
 
 REGISTER_TEST_SUITE( logger_tests,
-	TEST_CASE(logger_tests,test_case_1),
-	TEST_CASE(logger_tests,test_case_2),
-	TEST_CASE(logger_tests,test_case_3),
-	TEST_CASE(logger_tests,test_case_4),
-	TEST_CASE(logger_tests,test_case_5),
-	TEST_CASE(logger_tests,test_case_all_type),
-	TEST_CASE(logger_tests,test_case_thread_name),
-	TEST_CASE(logger_tests,test_case_long_message) );
+	&logger_tests::test_case_1,
+	&logger_tests::test_case_2,
+	&logger_tests::test_case_3,
+	&logger_tests::test_case_4,
+	&logger_tests::test_case_5,
+	&logger_tests::test_case_all_type,
+	&logger_tests::test_case_thread_name,
+	&logger_tests::test_case_long_message );

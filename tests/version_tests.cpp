@@ -46,5 +46,5 @@ struct version_tests
 };
 
 REGISTER_TEST_SUITE( version_tests,
-	TEST_CASE(version_tests,test_case_1),
-	TEST_CASE(version_tests,test_case_2) );
+	&version_tests::test_case_1,
+	&version_tests::test_case_2 );

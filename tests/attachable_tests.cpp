@@ -66,7 +66,7 @@ struct attachable_tests
 };
 
 REGISTER_TEST_SUITE( attachable_tests,
-			   TEST_CASE(attachable_tests,test_detach),
-			   TEST_CASE(attachable_tests,test_delete_attachment) );
+			   &attachable_tests::test_detach,
+			   &attachable_tests::test_delete_attachment );
 
 

@@ -44,5 +44,5 @@ struct statesaver_tests
 };
 
 REGISTER_TEST_SUITE( statesaver_tests, 
-	TEST_CASE(statesaver_tests,test_case_1),
-	TEST_CASE(statesaver_tests,test_case_2) );
+	&statesaver_tests::test_case_1,
+	&statesaver_tests::test_case_2 );

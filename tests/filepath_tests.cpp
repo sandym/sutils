@@ -34,12 +34,12 @@ struct filepath_tests
 };
 
 REGISTER_TEST_SUITE( filepath_tests,
-					TEST_CASE(filepath_tests,test_case_1),
-					TEST_CASE(filepath_tests,test_case_2),
-					TEST_CASE(filepath_tests,test_case_3),
-					TEST_CASE(filepath_tests,test_case_4),
-					TEST_CASE(filepath_tests,test_case_root),
-					TEST_CASE(filepath_tests,test_case_6) );
+					&filepath_tests::test_case_1,
+					&filepath_tests::test_case_2,
+					&filepath_tests::test_case_3,
+					&filepath_tests::test_case_4,
+					&filepath_tests::test_case_root,
+					&filepath_tests::test_case_6 );
 
 // MARK: -
 // MARK:  === test cases ===

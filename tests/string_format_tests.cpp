@@ -31,7 +31,7 @@ struct string_format_tests
 };
 
 REGISTER_TEST_SUITE( string_format_tests,
-				TEST_CASE(string_format_tests,test_case_format) );
+				&string_format_tests::test_case_format );
 
 // MARK: -
 // MARK:  === test cases ===

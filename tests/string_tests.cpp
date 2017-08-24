@@ -33,13 +33,13 @@ struct string_tests
 };
 
 REGISTER_TEST_SUITE( string_tests,
-				TEST_CASE(string_tests,test_case_convert),
-				TEST_CASE(string_tests,test_case_upper_lower),
-				TEST_CASE(string_tests,test_case_trimSpaces),
-				TEST_CASE(string_tests,test_case_compare),
-				TEST_CASE(string_tests,test_case_split_join),
-				TEST_CASE(string_tests,test_case_japanese),
-				TEST_CASE(string_tests,test_case_levenshteinDistance) );
+				&string_tests::test_case_convert,
+				&string_tests::test_case_upper_lower,
+				&string_tests::test_case_trimSpaces,
+				&string_tests::test_case_compare,
+				&string_tests::test_case_split_join,
+				&string_tests::test_case_japanese,
+				&string_tests::test_case_levenshteinDistance );
 
 // MARK: -
 // MARK:  === test cases ===

@@ -34,12 +34,12 @@ struct endian_tests
 };
 
 REGISTER_TEST_SUITE( endian_tests,
-	TEST_CASE(endian_tests,test_case_1byte),
-	TEST_CASE(endian_tests,test_case_2bytes),
-	TEST_CASE(endian_tests,test_case_4bytes),
-	TEST_CASE(endian_tests,test_case_8bytes),
-	TEST_CASE(endian_tests,test_case_float),
-	TEST_CASE(endian_tests,test_case_double) );
+	&endian_tests::test_case_1byte,
+	&endian_tests::test_case_2bytes,
+	&endian_tests::test_case_4bytes,
+	&endian_tests::test_case_8bytes,
+	&endian_tests::test_case_float,
+	&endian_tests::test_case_double );
 
 // MARK: -
 // MARK:  === test cases ===

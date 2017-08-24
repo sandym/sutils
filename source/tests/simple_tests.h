@@ -90,7 +90,7 @@ public:
 	virtual std::vector<TestCase> getTests() = 0;
 	
 protected:
-	TestSuiteAbstract( const std::string &i_name ) : _name( i_name ){}
+	TestSuiteAbstract( const std::string_view &i_name ) : _name( i_name ){}
 	
 	std::string _name;
 };
@@ -107,42 +107,67 @@ class TestSuite : public TestSuiteAbstract
 {
 public:
 	template<class ...ARGS>
-	TestSuite( const std::string &i_name, ARGS... args )
+	TestSuite( const std::string_view &i_name, const std::string_view &i_desc, ARGS... args )
 		: TestSuiteAbstract( i_name )
 	{
-		registerTestCases( args... );
+		registerTestCases( i_desc, args... );
 		addTestSuite( this );
 	}
 	~TestSuite() = default;
 	
 	// helpers to register test cases
-	void registerTestCase( const std::string &i_name, void (T::*i_method)() )
+	void registerTestCase( const std::string_view &i_name, void (T::*i_method)() )
 	{
 		_tests.push_back( TestCaseData{ i_name, i_method } );
 	}
-	void registerTestCase( const std::string &i_name, void (T::*i_method)(TestTimer&) )
+	void registerTestCase( const std::string_view &i_name, void (T::*i_method)(TestTimer&) )
 	{
 		_tests.push_back( TestCaseData{ i_name, i_method } );
 	}
-	void registerTestCase( const std::string &i_name, const std::function<void ()> &i_func )
+	void registerTestCase( const std::string_view &i_name, const std::function<void ()> &i_func )
 	{
 		_tests.push_back( TestCaseData{ i_name, i_func } );
 	}
-	void registerTestCase( const std::string &i_name, const std::function<void (TestTimer&)> &i_func )
+	void registerTestCase( const std::string_view &i_name, const std::function<void (TestTimer&)> &i_func )
 	{
 		_tests.push_back( TestCaseData{ i_name, i_func } );
 	}
-	void registerTestCase( const std::function<void (TestSuite<T>&)> &i_dynamicRegistry )
+	void registerTestCase( const std::string_view &, const std::function<void (TestSuite<T>&)> &i_dynamicRegistry )
 	{
 		_dynamicRegistry = i_dynamicRegistry;
 	}
-	void registerTestCases(){}
+	void registerTestCases( const std::string_view & ){}
 	
 	template<typename CB,typename ...ARGS>
-	void registerTestCases( const std::string &i_name, const CB &cb, ARGS... args )
+	void registerTestCases( const std::string_view &i_desc, const CB &cb, ARGS... args )
 	{
-		registerTestCase( i_name, cb );
-		registerTestCases( args... );
+		if ( i_desc.empty() )
+			return;
+		
+		std::string_view desc;
+		std::string_view name( i_desc );
+		auto p = i_desc.find( ',' );
+		if ( p != std::string_view::npos )
+		{
+			name = i_desc.substr( 0, p );
+			desc = i_desc.substr( p + 1 );
+			// cleanup desc
+			while ( not desc.empty() and std::isspace(desc.front()) )
+				desc.remove_prefix( 1 );
+			while ( not desc.empty() and std::isspace(desc.back()) )
+				desc.remove_suffix( 1 );
+		}
+		// cleanup name
+		p = name.find( "::" );
+		if ( p != std::string_view::npos )
+			name = name.substr( p + 2 );
+		while ( not name.empty() and std::isspace(name.front()) )
+			name.remove_prefix( 1 );
+		while ( not name.empty() and std::isspace(name.back()) )
+			name.remove_suffix( 1 );
+
+		registerTestCase( name, cb );
+		registerTestCases( desc, args... );
 	}
 	template<typename ...ARGS>
 	void registerTestCases( const std::function<void (TestSuite<T>&)> &i_dynamicRegistry, ARGS... args )
@@ -220,13 +245,13 @@ private:
 	//! test case data, name and callback
 	struct TestCaseData
 	{
-		TestCaseData( const std::string &i_name, void (T::*i_method)() )
+		TestCaseData( const std::string_view &i_name, void (T::*i_method)() )
 			: name( i_name ), method( i_method ){}
-		TestCaseData( const std::string &i_name, void (T::*i_method)(TestTimer&) )
+		TestCaseData( const std::string_view &i_name, void (T::*i_method)(TestTimer&) )
 			: name( i_name ), methodWithTimer( i_method ){}
-		TestCaseData( const std::string &i_name, const std::function<void()> &i_func )
+		TestCaseData( const std::string_view &i_name, const std::function<void()> &i_func )
 			: name( i_name ), func( i_func ){}
-		TestCaseData( const std::string &i_name, const std::function<void(TestTimer&)> &i_func )
+		TestCaseData( const std::string_view &i_name, const std::function<void(TestTimer&)> &i_func )
 			: name( i_name ), funcWithTimer( i_func ){}
 		
 		std::string name;
@@ -332,8 +357,7 @@ inline void Assert_not_equal( const tests_source_location &i_loc, const std::str
 }
 
 // small set of macros
-#define REGISTER_TEST_SUITE(T,...) su::TestSuite<T> g_##T##_registration(#T,__VA_ARGS__)
-#define TEST_CASE(C,N) #N,&C::N
+#define REGISTER_TEST_SUITE(T,...) su::TestSuite<T> g_##T##_registration(#T,#__VA_ARGS__,__VA_ARGS__)
 
 #define TEST_FAIL(...) su::Fail({__FILE__,__LINE__,__FUNCTION__},__VA_ARGS__)
 #define TEST_ASSERT(...) su::Assert({__FILE__,__LINE__,__FUNCTION__},#__VA_ARGS__,__VA_ARGS__)

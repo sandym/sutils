@@ -28,7 +28,7 @@ struct resource_access_tests
 
 // register all test cases here
 REGISTER_TEST_SUITE( resource_access_tests,
-		TEST_CASE(resource_access_tests,test_case_getFolder) );
+		&resource_access_tests::test_case_getFolder );
 
 // MARK: -
 // MARK:  === test cases ===

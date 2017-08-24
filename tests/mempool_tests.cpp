@@ -47,4 +47,4 @@ struct mempool_tests
 
 };
 
-REGISTER_TEST_SUITE( mempool_tests, TEST_CASE(mempool_tests,test_case_1) );
+REGISTER_TEST_SUITE( mempool_tests, &mempool_tests::test_case_1 );

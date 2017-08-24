@@ -55,14 +55,14 @@ private:
 };
 
 REGISTER_TEST_SUITE( jobdispatcher_tests,
-			   TEST_CASE(jobdispatcher_tests,test_case_async_completion),
-			   TEST_CASE(jobdispatcher_tests,test_case_no_async_completion),
-			   TEST_CASE(jobdispatcher_tests,test_case_cancel_1),
-			   TEST_CASE(jobdispatcher_tests,test_case_cancel_2),
-			   TEST_CASE(jobdispatcher_tests,test_case_cancel_3),
-			   TEST_CASE(jobdispatcher_tests,test_case_sprint_1),
-			   TEST_CASE(jobdispatcher_tests,test_case_sprint_2),
-			   TEST_CASE(jobdispatcher_tests,test_case_prioritise_1) );
+			   &jobdispatcher_tests::test_case_async_completion,
+			   &jobdispatcher_tests::test_case_no_async_completion,
+			   &jobdispatcher_tests::test_case_cancel_1,
+			   &jobdispatcher_tests::test_case_cancel_2,
+			   &jobdispatcher_tests::test_case_cancel_3,
+			   &jobdispatcher_tests::test_case_sprint_1,
+			   &jobdispatcher_tests::test_case_sprint_2,
+			   &jobdispatcher_tests::test_case_prioritise_1 );
 
 class MyDispatcher : public su::jobdispatcher
 {

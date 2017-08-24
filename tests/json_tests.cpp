@@ -56,9 +56,9 @@ struct json_tests
 };
 
 REGISTER_TEST_SUITE( json_tests,
-			   TEST_CASE(json_tests,timed_test_case_1),
-			   TEST_CASE(json_tests,timed_test_case_2),
-			   TEST_CASE(json_tests,timed_test_case_3) );
+			   &json_tests::timed_test_case_1,
+			   &json_tests::timed_test_case_2,
+			   &json_tests::timed_test_case_3 );
 
 std::string loadFile( const std::string &i_path )
 {
