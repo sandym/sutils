@@ -85,9 +85,6 @@ std::ostream &operator<<( std::ostream &ostr, styleTTY i_style )
 std::string displayName( const std::string &s )
 {
 	std::string result( s );
-	// remove "timed_" if present
-	if ( result.compare( 0, 6, "timed_" ) == 0 )
-		result.erase( 0, 6 );
 	// replate '_' with spaces
 	std::replace( result.begin(), result.end(), '_', ' ' );
 	return result;
@@ -400,7 +397,7 @@ int main( int argc, char **argv )
 				// test succeed, an exception would have occured otherwise
 				const char kOK[] = "\xE2\x9C\x94";
 				std::cout << styleTTY{ttyGreen|ttyBold} << kOK << styleTTY{};
-				if ( test.timed() )
+				if ( test.options().timed )
 				{
 					// a timed test, compare to last run
 					auto prev = db->mostRecentDuration( testSuite->name(), test.name() );

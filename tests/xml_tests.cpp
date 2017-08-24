@@ -100,7 +100,7 @@ public:
 
 struct xml_tests
 {
-	void timed_test_case_1()
+	void test_case_1()
 	{
 		const char *xmlPtr = R"(<?xml version="1.0" encoding="UTF-8"?>
 <instructionals module="Qt">
@@ -131,6 +131,6 @@ this is text
 	}
 };
 
-REGISTER_TEST_SUITE( xml_tests, &xml_tests::timed_test_case_1 );
+REGISTER_TEST_SUITE( xml_tests, su::TimedTest, &xml_tests::test_case_1 );
 
 #endif

@@ -50,15 +50,15 @@ struct json_tests
 	std::string kCanada;
 
 	//	declare all test cases here...
-	void timed_test_case_1();
-	void timed_test_case_2();
-	void timed_test_case_3();
+	void test_case_1();
+	void test_case_2();
+	void test_case_3();
 };
 
 REGISTER_TEST_SUITE( json_tests,
-			   &json_tests::timed_test_case_1,
-			   &json_tests::timed_test_case_2,
-			   &json_tests::timed_test_case_3 );
+			   su::TimedTest, &json_tests::test_case_1,
+			   su::TimedTest, &json_tests::test_case_2,
+			   su::TimedTest, &json_tests::test_case_3 );
 
 std::string loadFile( const std::string &i_path )
 {
@@ -86,7 +86,7 @@ json_tests::json_tests()
 
 #define SJSON_ENABLE_DR1467_CANARY 0
 
-void json_tests::timed_test_case_1()
+void json_tests::test_case_1()
 {
     const string simple_test =
         R"({"k1":"v1", "k2":42, "k3":["a",123,true,false,null]})";
@@ -309,7 +309,7 @@ void getStat( const su::Json &i_json, Stat &io_stat )
 }
 }
 
-void json_tests::timed_test_case_2()
+void json_tests::test_case_2()
 {
 	std::string err;
 	Stat stat;
@@ -361,7 +361,7 @@ void json_tests::timed_test_case_2()
 	TEST_ASSERT_EQUAL( stat.stringLength, 90 );
 }
 
-void json_tests::timed_test_case_3()
+void json_tests::test_case_3()
 {
 	std::string err;
 	Stat stat;

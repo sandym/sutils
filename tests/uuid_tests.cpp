@@ -23,7 +23,7 @@
 
 struct uuid_tests
 {
-	void timed_test_case_1()
+	void test_case_1()
 	{
 		auto u1 = su::uuid::create();
 		auto u2 = su::uuid::create();
@@ -47,4 +47,4 @@ struct uuid_tests
 	}
 };
 
-REGISTER_TEST_SUITE( uuid_tests, &uuid_tests::timed_test_case_1 );
+REGISTER_TEST_SUITE( uuid_tests, su::TimedTest, &uuid_tests::test_case_1 );

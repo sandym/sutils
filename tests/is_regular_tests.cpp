@@ -51,8 +51,8 @@ struct is_regular_tests
 	
 	static void registerDynamicTests( su::TestSuite<is_regular_tests> &io_testSuite )
 	{
-		io_testSuite.registerTestCase( "test_case_1", &is_regular_tests::test_case_1 );
-		io_testSuite.registerTestCase( "test_case_2", []()
+		io_testSuite.registerTestCase( "test_case_1", {}, &is_regular_tests::test_case_1 );
+		io_testSuite.registerTestCase( "test_case_2", {}, []()
 				{
 					is_regular_tests obj;
 					obj.test_case_2();

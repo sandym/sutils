@@ -50,16 +50,21 @@ private:
 	std::chrono::high_resolution_clock::time_point _end{};
 };
 
+struct TestOptions
+{
+	bool timed{ false }; //!< time regression for the test will be tracked.
+};
+
+const auto TimedTest = TestOptions{ true };
+
 /*!
 	A single test
- 		If name start with "timed_", time regression for the test
-		will be tracked.
 */
 class TestCase
 {
 public:
-	TestCase( const std::string &i_name, const std::function<void(TestTimer&)> &i_test )
-		: _name( i_name ), _test( i_test ){}
+	TestCase( const std::string &i_name, const TestOptions &i_options, const std::function<void(TestTimer&)> &i_test )
+		: _name( i_name ), _options( i_options ), _test( i_test ){}
 
 	//! run the test
 	void operator()( TestTimer &i_timer )
@@ -68,10 +73,11 @@ public:
 	}
 	
 	const std::string &name() const { return _name; }
-	bool timed() const { return _name.compare( 0, 6, "timed_" ) == 0; }
+	const TestOptions options() const { return _options; }
 
 private:
 	std::string _name;
+	TestOptions _options;
 	std::function<void(TestTimer&)> _test;
 };
 
@@ -116,58 +122,42 @@ public:
 	~TestSuite() = default;
 	
 	// helpers to register test cases
-	void registerTestCase( const std::string_view &i_name, void (T::*i_method)() )
+	void registerTestCase( const std::string_view &i_name, const TestOptions &i_options, void (T::*i_method)() )
 	{
-		_tests.push_back( TestCaseData{ i_name, i_method } );
+		_tests.push_back( TestCaseData{ i_name, i_options, i_method } );
 	}
-	void registerTestCase( const std::string_view &i_name, void (T::*i_method)(TestTimer&) )
+	void registerTestCase( const std::string_view &i_name, const TestOptions &i_options, void (T::*i_method)(TestTimer&) )
 	{
-		_tests.push_back( TestCaseData{ i_name, i_method } );
+		_tests.push_back( TestCaseData{ i_name, i_options, i_method } );
 	}
-	void registerTestCase( const std::string_view &i_name, const std::function<void ()> &i_func )
+	void registerTestCase( const std::string_view &i_name, const TestOptions &i_options, const std::function<void ()> &i_func )
 	{
-		_tests.push_back( TestCaseData{ i_name, i_func } );
+		_tests.push_back( TestCaseData{ i_name, i_options, i_func } );
 	}
-	void registerTestCase( const std::string_view &i_name, const std::function<void (TestTimer&)> &i_func )
+	void registerTestCase( const std::string_view &i_name, const TestOptions &i_options, const std::function<void (TestTimer&)> &i_func )
 	{
-		_tests.push_back( TestCaseData{ i_name, i_func } );
+		_tests.push_back( TestCaseData{ i_name, i_options, i_func } );
 	}
-	void registerTestCase( const std::string_view &, const std::function<void (TestSuite<T>&)> &i_dynamicRegistry )
+	void registerTestCase( const std::string_view &, const TestOptions &, const std::function<void (TestSuite<T>&)> &i_dynamicRegistry )
 	{
 		_dynamicRegistry = i_dynamicRegistry;
 	}
 	void registerTestCases( const std::string_view & ){}
 	
 	template<typename CB,typename ...ARGS>
+	void registerTestCases( const std::string_view &i_desc, const TestOptions &i_options, const CB &cb, ARGS... args )
+	{
+		std::string_view desc( i_desc );
+		auto p = desc.find( ',' );
+		if ( p != std::string_view::npos )
+			desc = i_desc.substr( p + 1 );
+		registerTestCases_priv( desc, i_options, cb, args... );
+	}
+	
+	template<typename CB,typename ...ARGS>
 	void registerTestCases( const std::string_view &i_desc, const CB &cb, ARGS... args )
 	{
-		if ( i_desc.empty() )
-			return;
-		
-		std::string_view desc;
-		std::string_view name( i_desc );
-		auto p = i_desc.find( ',' );
-		if ( p != std::string_view::npos )
-		{
-			name = i_desc.substr( 0, p );
-			desc = i_desc.substr( p + 1 );
-			// cleanup desc
-			while ( not desc.empty() and std::isspace(desc.front()) )
-				desc.remove_prefix( 1 );
-			while ( not desc.empty() and std::isspace(desc.back()) )
-				desc.remove_suffix( 1 );
-		}
-		// cleanup name
-		p = name.find( "::" );
-		if ( p != std::string_view::npos )
-			name = name.substr( p + 2 );
-		while ( not name.empty() and std::isspace(name.front()) )
-			name.remove_prefix( 1 );
-		while ( not name.empty() and std::isspace(name.back()) )
-			name.remove_suffix( 1 );
-
-		registerTestCase( name, cb );
-		registerTestCases( desc, args... );
+		registerTestCases_priv( i_desc, {}, cb, args... );
 	}
 	template<typename ...ARGS>
 	void registerTestCases( const std::function<void (TestSuite<T>&)> &i_dynamicRegistry, ARGS... args )
@@ -193,7 +183,7 @@ public:
 			{
 				// a method with external timer
 				auto methodPtr = it.method;
-				result.emplace_back( it.name, [methodPtr]( TestTimer &i_timer )
+				result.emplace_back( it.name, it.options, [methodPtr]( TestTimer &i_timer )
 					{
 						T obj; // don't time setup / teardown
 						i_timer.start();
@@ -205,7 +195,7 @@ public:
 			{
 				// a method that handle timing
 				auto methodPtr = it.methodWithTimer;
-				result.emplace_back( it.name, [methodPtr]( TestTimer &i_timer )
+				result.emplace_back( it.name, it.options, [methodPtr]( TestTimer &i_timer )
 					{
 						T obj; // don't time setup / teardown
 						i_timer.start(); // start in case the method forget
@@ -217,7 +207,7 @@ public:
 			{
 				// a function with external timer
 				auto func = it.func;
-				result.emplace_back( it.name, [func]( TestTimer &i_timer )
+				result.emplace_back( it.name, it.options, [func]( TestTimer &i_timer )
 					{
 						i_timer.start();
 						func();
@@ -228,7 +218,7 @@ public:
 			{
 				// a function that handle timing
 				auto func = it.funcWithTimer;
-				result.emplace_back( it.name, [func]( TestTimer &i_timer )
+				result.emplace_back( it.name, it.options, [func]( TestTimer &i_timer )
 					{
 						i_timer.start(); // start in case the function forget
 						func( i_timer );
@@ -245,16 +235,17 @@ private:
 	//! test case data, name and callback
 	struct TestCaseData
 	{
-		TestCaseData( const std::string_view &i_name, void (T::*i_method)() )
-			: name( i_name ), method( i_method ){}
-		TestCaseData( const std::string_view &i_name, void (T::*i_method)(TestTimer&) )
-			: name( i_name ), methodWithTimer( i_method ){}
-		TestCaseData( const std::string_view &i_name, const std::function<void()> &i_func )
-			: name( i_name ), func( i_func ){}
-		TestCaseData( const std::string_view &i_name, const std::function<void(TestTimer&)> &i_func )
-			: name( i_name ), funcWithTimer( i_func ){}
+		TestCaseData( const std::string_view &i_name, const TestOptions &i_options, void (T::*i_method)() )
+			: name( i_name ), options( i_options ), method( i_method ){}
+		TestCaseData( const std::string_view &i_name, const TestOptions &i_options, void (T::*i_method)(TestTimer&) )
+			: name( i_name ), options( i_options ), methodWithTimer( i_method ){}
+		TestCaseData( const std::string_view &i_name, const TestOptions &i_options, const std::function<void()> &i_func )
+			: name( i_name ), options( i_options ), func( i_func ){}
+		TestCaseData( const std::string_view &i_name, const TestOptions &i_options, const std::function<void(TestTimer&)> &i_func )
+			: name( i_name ), options( i_options ), funcWithTimer( i_func ){}
 		
 		std::string name;
+		TestOptions options;
 		
 		using method_t = void (T::*)();
 		using methodWithTimer_t =  void (T::*)(TestTimer&);
@@ -270,6 +261,33 @@ private:
 		funcWithTimer_t funcWithTimer;
 	};
 	std::vector<TestCaseData> _tests;
+
+	template<typename CB,typename ...ARGS>
+	void registerTestCases_priv( const std::string_view &i_desc, const TestOptions &i_options, const CB &cb, ARGS... args )
+	{
+		if ( i_desc.empty() )
+			return;
+		
+		std::string_view desc;
+		std::string_view name( i_desc );
+		auto p = i_desc.find( ',' );
+		if ( p != std::string_view::npos )
+		{
+			name = i_desc.substr( 0, p );
+			desc = i_desc.substr( p + 1 );
+		}
+		// cleanup name
+		p = name.find( "::" );
+		if ( p != std::string_view::npos )
+			name = name.substr( p + 2 );
+		while ( not name.empty() and std::isspace(name.front()) )
+			name.remove_prefix( 1 );
+		while ( not name.empty() and std::isspace(name.back()) )
+			name.remove_suffix( 1 );
+
+		registerTestCase( name, i_options, cb );
+		registerTestCases( desc, args... );
+	}
 };
 
 //! @todo: remove once in std
