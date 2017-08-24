@@ -391,14 +391,15 @@ int main( int argc, char **argv )
 			std::cout.flush();
 			
 			int64_t duration;
-			std::string result;
+			std::string errorString;
 			try
 			{
 				su::TestTimer timer;
 				test( timer );
 				duration = timer.nanoseconds();
 				// test succeed, an exception would have occured otherwise
-				std::cout << styleTTY{ttyGreen|ttyBold} << "OK" << styleTTY{};
+				const char kOK[] = "\xE2\x9C\x94";
+				std::cout << styleTTY{ttyGreen|ttyBold} << kOK << styleTTY{};
 				if ( test.timed() )
 				{
 					// a timed test, compare to last run
@@ -411,25 +412,28 @@ int main( int argc, char **argv )
 			}
 			catch ( su::FailedTest &ex )
 			{
-				result = std::string("TEST FAIL - ") + ex.what();
+				errorString = std::string("TEST FAIL - ") + ex.what();
 				++failure;
 			}
 			catch ( std::exception &ex )
 			{
-				result = std::string("EXCEPTION CAUGHT - ") + ex.what();
+				errorString = std::string("EXCEPTION CAUGHT - ") + ex.what();
 				++failure;
 			}
 			catch ( ... )
 			{
-				result = "UNKNOWN EXCEPTION CAUGHT";
+				errorString = "UNKNOWN EXCEPTION CAUGHT";
 				++failure;
 			}
-			if ( not result.empty() )
-				std::cout << styleTTY{ttyRed} << result << styleTTY{};
+			if ( not errorString.empty() )
+			{
+				const char kFailed[] = "\xE2\x9C\x98";
+				std::cout << styleTTY{ttyRed} << kFailed << " " << errorString << styleTTY{};
+			}
 			std::cout << std::endl;
 			
 			// record results
-			db->addResult( testSuite->name(), test.name(), result, duration );
+			db->addResult( testSuite->name(), test.name(), errorString, duration );
 		}
 	}
 	if ( action != Action::kList )
