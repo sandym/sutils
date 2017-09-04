@@ -45,7 +45,6 @@ public:
 	struct conn_node
 	{
 		func_type func;
-		conn_node *prev = nullptr;
 		conn_node *next = nullptr;
 	};
 	using conn = conn_node *;
@@ -64,9 +63,7 @@ public:
 			return nullptr;
 		
 		assert( not _in_signal );
-		auto c = new conn_node{ i_func, nullptr, _head  };
-		if ( _head )
-			_head->prev = c;
+		auto c = new conn_node{ i_func, _head  };
 		_head = c;
 		return c;
 		
@@ -94,16 +91,19 @@ public:
 		if ( c == _head )
 		{
 			_head = _head->next;
-			if ( _head )
-				_head->prev = nullptr;
+			delete c;
 		}
 		else
 		{
-			if ( c->next )
-				c->next->prev = c->prev;
-			c->prev->next = c->next;
+			auto p = _head;
+			while ( p != nullptr and p->next != c )
+				p = p->next;
+			if ( p != nullptr )
+			{
+				p->next = c->next;
+				delete c;
+			}
 		}
-		delete c;
 	}
 
 	void disconnectAll()
@@ -124,11 +124,8 @@ public:
 		~scoped_conn() { disconnect(); }
 		void disconnect()
 		{
-			if ( c != nullptr )
-			{
-				s.disconnect( c );
-				c = nullptr;
-			}
+			s.disconnect( c );
+			c = nullptr;
 		}
 
 	private:

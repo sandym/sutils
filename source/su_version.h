@@ -49,8 +49,8 @@ public:
 	constexpr bool operator!=( const version &rhs ) const { return cmp( rhs ) != 0; }
 	constexpr bool operator<=( const version &rhs ) const { return cmp( rhs ) <= 0; }
 
-	std::string string() const;
-	std::string full_string() const;
+	std::string string() const; //!< 1.2.3
+	std::string full_string() const; //!< 1.2.3.4, same as string() + build number
 
 private:
 	const int _major = 0;

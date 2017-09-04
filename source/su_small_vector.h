@@ -39,7 +39,7 @@ public:
 	typedef std::reverse_iterator<iterator> reverse_iterator;
 	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
-	small_vector() noexcept(std::is_nothrow_default_constructible<allocator_type>::value) = default;
+	small_vector() noexcept(std::is_nothrow_default_constructible_v<allocator_type>) = default;
 	explicit small_vector( const allocator_type &i_alloc ) : _compp( i_alloc ){}
 //explicit small_vector( size_type n );
 //explicit small_vector( size_type n, const allocator_type &i_alloc );
@@ -47,7 +47,7 @@ public:
 //template <class InputIterator>
 //small_vector( InputIterator first, InputIterator last, const allocator_type &i_alloc = {} );
 //small_vector( const small_vector &x );
-//small_vector( small_vector &&x ) noexcept(std::is_nothrow_move_constructible<allocator_type>::value);
+//small_vector( small_vector &&x ) noexcept(std::is_nothrow_move_constructible_v<allocator_type>);
 //small_vector( std::initializer_list<value_type> il );
 //small_vector( std::initializer_list<value_type> il, const allocator_type &i_alloc );
 	~small_vector()
@@ -61,7 +61,7 @@ public:
 			get_alloc().deallocate( u._vec._storage, capacity() );
 	}
 //small_vector &operator=( const small_vector &x );
-//small_vector &operator=( small_vector &&x ) noexcept(allocator_type::propagate_on_container_move_assignment::value and std::is_nothrow_move_assignable<allocator_type>::value);
+//small_vector &operator=( small_vector &&x ) noexcept(allocator_type::propagate_on_container_move_assignment::value and std::is_nothrow_move_assignable_v<allocator_type>);
 //small_vector &operator=( std::initializer_list<value_type> il );
 //template <class InputIterator>
 //void assign( InputIterator first, InputIterator last );
