@@ -56,9 +56,9 @@ struct json_tests
 };
 
 REGISTER_TEST_SUITE( json_tests,
-			   su::TimedTest, &json_tests::test_case_1,
-			   su::TimedTest, &json_tests::test_case_2,
-			   su::TimedTest, &json_tests::test_case_3 );
+			   su::timed_test(), &json_tests::test_case_1,
+			   su::timed_test(), &json_tests::test_case_2,
+			   su::timed_test(), &json_tests::test_case_3 );
 
 std::string loadFile( const std::string &i_path )
 {
@@ -369,7 +369,7 @@ void json_tests::test_case_3()
 	const char *roundtrip10 = R"END({"a":null,"foo":"bar"})END";
 	
 	auto json = su::Json::parse( roundtrip10, err );
-	TEST_ASSERT( err.empty() );
+	TEST_ASSERT( err.empty(), err );
 	stat = Stat();
 	getStat( json, stat );
 	TEST_ASSERT_EQUAL( stat.objectCount, 1 );
@@ -386,3 +386,4 @@ void json_tests::test_case_3()
 	auto s = json.dump();
 	TEST_ASSERT_EQUAL( s, roundtrip10 );
 }
+

@@ -53,9 +53,10 @@ private:
 struct TestOptions
 {
 	bool timed{ false }; //!< time regression for the test will be tracked.
+	int repeat = 5;
 };
 
-const auto TimedTest = TestOptions{ true };
+inline TestOptions timed_test( int i_repeat = 5 ) { return TestOptions{ true, i_repeat }; }
 
 /*!
 	A single test

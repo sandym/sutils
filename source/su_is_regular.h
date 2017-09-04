@@ -21,14 +21,18 @@ namespace su {
 template<typename T>
 struct is_regular :
     std::integral_constant<bool,
-        std::is_default_constructible<T>::value and
-        std::is_copy_constructible<T>::value and
-        std::is_move_constructible<T>::value and
-        std::is_copy_assignable<T>::value and
-        std::is_move_assignable<T>::value>
+        std::is_default_constructible_v<T> and
+        std::is_copy_constructible_v<T> and
+        std::is_move_constructible_v<T> and
+        std::is_copy_assignable_v<T> and
+        std::is_move_assignable_v<T>>
      {};
+
+template<typename T>
+constexpr bool is_regular_v = is_regular<T>::value;
+
 //struct T {};
-//static_assert(is_regular<T>::value, "huh?");
+//static_assert(is_regular_v<T>, "huh?");
 
 }
 

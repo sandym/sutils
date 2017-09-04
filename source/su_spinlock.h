@@ -14,6 +14,7 @@
 #define H_SU_SPINLOCK
 
 #include <atomic>
+#include <thread>
 
 namespace su {
 
@@ -25,7 +26,19 @@ private:
 public:
 	void lock()
 	{
-		while ( _locked.test_and_set(std::memory_order_acquire) );
+		for ( int i = 0; i < 100; ++i )
+		{
+			if ( not _locked.test_and_set(std::memory_order_acquire) )
+				return;
+		}
+		for ( int i = 0; i < 1000; ++i )
+		{
+			if ( not _locked.test_and_set(std::memory_order_acquire) )
+				return;
+			std::this_thread::yield();
+		}
+		while ( _locked.test_and_set(std::memory_order_acquire) )
+			std::this_thread::sleep_for(std::chrono::nanoseconds(1));
 	}
 	
 	void unlock()

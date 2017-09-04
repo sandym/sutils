@@ -392,7 +392,9 @@ int main( int argc, char **argv )
 			try
 			{
 				su::TestTimer timer;
-				test( timer );
+				int repeat = std::max( test.options().timed ? test.options().repeat : 1, 1 );
+				for ( int i = 0; i < repeat; ++i )
+					test( timer );
 				duration = timer.nanoseconds();
 				// test succeed, an exception would have occured otherwise
 				const char kOK[] = "\xE2\x9C\x94";

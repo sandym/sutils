@@ -131,6 +131,6 @@ this is text
 	}
 };
 
-REGISTER_TEST_SUITE( xml_tests, su::TimedTest, &xml_tests::test_case_1 );
+REGISTER_TEST_SUITE( xml_tests, su::timed_test(), &xml_tests::test_case_1 );
 
 #endif

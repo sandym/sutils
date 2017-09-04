@@ -13,7 +13,7 @@
 #ifndef H_SU_PLATFORM
 #define H_SU_PLATFORM
 
-//	define those macros to 1 or 0
+//	defines those macros to 1 or 0
 //		UPLATFORM_MAC
 //		UPLATFORM_IOS
 //		UPLATFORM_WIN

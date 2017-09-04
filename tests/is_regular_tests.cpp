@@ -39,13 +39,13 @@ struct is_regular_tests
 
 	void test_case_1()
 	{
-		TEST_ASSERT( su::is_regular<int>::value );
+		TEST_ASSERT( su::is_regular_v<int> );
 		TEST_ASSERT( su::is_regular<empty_struct>::value );
 	}
 
 	void test_case_2()
 	{
-		TEST_ASSERT( not su::is_regular<not_default_constructible>::value );
+		TEST_ASSERT( not su::is_regular_v<not_default_constructible> );
 		TEST_ASSERT( not su::is_regular<not_copy_constructible>::value );
 	}
 	

@@ -18,14 +18,14 @@
 
 namespace su {
 /*!
-   @brief uuid value, unique across the universe.
+   @brief uuid value, unique across the known universe.
 */
 class uuid final
 {
 public:
-	static uuid create();
+	static uuid create(); // create a unique one
 
-	uuid() = default;
+	uuid() = default; // uninitialised
 	uuid( const uuid & ) = default;
 	uuid( uuid && ) = default;
 	uuid( const std::array<uint8_t, 16> &i_value ) : _uuid( i_value ){}

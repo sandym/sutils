@@ -47,4 +47,4 @@ struct uuid_tests
 	}
 };
 
-REGISTER_TEST_SUITE( uuid_tests, su::TimedTest, &uuid_tests::test_case_1 );
+REGISTER_TEST_SUITE( uuid_tests, su::timed_test(), &uuid_tests::test_case_1 );

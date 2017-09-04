@@ -12,3 +12,7 @@
 * cfauto
 * attachable
 * version
+
+su_membuf.h
+su_null_stream.h
+su_teebuf.h
