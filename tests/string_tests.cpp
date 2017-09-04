@@ -25,21 +25,21 @@ struct string_tests
 	//	declare all test cases here...
 	void test_case_convert();
 	void test_case_upper_lower();
-	void test_case_trimSpaces();
+	void test_case_trim_spaces();
 	void test_case_compare();
 	void test_case_split_join();
 	void test_case_japanese();
-	void test_case_levenshteinDistance();
+	void test_case_levenshtein_distance();
 };
 
 REGISTER_TEST_SUITE( string_tests,
 				&string_tests::test_case_convert,
 				&string_tests::test_case_upper_lower,
-				&string_tests::test_case_trimSpaces,
+				&string_tests::test_case_trim_spaces,
 				&string_tests::test_case_compare,
 				&string_tests::test_case_split_join,
 				&string_tests::test_case_japanese,
-				&string_tests::test_case_levenshteinDistance );
+				&string_tests::test_case_levenshtein_distance );
 
 // MARK: -
 // MARK:  === test cases ===
@@ -66,13 +66,13 @@ void string_tests::test_case_upper_lower()
 	TEST_ASSERT_EQUAL( su::toupper("aAbBcC"), "AABBCC" );
 }
 
-void string_tests::test_case_trimSpaces()
+void string_tests::test_case_trim_spaces()
 {
-	TEST_ASSERT_EQUAL( su::trimSpaces_view("aa"), "aa" );
-	TEST_ASSERT_EQUAL( su::trimSpaces_view("aa "), "aa" );
-	TEST_ASSERT_EQUAL( su::trimSpaces_view("aa  "), "aa" );
-	TEST_ASSERT_EQUAL( su::trimSpaces_view("  aa"), "aa" );
-	TEST_ASSERT_EQUAL( su::trimSpaces_view("  aa   "), "aa" );
+	TEST_ASSERT_EQUAL( su::trim_spaces_view("aa"), "aa" );
+	TEST_ASSERT_EQUAL( su::trim_spaces_view("aa "), "aa" );
+	TEST_ASSERT_EQUAL( su::trim_spaces_view("aa  "), "aa" );
+	TEST_ASSERT_EQUAL( su::trim_spaces_view("  aa"), "aa" );
+	TEST_ASSERT_EQUAL( su::trim_spaces_view("  aa   "), "aa" );
 }
 
 void string_tests::test_case_compare()
@@ -110,9 +110,9 @@ void string_tests::test_case_split_join()
 void string_tests::test_case_japanese()
 {
 	const char kabc[] = "a b c";
-	TEST_ASSERT_EQUAL( su::japaneseHiASCIIFix( kabc ), std::string("a b c") );
+	TEST_ASSERT_EQUAL( su::japanese_hiASCII_fix( kabc ), std::string("a b c") );
 	const char16_t kabcH[] = { 0xFF41, 0x0020, 0xFF42, 0x0020, 0xFF43, 0 };
-	TEST_ASSERT_EQUAL( su::japaneseHiASCIIFix( su::to_string( kabcH ) ), std::string("a b c") );
+	TEST_ASSERT_EQUAL( su::japanese_hiASCII_fix( su::to_string( kabcH ) ), std::string("a b c") );
 
 	const char knumber[] = "125";
 	TEST_ASSERT_EQUAL( su::kanjiNumberFix( knumber ), std::string("125") );
@@ -120,12 +120,12 @@ void string_tests::test_case_japanese()
 	TEST_ASSERT_EQUAL( su::kanjiNumberFix( su::to_string( kjnumber ) ), std::string("125") );
 }
 
-void string_tests::test_case_levenshteinDistance()
+void string_tests::test_case_levenshtein_distance()
 {
-	TEST_ASSERT_EQUAL( su::levenshteinDistance( "ab", "cdefghij" ), size_t(8) );
-	TEST_ASSERT_EQUAL( su::levenshteinDistance( "ab", "cd" ), size_t(2) );
-	TEST_ASSERT_EQUAL( su::levenshteinDistance( "sandy", "sandym" ), size_t(1) );
-	TEST_ASSERT_EQUAL( su::levenshteinDistance( "sandy", "sundy" ), size_t(1) );
-	TEST_ASSERT_EQUAL( su::levenshteinDistance( "sandy", "sunday" ), size_t(2) );
-	TEST_ASSERT_EQUAL( su::levenshteinDistance( "midori", "Midori" ), size_t(1) );
+	TEST_ASSERT_EQUAL( su::levenshtein_distance( "ab", "cdefghij" ), size_t(8) );
+	TEST_ASSERT_EQUAL( su::levenshtein_distance( "ab", "cd" ), size_t(2) );
+	TEST_ASSERT_EQUAL( su::levenshtein_distance( "sandy", "sandym" ), size_t(1) );
+	TEST_ASSERT_EQUAL( su::levenshtein_distance( "sandy", "sundy" ), size_t(1) );
+	TEST_ASSERT_EQUAL( su::levenshtein_distance( "sandy", "sunday" ), size_t(2) );
+	TEST_ASSERT_EQUAL( su::levenshtein_distance( "midori", "Midori" ), size_t(1) );
 }

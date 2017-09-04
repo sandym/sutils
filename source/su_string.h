@@ -198,8 +198,8 @@ STRING_TYPE join( const CONT &i_list, const STRING_TYPE &i_sep )
 /*!
    @brief Remove spaces at the begining and end of the string.
 */
-std::string_view trimSpaces_view( const std::string_view &i_s );
-inline std::string trimSpaces( const std::string_view &i_s ) { return std::string{ trimSpaces_view( i_s ) }; }
+std::string_view trim_spaces_view( const std::string_view &i_s );
+inline std::string trim_spaces( const std::string_view &i_s ) { return std::string{ trim_spaces_view( i_s ) }; }
 
 inline bool contains( const std::string_view &i_text, const std::string_view &i_s )
 {
@@ -207,22 +207,22 @@ inline bool contains( const std::string_view &i_text, const std::string_view &i_
 }
 
 bool contains_nocase( const std::string_view &i_text, const std::string_view &i_s );
-bool startsWith( const std::string_view &i_text, const std::string_view &i_s );
-bool startsWith_nocase( const std::string_view &i_text, const std::string_view &i_s );
-bool endsWith( const std::string_view &i_text, const std::string_view &i_s );
-bool endsWith_nocase( const std::string_view &i_text, const std::string_view &i_s );
+bool starts_with( const std::string_view &i_text, const std::string_view &i_s );
+bool starts_with_nocase( const std::string_view &i_text, const std::string_view &i_s );
+bool ends_with( const std::string_view &i_text, const std::string_view &i_s );
+bool ends_with_nocase( const std::string_view &i_text, const std::string_view &i_s );
 
 /*!
    @brief replace monospaced japanese ASCII.
 */
-std::string japaneseHiASCIIFix( const std::string_view &i_s );
+std::string japanese_hiASCII_fix( const std::string_view &i_s );
 
 /*!
    @brief replace kanji numbers with arab ones.
 */
 std::string kanjiNumberFix( const std::string_view &i_s );
 
-size_t levenshteinDistance( const std::string_view &i_string,
+size_t levenshtein_distance( const std::string_view &i_string,
 							const std::string_view &i_target );
 
 }

@@ -157,24 +157,30 @@ CFStringRef CreateCFString( const std::string_view &s )
 
 std::string tolower( const std::string_view &s )
 {
-	std::string other( s );
-	for ( auto &it : other )
-	{
-		if ( it < 126 )
-			it = (char)std::tolower( it );
-	}
-	return other;
+#if UPLATFORM_MAC || UPLATFORM_IOS
+	cfauto<CFStringRef> cfs( CFStringCreateWithBytesNoCopy( 0, (const UInt8 *)s.data(), s.size(), kCFStringEncodingUTF8, false, kCFAllocatorNull ) );
+	cfauto<CFMutableStringRef> ms( CFStringCreateMutableCopy( 0, 0, cfs ) );
+	CFStringLowercase( ms, nullptr );
+	return to_string( ms );
+#elif UPLATFORM_WIN
+#error
+#else
+#error
+#endif
 }
 
 std::string toupper( const std::string_view &s )
 {
-	std::string other( s );
-	for ( auto &it : other )
-	{
-		if ( it < 126 )
-			it = (char)std::toupper( it );
-	}
-	return other;
+#if UPLATFORM_MAC || UPLATFORM_IOS
+	cfauto<CFStringRef> cfs( CFStringCreateWithBytesNoCopy( 0, (const UInt8 *)s.data(), s.size(), kCFStringEncodingUTF8, false, kCFAllocatorNull ) );
+	cfauto<CFMutableStringRef> ms( CFStringCreateMutableCopy( 0, 0, cfs ) );
+	CFStringUppercase( ms, nullptr );
+	return to_string( ms );
+#elif UPLATFORM_WIN
+#error
+#else
+#error
+#endif
 }
 
 int compare_nocase( const std::string_view &lhs, const std::string_view &rhs )
@@ -306,7 +312,7 @@ int ucompare_nocase_numerically( const std::string_view &lhs, const std::string_
 	}
 }
 
-std::string_view trimSpaces_view( const std::string_view &i_s )
+std::string_view trim_spaces_view( const std::string_view &i_s )
 {
 	auto f = i_s.find_first_not_of( "\r\n\t " );
 	auto l = i_s.find_last_not_of( "\r\n\t " );
@@ -320,17 +326,17 @@ std::string_view trimSpaces_view( const std::string_view &i_s )
 }
 
 //bool contains_nocase( const std::string_view &i_text, const std::string_view &i_s );
-bool startsWith( const std::string_view &i_text, const std::string_view &i_s )
+bool starts_with( const std::string_view &i_text, const std::string_view &i_s )
 {
 	if ( i_s.size() > i_text.size() )
 		return false;
     return i_text.substr( 0, i_s.size() ) == i_s;
 }
-//bool startsWith_nocase( const std::string_view &i_text, const std::string_view &i_s );
-//bool endsWith( const std::string_view &i_text, const std::string_view &i_s );
-//bool endsWith_nocase( const std::string_view &i_text, const std::string_view &i_s );
+//bool starts_with_nocase( const std::string_view &i_text, const std::string_view &i_s );
+//bool ends_with( const std::string_view &i_text, const std::string_view &i_s );
+//bool ends_with_nocase( const std::string_view &i_text, const std::string_view &i_s );
 
-std::string japaneseHiASCIIFix( const std::string_view &i_s )
+std::string japanese_hiASCII_fix( const std::string_view &i_s )
 {
 	auto s16 = to_u16string( i_s );
 	for ( auto &c : s16 )
@@ -510,7 +516,7 @@ std::string kanjiNumberFix( const std::string_view &i_s )
 	return to_string( result );
 }
 
-size_t levenshteinDistance( const std::string_view &i_string,
+size_t levenshtein_distance( const std::string_view &i_string,
 							const std::string_view &i_target )
 {
 	auto string16 = to_u16string( i_string );
