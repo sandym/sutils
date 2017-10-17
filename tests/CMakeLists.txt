@@ -4,18 +4,19 @@ project( sutils_tests )
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set( TEST_RUNNER ../source/tests/simple_tests_runner.cpp ../source/tests/simple_tests.h )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../source )
+set( TEST_RUNNER ../src/tests/simple_tests_runner.cpp
+				../src/tests/simple_tests.h )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../src )
 
 file( GLOB ALL_TESTS
-    "*_tests.cpp"
+    "*/*_tests.cpp"
 )
 
 file( GLOB SUTILS_HEADERS
-    "../source/*.h"
+    "../src/su/*/*.h"
 )
 file( GLOB SUTILS_SOURCES
-    "../source/*.cpp"
+    "../src/su/*/*.cpp"
 )
 
 add_executable ( sutils_tests

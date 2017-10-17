@@ -1,0 +1,36 @@
+/*
+ *  hash_combine.h
+ *  sutils
+ *
+ *  Created by Sandy Martel on 17/10/2017.
+ *  Copyright (c) 2015年 Sandy Martel. All rights reserved.
+ *
+ * Permission to use, copy, modify, distribute, and sell this software for any
+ * purpose is hereby granted without fee. The sotware is provided "AS-IS" and
+ * without warranty of any kind, express, implied or otherwise.
+ *
+ */
+
+#ifndef H_SU_HASH_COMBINE
+#define H_SU_HASH_COMBINE
+
+#include <functional>
+
+namespace su {
+
+inline std::size_t hash_combine( std::size_t seed )
+{
+	return seed;
+}
+	
+template<typename T, typename... R>
+inline std::size_t hash_combine( std::size_t seed, const T &v, R... r )
+{
+	std::hash<T> hasher;
+	seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+	return hash_combine( seed, r... );
+}
+
+}
+
+#endif
