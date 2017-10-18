@@ -43,7 +43,8 @@ private:
 };
 
 template<typename char_type, typename traits = std::char_traits<char_type> >
-class basic_null_stream : private basic_nullbuf<char_type,traits>, public std::ostream
+class basic_null_stream : private basic_nullbuf<char_type,traits>,
+							public std::ostream
 {
 public:
     basic_null_stream() : std::ostream( this ) {}

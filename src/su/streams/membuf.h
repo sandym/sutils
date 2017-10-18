@@ -30,9 +30,9 @@ private:
 	// Buffer management and positioning:
 //	virtual basic_streambuf *setbuf( char_type *s, std::streamsize n );
 	virtual pos_type seekoff( off_type off, std::ios_base::seekdir way,
-								std::ios_base::openmode which = std::ios_base::in | std::ios_base::out );
+						std::ios_base::openmode which = std::ios_base::in | std::ios_base::out );
 	virtual pos_type seekpos( pos_type sp,
-								std::ios_base::openmode which = std::ios_base::in | std::ios_base::out );
+						std::ios_base::openmode which = std::ios_base::in | std::ios_base::out );
 //	virtual int sync();
 
 	// Get area:

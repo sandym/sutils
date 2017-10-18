@@ -279,7 +279,14 @@ su::details::FormatSpec parseFormat( const std::string_view &i_ptr )
 	
 	enum stage_t
 	{
-		kParsingIndex, kParsingFlags, kParsingWidth, kParsingPrecision, kParsingLength, kParsingSpecifier, kParserDone, kParserFailed
+		kParsingIndex,
+		kParsingFlags,
+		kParsingWidth,
+		kParsingPrecision,
+		kParsingLength,
+		kParsingSpecifier,
+		kParserDone,
+		kParserFailed
 	};
 	stage_t stage = kParsingIndex;
 	int v;
@@ -318,11 +325,12 @@ su::details::FormatSpec parseFormat( const std::string_view &i_ptr )
 			}
 			case kParsingFlags:
 			{
-				// -		left adjust
-				// +		+/- for signed value
-				// space	if no signed is to be printed, print a space
-				// #		float always with decimal point, octal always with 0 hex always with 0x
-				// 0		pad numbers with 0
+				// -        left adjust
+				// +        +/- for signed value
+				// space    if no signed is to be printed, print a space
+				// #        float always with decimal point, octal always with
+				//          0 hex always with 0x
+				// 0        pad numbers with 0
 				while ( ptr < i_ptr.end() and stage == kParsingFlags )
 				{
 					switch ( *ptr )
@@ -410,8 +418,8 @@ su::details::FormatSpec parseFormat( const std::string_view &i_ptr )
 			{
 				if ( ptr < i_ptr.end() )
 				{
-					// h	next d, o, x or u is a short
-					// l	next d, o, x or u is a long
+					// h    next d, o, x or u is a short
+					// l    next d, o, x or u is a long
 					// ll	next d, o, x or u is a long long
 					// z	size_t
 					// t	ptrdiff_t
@@ -452,22 +460,22 @@ su::details::FormatSpec parseFormat( const std::string_view &i_ptr )
 			{
 				if ( ptr < i_ptr.end() )
 				{
-					// d or i	integer decimal
-					// u		unsigned integer decimal
-					// o		unsigned integer octal
-					// x		unsigned integer hex 0x
-					// X		unsigned integer hex 0X
-					// b		unsigned integer binary 0b
-					// B		unsigned integer binary 0B
-					// f or F	float [-]ddd.ddd
-					// e		float [-]d.ddde+dd or [-]d.ddde-dd
-					// E		float [-]d.dddE+dd or [-]d.dddE-dd
-					// g		d, f or e, whichever gives greatest precision
-					// G		d, F or E, whichever gives greatest precision
-					// c		character
-					// s		string
-					// p		pointer
-					// @		any thing convertible to a string (std::to_string)
+					// d or i   integer decimal
+					// u        unsigned integer decimal
+					// o        unsigned integer octal
+					// x        unsigned integer hex 0x
+					// X        unsigned integer hex 0X
+					// b        unsigned integer binary 0b
+					// B        unsigned integer binary 0B
+					// f or F   float [-]ddd.ddd
+					// e        float [-]d.ddde+dd or [-]d.ddde-dd
+					// E        float [-]d.dddE+dd or [-]d.dddE-dd
+					// g        d, f or e, whichever gives greatest precision
+					// G        d, F or E, whichever gives greatest precision
+					// c        character
+					// s        string
+					// p        pointer
+					// @        any thing convertible to a string (to_string)
 					switch ( *ptr )
 					{
 						case 'd': case 'i':
@@ -580,7 +588,9 @@ void appendIntegerSimple( char *&io_ptr, int i_arg )
 
 namespace su { namespace details {
 
-format_impl::format_impl( const std::string_view &i_format, const FormatArg *i_args, size_t i_argsSize )
+format_impl::format_impl( const std::string_view &i_format,
+						const FormatArg *i_args,
+						size_t i_argsSize )
 {
 	std::vector<su::details::FormatSpec> formatSpecs;
 	formatSpecs.reserve( i_argsSize );
@@ -648,7 +658,11 @@ format_impl::format_impl( const std::string_view &i_format, const FormatArg *i_a
 							formatSpecs[i].valueIndex = index;
 						}
 					}
-					toVisit.erase( std::remove_if( toVisit.begin(), toVisit.end(), [&]( size_t v ){ return formatSpecs[v].valueIndex == visiting; } ), toVisit.end() );
+					toVisit.erase( std::remove_if( toVisit.begin(), toVisit.end(),
+									[&]( size_t v )
+									{
+										return formatSpecs[v].valueIndex == visiting;
+									} ), toVisit.end() );
 				}
 				++visiting;
 			}
@@ -697,7 +711,9 @@ format_impl::format_impl( const std::string_view &i_format, const FormatArg *i_a
 	result.append( current, i_format.end() );
 }
 
-void format_impl::appendFormattedArg( const su::details::FormatSpec &i_formatSpec, const su::details::FormatArg *i_args, size_t i_argsSize )
+void format_impl::appendFormattedArg( const su::details::FormatSpec &i_formatSpec,
+										const su::details::FormatArg *i_args,
+										size_t i_argsSize )
 {
 	if ( i_formatSpec.valueIndex < 0 )
 		throw std::runtime_error( "missing argument" );
@@ -814,7 +830,12 @@ void format_impl::appendFormattedArg( const su::details::FormatSpec &i_formatSpe
 	}
 }
 
-char *format_impl::prepare_append_integer( int num_digits, uint16_t flags, int width, int prec, const char *prefix, int prefix_size )
+char *format_impl::prepare_append_integer( int num_digits,
+											uint16_t flags,
+											int width,
+											int prec,
+											const char *prefix,
+											int prefix_size )
 {
 	if ( prec < num_digits )
 		prec = num_digits;

@@ -43,7 +43,8 @@ std::string toupper( const std::string_view &s );
 /*!
 	@brief Case insensitive compare.
 
-		Compare 2 string, case insensitive. Take care of decomposed and precomposed Unicode..
+		Compare 2 string, case insensitive. Take care of decomposed and
+		precomposed Unicode..
 	@param lhs string to compare
 	@param rhs string to compare to
 	@return     like strcmp()
@@ -88,9 +89,9 @@ int ucompare_numerically( const std::string_view &lhs, const std::string_view &r
 */
 int ucompare_nocase_numerically( const std::string_view &lhs, const std::string_view &rhs );
 
-
 template<typename CHAR_TYPE>
-std::vector<std::basic_string_view<CHAR_TYPE>> split_view( const std::basic_string_view<CHAR_TYPE> &s, CHAR_TYPE c )
+std::vector<std::basic_string_view<CHAR_TYPE>>
+	split_view( const std::basic_string_view<CHAR_TYPE> &s, CHAR_TYPE c )
 {
 	std::vector<std::basic_string_view<CHAR_TYPE>> res;
 	typename std::basic_string_view<CHAR_TYPE>::size_type a = 0;
@@ -109,7 +110,8 @@ std::vector<std::basic_string_view<CHAR_TYPE>> split_view( const std::basic_stri
 }
 
 template<typename CHAR_TYPE>
-std::vector<std::basic_string<CHAR_TYPE>> split( const std::basic_string_view<CHAR_TYPE> &s, CHAR_TYPE c )
+std::vector<std::basic_string<CHAR_TYPE>>
+	split( const std::basic_string_view<CHAR_TYPE> &s, CHAR_TYPE c )
 {
 	auto viewList = split_view( s, c );
 	std::vector<std::basic_string<CHAR_TYPE>> res;
@@ -120,7 +122,8 @@ std::vector<std::basic_string<CHAR_TYPE>> split( const std::basic_string_view<CH
 }
 
 template<typename CHAR_TYPE, typename COND>
-std::vector<std::basic_string_view<CHAR_TYPE>> split_view_if( const std::basic_string_view<CHAR_TYPE> &s, COND i_cond )
+std::vector<std::basic_string_view<CHAR_TYPE>>
+	split_view_if( const std::basic_string_view<CHAR_TYPE> &s, COND i_cond )
 {
 	std::vector<std::basic_string_view<CHAR_TYPE>> res;
 	typename std::basic_string_view<CHAR_TYPE>::size_type a = 0;
@@ -139,7 +142,8 @@ std::vector<std::basic_string_view<CHAR_TYPE>> split_view_if( const std::basic_s
 }
 
 template<typename CHAR_TYPE, typename COND>
-std::vector<std::basic_string<CHAR_TYPE>> split_if( const std::basic_string_view<CHAR_TYPE> &s, COND i_cond )
+std::vector<std::basic_string<CHAR_TYPE>>
+	split_if( const std::basic_string_view<CHAR_TYPE> &s, COND i_cond )
 {
 	auto viewList = split_view_if( s, i_cond );
 	std::vector<std::basic_string<CHAR_TYPE>> res;
@@ -199,7 +203,10 @@ STRING_TYPE join( const CONT &i_list, const STRING_TYPE &i_sep )
    @brief Remove spaces at the begining and end of the string.
 */
 std::string_view trim_spaces_view( const std::string_view &i_s );
-inline std::string trim_spaces( const std::string_view &i_s ) { return std::string{ trim_spaces_view( i_s ) }; }
+inline std::string trim_spaces( const std::string_view &i_s )
+{
+	return std::string{ trim_spaces_view( i_s ) };
+}
 
 inline bool contains( const std::string_view &i_text, const std::string_view &i_s )
 {

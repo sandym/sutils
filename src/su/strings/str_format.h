@@ -58,7 +58,7 @@ public:
 	template<typename T>
 	T cast() const;
 	
-	// to deal with string and others
+	// to deal with strings and others
 	std::string to_string() const;
 	
 private:
@@ -103,7 +103,10 @@ private:
 	{
 		any( const T &i_value ) : value( i_value ){}
 		virtual ~any() = default;
-		virtual std::string to_string() const { using namespace std; return to_string( *value ); }
+		virtual std::string to_string() const
+		{
+			using namespace std; return to_string( *value );
+		}
 		const T &value;
 	};
 };
@@ -111,24 +114,40 @@ private:
 class format_impl
 {
 public:
-	format_impl( const std::string_view &i_format, const su::details::FormatArg *i_args, size_t i_argsSize );
+	format_impl( const std::string_view &i_format,
+		const su::details::FormatArg *i_args,
+		size_t i_argsSize );
 
 	std::string result;
 	
 private:
-	void appendFormattedArg( const su::details::FormatSpec &i_formatSpec, const su::details::FormatArg *i_args, size_t i_argsSize );
+	void appendFormattedArg( const su::details::FormatSpec &i_formatSpec,
+							const su::details::FormatArg *i_args,
+							size_t i_argsSize );
 	template<typename T>
-	void formatInteger( T i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec );
-	char *prepare_append_integer( int num_digits, uint16_t flags, int width, int prec, const char *prefix, int prefix_size );
-	void formatDouble( double i_arg, const su::details::FormatSpec &i_formatSpec, int width, int prec );
+	void formatInteger( T i_arg,
+						const su::details::FormatSpec &i_formatSpec,
+						int width,
+						int prec );
+	char *prepare_append_integer( int num_digits,
+									uint16_t flags,
+									int width,
+									int prec,
+									const char *prefix,
+									int prefix_size );
+	void formatDouble( double i_arg,
+						const su::details::FormatSpec &i_formatSpec,
+						int width,
+						int prec );
 };
 }
 
 /*!
    @brief  A printf-like formatter function.
 
-		It accept all the printf format including i18n formatting (i.e. %1$s to reorder the arguments).
-		It also accept %@ to print anything that can be converted to a string (with a to_string overload)
+		It accept all the printf format including i18n formatting (i.e. %1$s
+		to reorder the arguments). It also accept %@ to print anything that can
+		be converted to a string (with a to_string overload)
 
    @param[in] i_format a format string
    @return     formatted string

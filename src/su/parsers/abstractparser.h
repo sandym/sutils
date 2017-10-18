@@ -130,8 +130,8 @@ public:
 	/*!
 	   @brief put back a token.
 
-			Put back a token in the stream, it will be the next token to be returned
-			by nextToken().
+			Put back a token in the stream, it will be the next token to be
+			returned by nextToken().
 	   @param[in]  i_token the token to return to the stream
 	*/
 	void putBackToken( token_type &i_token );
@@ -139,8 +139,8 @@ public:
 	/*!
 	   @brief get a token of a specified type.
 
-		get the next token of the stream, throw a parse error if no token found or
-			the token is not of the specified type.
+		get the next token of the stream, throw a parse error if no token found
+		or the token is not of the specified type.
 	   @param[out]  o_token the token found or an invalid token
 	   @param[in]   i_forcedToken the type wanted
 	*/
@@ -164,7 +164,8 @@ protected:
 };
 
 template<typename TOKEN_TYPE>
-abstractparser<TOKEN_TYPE>::abstractparser( std::istream &i_str, const std::string_view &i_name )
+abstractparser<TOKEN_TYPE>::abstractparser( std::istream &i_str,
+											const std::string_view &i_name )
 	: abstractparserbase( i_str, i_name )
 {
 }
@@ -193,14 +194,16 @@ void abstractparser<TOKEN_TYPE>::putBackToken( token<TOKEN_TYPE> &i_token )
 }
 
 template<typename TOKEN_TYPE>
-void abstractparser<TOKEN_TYPE>::nextTokenForced( token<TOKEN_TYPE> &o_token, TOKEN_TYPE i_forcedToken )
+void abstractparser<TOKEN_TYPE>::nextTokenForced( token<TOKEN_TYPE> &o_token,
+													TOKEN_TYPE i_forcedToken )
 {
 	if ( not nextTokenOptional( o_token, i_forcedToken ) )
 		throwTokenizerException();
 }
 
 template<typename TOKEN_TYPE>
-bool abstractparser<TOKEN_TYPE>::nextTokenOptional( token<TOKEN_TYPE> &o_token, TOKEN_TYPE i_optionalToken )
+bool abstractparser<TOKEN_TYPE>::nextTokenOptional( token<TOKEN_TYPE> &o_token,
+													TOKEN_TYPE i_optionalToken )
 {
 	if ( nextToken( o_token ) and o_token.type() == i_optionalToken )
 		return true;

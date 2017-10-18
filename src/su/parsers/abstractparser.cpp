@@ -25,7 +25,8 @@ abstractparserbase::abstractparserbase( std::istream &i_str, const std::string_v
 		throw std::runtime_error( "invalid stream" );
 
 	// auto detect format with the utf bom
-	// need to be done without calling seekg so that it works on sequencial stream...
+	// need to be done without calling seekg so that it works on sequencial
+	// stream...
 	uint8_t c[3] = { 0, 0, 0 };
 	_stream.read( (char *)c, 2 );
 	if ( c[0] == 0xFE )

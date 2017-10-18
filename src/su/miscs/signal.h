@@ -22,17 +22,17 @@ namespace su {
 
 /*!
  *  signal class
- *      for signal with no returned value
+ *    for signal with no returned value
  *
- *      usage:
- *          // 1- create a signal
- *          su::signal<int> signalTakingAnInt;
+ *    usage:
+ *      // 1- create a signal
+ *      su::signal<int> signalTakingAnInt;
  *
- *          // 2- connect something to it
- *          signalTakingAnInt.connect( []( int i ){ std::cout << i << std::endl; } );
+ *      // 2- connect something to it
+ *      signalTakingAnInt.connect( []( int i ){ std::cout << i << std::endl; } );
  *
- *          // 3- call the signal
- *          signalTakingAnInt( 45 ); // this will print '45'
+ *      // 3- call the signal
+ *      signalTakingAnInt( 45 ); // this will print '45'
  */
 template <typename... Args>
 class signal final
@@ -120,7 +120,8 @@ public:
 	class scoped_conn
 	{
 	public:
-		scoped_conn( signal &sig, const func_type &i_func ) : s( sig ) { c = s.connect( i_func ); }
+		scoped_conn( signal &sig, const func_type &i_func )
+			: s( sig ) { c = s.connect( i_func ); }
 		~scoped_conn() { disconnect(); }
 		void disconnect()
 		{

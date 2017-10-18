@@ -68,7 +68,10 @@ struct utf_type_traits<4,2>
 	constexpr static auto convert = ConvertUTF32toUTF16;
 };
 
-template<typename IN,typename OUT,int IN_SIZE=sizeof(typename IN::value_type),int OUT_SIZE=sizeof(typename OUT::value_type)>
+template<typename IN,
+			typename OUT,
+			int IN_SIZE=sizeof(typename IN::value_type),
+			int OUT_SIZE=sizeof(typename OUT::value_type)>
 struct convert_utf
 {
 	static inline OUT convert( const IN &i_s )
@@ -151,7 +154,8 @@ std::string to_string( CFStringRef i_cfstring )
 
 CFStringRef CreateCFString( const std::string_view &s )
 {
-	return CFStringCreateWithBytes( 0, (const UInt8 *)s.data(), s.length(), kCFStringEncodingUTF8, false );
+	return CFStringCreateWithBytes( 0, (const UInt8 *)s.data(), s.length(),
+												kCFStringEncodingUTF8, false );
 }
 #endif
 

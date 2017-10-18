@@ -50,7 +50,9 @@ membuf::int_type membuf::pbackfail( int_type ch )
 	return traits_type::to_int_type(*--_current);
 }
 
-membuf::pos_type membuf::seekoff( off_type off, std::ios_base::seekdir way, std::ios_base::openmode /* which */ )
+membuf::pos_type membuf::seekoff( off_type off,
+								std::ios_base::seekdir way,
+								std::ios_base::openmode /* which */ )
 {
 	switch ( way )
 	{

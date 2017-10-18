@@ -14,7 +14,8 @@
 
 namespace su {
 
-attachment *attachable::attach( const std::string& i_name, std::unique_ptr<attachment> &&i_attachment )
+attachment *attachable::attach( const std::string& i_name,
+								std::unique_ptr<attachment> &&i_attachment )
 {
 	detach( i_name );
 
@@ -24,7 +25,8 @@ attachment *attachable::attach( const std::string& i_name, std::unique_ptr<attac
 	assert( i_attachment->_attachable == nullptr ); // already attached !?
 
 	i_attachment->_attachable = this;
-	return _attachments.emplace( i_name, std::move(i_attachment) ).first->second.get();
+	return _attachments.emplace( i_name,
+								std::move(i_attachment) ).first->second.get();
 }
 
 void attachable::detach( const std::string& i_name )

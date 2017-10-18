@@ -208,7 +208,8 @@ void SimpleTestDB::addResult( const std::string &i_testSuiteName,
 #ifdef HAS_SQLITE3
 	try
 	{
-		std::string cmd( "INSERT INTO test_cases (process_name,test_suite,test_case,result,duration,datetime) VALUES (" );
+		std::string cmd( "INSERT INTO test_cases (process_name,test_suite,"
+							"test_case,result,duration,datetime) VALUES (" );
 		cmd += "'" + _processName + "',";
 		cmd += "'" + i_testSuiteName + "',";
 		cmd += "'" + i_testName + "',";
@@ -225,7 +226,8 @@ void SimpleTestDB::addResult( const std::string &i_testSuiteName,
 #endif
 }
 
-int64_t SimpleTestDB::mostRecentDuration( const std::string &i_testSuiteName, const std::string &i_testName )
+int64_t SimpleTestDB::mostRecentDuration( const std::string &i_testSuiteName,
+											const std::string &i_testName )
 {
 #ifdef HAS_SQLITE3
 	try
@@ -280,8 +282,9 @@ const char *FailedTest::what() const noexcept
 			case Type::kNotEqual: str << "NOT EQUAL("; break;
 			default: break;
 		}
-		str << _text << ")\n";
-		str << _location.file_name() << ":" << _location.function_name() << ":" << _location.line() << "\n";
+		str << _text << ")\n"
+			<< _location.file_name() << ":" << _location.function_name() << ":"
+			<< _location.line() << "\n";
 		if ( not _msg.empty() )
 			str << _msg << "\n";
 		_storage = str.str();
@@ -380,7 +383,8 @@ int main( int argc, char **argv )
 			}
 		}
 		
-		std::cout << styleTTY{ttyUnderline|ttyBold} << "Test suite:" << styleTTY{} << " "
+		std::cout << styleTTY{ttyUnderline|ttyBold} << "Test suite:"
+					<< styleTTY{} << " "
 					<< testSuiteDisplayName << std::endl;
 		auto tests = testSuite->getTests();
 		for ( auto test : tests )
@@ -401,8 +405,10 @@ int main( int argc, char **argv )
 			std::string errorString;
 			try
 			{
+				int repeat = 1;
+				if ( test.options().timed )
+					repeat = std::max( test.options().repeat, 1 );
 				su::TestTimer timer;
-				int repeat = std::max( test.options().timed ? test.options().repeat : 1, 1 );
 				for ( int i = 0; i < repeat; ++i )
 					test( timer );
 				duration = timer.nanoseconds();
@@ -437,7 +443,8 @@ int main( int argc, char **argv )
 			if ( not errorString.empty() )
 			{
 				const char kFailed[] = "\xE2\x9C\x98";
-				std::cout << styleTTY{ttyRed} << kFailed << " " << errorString << styleTTY{};
+				std::cout << styleTTY{ttyRed} << kFailed << " " << errorString
+							 << styleTTY{};
 			}
 			std::cout << std::endl;
 			
@@ -447,9 +454,11 @@ int main( int argc, char **argv )
 	}
 	if ( action != Action::kList )
 	{
-		std::cout << styleTTY{ttyBold} << "Success: " << styleTTY{} << (total-failure) << "/" << total << std::endl;
+		std::cout << styleTTY{ttyBold} << "Success: " << styleTTY{}
+					<< (total-failure) << "/" << total << std::endl;
 		if ( failure == 0 )
-			std::cout << styleTTY{ttyGreen|ttyBold} << "All good!" << styleTTY{} << std::endl;
+			std::cout << styleTTY{ttyGreen|ttyBold} << "All good!"
+						<< styleTTY{} << std::endl;
 	}
 	std::cout << std::endl;
 }

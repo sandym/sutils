@@ -235,7 +235,10 @@ bool logger_thread_data::logQueueIsEmpty()
 	return logQueue.empty();
 }
 
-void logger_thread_data::push( su::logger_base *i_logger, const std::chrono::system_clock::time_point &i_timestamp, std::thread::native_handle_type i_thread, su::log_event &&i_event )
+void logger_thread_data::push( su::logger_base *i_logger,
+								const std::chrono::system_clock::time_point &i_timestamp,
+								std::thread::native_handle_type i_thread,
+								su::log_event &&i_event )
 {
 	std::unique_lock<su::spinlock> l( queueSpinLock );
 	logQueue.emplace_back( RecordedEvent{ i_logger, std::move(i_event), i_timestamp, i_thread } );

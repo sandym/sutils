@@ -31,7 +31,8 @@ public:
 	virtual ~attachable() = default;
 
 	// ownership is transfered
-	attachment *attach( const std::string &i_name, std::unique_ptr<attachment> &&i_attachment );
+	attachment *attach( const std::string &i_name,
+						std::unique_ptr<attachment> &&i_attachment );
 
 	// will delete attachment with that name
 	void detach( const std::string &i_name );

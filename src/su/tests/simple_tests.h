@@ -67,7 +67,8 @@ inline TestOptions timed_test( int i_repeat = 5 )
 class TestCase
 {
 public:
-	TestCase( const std::string &i_name, const TestOptions &i_options, const std::function<void(TestTimer&)> &i_test )
+	TestCase( const std::string &i_name, const TestOptions &i_options,
+				const std::function<void(TestTimer&)> &i_test )
 		: _name( i_name ), _options( i_options ), _test( i_test ){}
 
 	//! run the test
@@ -117,7 +118,9 @@ class TestSuite : public TestSuiteAbstract
 {
 public:
 	template<class ...ARGS>
-	TestSuite( const std::string_view &i_name, const std::string_view &i_desc, ARGS... args )
+	TestSuite( const std::string_view &i_name,
+				const std::string_view &i_desc,
+				ARGS... args )
 		: TestSuiteAbstract( i_name )
 	{
 		registerTestCases( i_desc, args... );
@@ -126,30 +129,42 @@ public:
 	~TestSuite() = default;
 	
 	// helpers to register test cases
-	void registerTestCase( const std::string_view &i_name, const TestOptions &i_options, void (T::*i_method)() )
+	void registerTestCase( const std::string_view &i_name,
+							const TestOptions &i_options,
+							void (T::*i_callback)() )
 	{
-		_tests.push_back( TestCaseData{ i_name, i_options, i_method } );
+		_tests.push_back( TestCaseData{ i_name, i_options, i_callback } );
 	}
-	void registerTestCase( const std::string_view &i_name, const TestOptions &i_options, void (T::*i_method)(TestTimer&) )
+	void registerTestCase( const std::string_view &i_name,
+							const TestOptions &i_options,
+							void (T::*i_callback)(TestTimer&) )
 	{
-		_tests.push_back( TestCaseData{ i_name, i_options, i_method } );
+		_tests.push_back( TestCaseData{ i_name, i_options, i_callback } );
 	}
-	void registerTestCase( const std::string_view &i_name, const TestOptions &i_options, const std::function<void ()> &i_func )
+	void registerTestCase( const std::string_view &i_name,
+							const TestOptions &i_options,
+							const std::function<void ()> &i_callback )
 	{
-		_tests.push_back( TestCaseData{ i_name, i_options, i_func } );
+		_tests.push_back( TestCaseData{ i_name, i_options, i_callback } );
 	}
-	void registerTestCase( const std::string_view &i_name, const TestOptions &i_options, const std::function<void (TestTimer&)> &i_func )
+	void registerTestCase( const std::string_view &i_name,
+							const TestOptions &i_options,
+							const std::function<void (TestTimer&)> &i_callback )
 	{
-		_tests.push_back( TestCaseData{ i_name, i_options, i_func } );
+		_tests.push_back( TestCaseData{ i_name, i_options, i_callback } );
 	}
-	void registerTestCase( const std::string_view &, const TestOptions &, const std::function<void (TestSuite<T>&)> &i_dynamicRegistry )
+	void registerTestCase( const std::string_view &,
+							const TestOptions &,
+							const std::function<void (TestSuite<T>&)> &i_dynamicRegistry )
 	{
 		_dynamicRegistry = i_dynamicRegistry;
 	}
 	void registerTestCases( const std::string_view & ){}
 	
 	template<typename CB,typename ...ARGS>
-	void registerTestCases( const std::string_view &i_desc, const TestOptions &i_options, const CB &cb, ARGS... args )
+	void registerTestCases( const std::string_view &i_desc,
+							const TestOptions &i_options,
+							const CB &cb, ARGS... args )
 	{
 		std::string_view desc( i_desc );
 		auto p = desc.find( ',' );
@@ -159,7 +174,8 @@ public:
 	}
 	
 	template<typename CB,typename ...ARGS>
-	void registerTestCases( const std::string_view &i_desc, const CB &cb, ARGS... args )
+	void registerTestCases( const std::string_view &i_desc,
+							const CB &cb, ARGS... args )
 	{
 		registerTestCases_priv( i_desc, {}, cb, args... );
 	}
@@ -226,7 +242,8 @@ public:
 					{
 						i_timer.start(); // start in case the function forget
 						func( i_timer );
-						i_timer.nanoseconds(); // this will record the end only IF it wasn't already
+						// this will record the end only IF it wasn't already
+						i_timer.nanoseconds();
 					} );
 			}
 		}
@@ -234,7 +251,8 @@ public:
 	}
 	
 private:
-	std::function<void (TestSuite<T>&)> _dynamicRegistry; //!< to call to register test cases at runtime
+	//! to call to register test cases at runtime
+	std::function<void (TestSuite<T>&)> _dynamicRegistry;
 	
 	//! test case data, name and callback
 	struct TestCaseData
@@ -321,12 +339,15 @@ public:
 		kEqual,
 		kNotEqual
 	};
-	FailedTest( Type i_type, const tests_source_location &i_loc, const std::string_view &i_text, const std::string_view &i_msg );
+	FailedTest( Type i_type,
+				const tests_source_location &i_loc,
+				const std::string_view &i_text,
+				const std::string_view &i_msg );
 	
 	virtual const char *what() const noexcept;
 
 	const Type _type;
-	tests_source_location _location;
+	const tests_source_location _location;
 	const std::string _text;
 	const std::string _msg;
 
@@ -335,11 +356,15 @@ private:
 };
 
 // helpers to raise exceptions
-inline void Fail( const tests_source_location &i_loc, const std::string_view &i_msg )
+inline void Fail( const tests_source_location &i_loc,
+					const std::string_view &i_msg )
 {
 	throw FailedTest( FailedTest::Type::kFail, i_loc, {}, i_msg );
 }
-inline void Assert( const tests_source_location &i_loc, const std::string_view &i_text, bool i_result, const std::string_view &i_msg = {} )
+inline void Assert( const tests_source_location &i_loc,
+					const std::string_view &i_text,
+					bool i_result,
+					const std::string_view &i_msg = {} )
 {
 	if ( i_result )
 		return;
@@ -347,14 +372,23 @@ inline void Assert( const tests_source_location &i_loc, const std::string_view &
 }
 
 template<typename LHS, typename RHS>
-inline void Assert_equal( const tests_source_location &i_loc, const std::string_view &i_text, const LHS &i_lhs, const RHS &i_rhs, const std::string_view &i_msg = {} )
+inline void Assert_equal( const tests_source_location &i_loc,
+							const std::string_view &i_text,
+							const LHS &i_lhs,
+							const RHS &i_rhs,
+							const std::string_view &i_msg = {} )
 {
 	if ( i_lhs == i_rhs )
 		return;
 	throw FailedTest( FailedTest::Type::kEqual, i_loc, i_text, i_msg );
 }
 template<typename LHS, typename RHS,typename DELTA>
-inline void Assert_equal( const tests_source_location &i_loc, const std::string_view &i_text, const LHS &i_lhs, const RHS &i_rhs, const DELTA &i_delta, const std::string_view &i_msg = {} )
+inline void Assert_equal( const tests_source_location &i_loc,
+							const std::string_view &i_text,
+							const LHS &i_lhs,
+							const RHS &i_rhs,
+							const DELTA &i_delta,
+							const std::string_view &i_msg = {} )
 {
 	if ( std::abs( i_lhs - i_rhs ) < i_delta )
 		return;
@@ -362,14 +396,23 @@ inline void Assert_equal( const tests_source_location &i_loc, const std::string_
 }
 
 template<typename LHS, typename RHS>
-inline void Assert_not_equal( const tests_source_location &i_loc, const std::string_view &i_text, const LHS &i_lhs, const RHS &i_rhs, const std::string_view &i_msg = {} )
+inline void Assert_not_equal( const tests_source_location &i_loc,
+								const std::string_view &i_text,
+								const LHS &i_lhs,
+								const RHS &i_rhs,
+								const std::string_view &i_msg = {} )
 {
 	if ( i_lhs != i_rhs )
 		return;
 	throw FailedTest( FailedTest::Type::kNotEqual, i_loc, i_text, i_msg );
 }
 template<typename LHS, typename RHS,typename DELTA>
-inline void Assert_not_equal( const tests_source_location &i_loc, const std::string_view &i_text, const LHS &i_lhs, const RHS &i_rhs, const DELTA &i_delta, const std::string_view &i_msg = {} )
+inline void Assert_not_equal( const tests_source_location &i_loc,
+								const std::string_view &i_text,
+								const LHS &i_lhs,
+								const RHS &i_rhs,
+								const DELTA &i_delta,
+								const std::string_view &i_msg = {} )
 {
 	if ( std::abs( i_lhs - i_rhs ) > i_delta )
 		return;
@@ -379,12 +422,17 @@ inline void Assert_not_equal( const tests_source_location &i_loc, const std::str
 }
 
 // small set of macros
-#define REGISTER_TEST_SUITE(T,...) su::TestSuite<T> g_##T##_registration(#T,#__VA_ARGS__,__VA_ARGS__)
+#define REGISTER_TEST_SUITE(T,...) \
+	su::TestSuite<T> g_##T##_registration(#T,#__VA_ARGS__,__VA_ARGS__)
 
-#define TEST_FAIL(...) su::Fail({__FILE__,__LINE__,__FUNCTION__},__VA_ARGS__)
-#define TEST_ASSERT(...) su::Assert({__FILE__,__LINE__,__FUNCTION__},#__VA_ARGS__,__VA_ARGS__)
-#define TEST_ASSERT_EQUAL(...) su::Assert_equal({__FILE__,__LINE__,__FUNCTION__},#__VA_ARGS__,__VA_ARGS__)
-#define TEST_ASSERT_NOT_EQUAL(...) su::Assert_not_equal({__FILE__,__LINE__,__FUNCTION__},#__VA_ARGS__,__VA_ARGS__)
+#define TEST_FAIL(...) \
+	su::Fail({__FILE__,__LINE__,__FUNCTION__},__VA_ARGS__)
+#define TEST_ASSERT(...) \
+	su::Assert({__FILE__,__LINE__,__FUNCTION__},#__VA_ARGS__,__VA_ARGS__)
+#define TEST_ASSERT_EQUAL(...) \
+	su::Assert_equal({__FILE__,__LINE__,__FUNCTION__},#__VA_ARGS__,__VA_ARGS__)
+#define TEST_ASSERT_NOT_EQUAL(...) \
+	su::Assert_not_equal({__FILE__,__LINE__,__FUNCTION__},#__VA_ARGS__,__VA_ARGS__)
 
 #else
 
@@ -403,8 +451,8 @@ namespace su {
 template<class T>
 struct TestSuite
 {
-template<typename ...ARGS>
-void registerTestCase( ARGS... args ){ assert( false ); }
+	template<typename ...ARGS>
+	void registerTestCase( ARGS... args ){ assert( false ); }
 };
 }
 
