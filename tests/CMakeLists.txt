@@ -1,22 +1,40 @@
-cmake_minimum_required( VERSION 3.5 )
+cmake_minimum_required( VERSION 3.8 )
 project( sutils_tests )
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set( TEST_RUNNER ../src/tests/simple_tests_runner.cpp
-				../src/tests/simple_tests.h )
+set( TEST_RUNNER ../src/su/tests/simple_tests_runner.cpp
+				../src/su/tests/simple_tests.h )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../src )
 
 file( GLOB ALL_TESTS
-    "*/*_tests.cpp"
+    "../src/su/*/tests/*_tests.cpp"
 )
 
 file( GLOB SUTILS_HEADERS
-    "../src/su/*/*.h"
+		"../src/su/base/*.h"
+		"../src/su/concurrency/*.h"
+		"../src/su/containers/*.h"
+		"../src/su/files/*.h"
+		"../src/su/json/*.h"
+		"../src/su/log/*.h"
+		"../src/su/miscs/*.h"
+		"../src/su/parsers/*.h"
+		"../src/su/streams/*.h"
+		"../src/su/strings/*.h"
 )
 file( GLOB SUTILS_SOURCES
-    "../src/su/*/*.cpp"
+		"../src/su/base/*.cpp"
+		"../src/su/concurrency/*.cpp"
+		"../src/su/containers/*.cpp"
+		"../src/su/files/*.cpp"
+		"../src/su/json/*.cpp"
+		"../src/su/log/*.cpp"
+		"../src/su/miscs/*.cpp"
+		"../src/su/parsers/*.cpp"
+		"../src/su/streams/*.cpp"
+		"../src/su/strings/*.cpp"
 )
 
 add_executable ( sutils_tests
