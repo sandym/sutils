@@ -1,3 +1,15 @@
+## `su/base/stackarray.h`
+
+Stack array that will automatically move to heap allocation if more space than expected is needed.  Stack allocation is fast but size must be known at compile time, heap allocation is slow but scalable at runtime. This is a trade off allocation strategy, will use the fast path in case where the needed size is within preallocated range and use the slow path if more memory is needed. Fast in most case, but safe and scalable.
+
+Usage:
+```C++
+su::stackarray<int,256> data( nb );
+// if nb was smaller or equal to 256, data will refer to
+// a stack buffer, otherwise it will be heap allocated
+// and automatically deallocated.
+```
+
 ## `su_flat_map.h`
 
 Drop in replacement for std::map, but use std::vector as

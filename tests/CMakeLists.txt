@@ -1,16 +1,14 @@
 cmake_minimum_required( VERSION 3.8 )
 project( sutils_tests )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set( TEST_RUNNER ../src/su/tests/simple_tests_runner.cpp
 				../src/su/tests/simple_tests.h )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../src )
 
-file( GLOB ALL_TESTS
-    "../src/su/*/tests/*_tests.cpp"
-)
+file( GLOB ALL_TESTS "../src/su/*/tests/*_tests.cpp" )
 
 file( GLOB SUTILS_HEADERS
 		"../src/su/base/*.h"
@@ -42,18 +40,14 @@ add_executable ( sutils_tests
 					${ALL_TESTS}
 					
 					${SUTILS_HEADERS}
-					${SUTILS_SOURCES}
-				)
+					${SUTILS_SOURCES} )
 
 source_group( "sutils" FILES
 					${SUTILS_HEADERS}
-					${SUTILS_SOURCES}
-			 )
+					${SUTILS_SOURCES} )
 source_group( "tests" FILES
 					${TEST_RUNNER}
-
-					${ALL_TESTS}
-			)
+					${ALL_TESTS} )
 
 add_definitions( -DENABLE_SIMPLE_TESTS )
 
@@ -62,18 +56,18 @@ execute_process( COMMAND svn info --show-item revision
 					WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 					OUTPUT_VARIABLE SVN_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
 if(SVN_REVISION)
-add_definitions( -DSVN_REVISION=${SVN_REVISION} )
+	add_definitions( -DSVN_REVISION=${SVN_REVISION} )
 else()
-message("no svn revision")
+	message("no svn revision")
 endif()
 
 execute_process( COMMAND git rev-parse HEAD
 					WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 					OUTPUT_VARIABLE GIT_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
 if(GIT_REVISION)
-add_definitions( -DGIT_REVISION=${GIT_REVISION} )
+	add_definitions( -DGIT_REVISION=${GIT_REVISION} )
 else()
-message("no git revision")
+	message("no git revision")
 endif()
 
 find_library( EXPAT_LIBRARY expat )
@@ -107,3 +101,11 @@ else()
 	target_link_libraries( sutils_tests ${RPCRT4_LIBRARY} )
 endif()
 
+enable_testing()
+
+foreach( test ${ALL_TESTS} )
+	get_filename_component( test ${test} NAME_WE )
+	add_test( NAME ${test}
+				COMMAND sutils_tests --run ${test}
+				WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+endforeach()

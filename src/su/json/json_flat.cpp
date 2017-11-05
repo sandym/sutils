@@ -598,7 +598,7 @@ std::string unflattener::unflatten_value<std::string>()
 		throw std::out_of_range( "string too big in flat json" );
 	std::string buffer;
 	buffer.resize( len );
-	_istr.read( buffer.data(), len );
+	_istr.read( (char *)buffer.data(), len );
 	return buffer;
 }
 template<typename T>

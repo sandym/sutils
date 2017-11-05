@@ -52,11 +52,6 @@ std::string ustring_format_using_sprintf( const char *i_format, ... )
 { \
   auto v1 = su::format(__VA_ARGS__); \
   auto v2 = ustring_format_using_sprintf(__VA_ARGS__); \
-  if ( v1 != v2 ) \
-  { \
-    std::cout << "expected: " << v2 << std::endl; \
-    std::cout << "got: " << v1 << std::endl; \
-  } \
   TEST_ASSERT_EQUAL( v1, v2 ); \
 }
 

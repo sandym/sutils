@@ -15,7 +15,6 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
-#include <unordered_set>
 #include <string.h>
 
 #if __has_include(<sqlite3.h>)
@@ -43,6 +42,9 @@ enum
 };
 struct styleTTY
 {
+	styleTTY() = default;
+	styleTTY( int i ) : v( i ){}
+	
 	int v = 0;
 
 	static bool s_ttySupportColour;
@@ -133,7 +135,11 @@ private:
 		if ( _db )
 		{
 			char *errmsg = nullptr;
-			int err = ::sqlite3_exec( _db, i_cmd.c_str(), &SimpleTestDB::sqlite3_exec_callback, &result, &errmsg );
+			int err = ::sqlite3_exec( _db,
+										i_cmd.c_str(),
+										&SimpleTestDB::sqlite3_exec_callback,
+										&result,
+										&errmsg );
 			if ( err != SQLITE_OK )
 			{
 				throw std::runtime_error( errmsg );
@@ -162,7 +168,7 @@ SimpleTestDB::SimpleTestDB( const std::string_view &i_processName )
 
 	if ( path.empty() )
 	{
-		std::cerr << "ERROR: cannot find a path for the database" << std::endl;
+		std::cerr << "ERROR: cannot find a path for the database\n";
 		return;
 	}
 	
@@ -186,9 +192,10 @@ SimpleTestDB::SimpleTestDB( const std::string_view &i_processName )
 	}
 	catch ( std::exception &ex )
 	{
-		std::cerr << "ERROR: opening database failed: " << ex.what() << std::endl;
+		std::cerr << "ERROR: opening database failed: " << ex.what() << "\n";
 	}
-	std::cout << styleTTY{ttyBold} << "Tests database: " << styleTTY{} << path << std::endl;
+	std::cout << styleTTY{ttyBold} << "Tests database: "
+				<< styleTTY{} << path << "\n";
 #endif
 }
 
@@ -221,7 +228,8 @@ void SimpleTestDB::addResult( const std::string &i_testSuiteName,
 	}
 	catch ( std::exception &ex )
 	{
-		std::cerr << "ERROR: inserting in database failed: " << ex.what() << std::endl;
+		std::cerr << "ERROR: inserting in database failed: "
+					<< ex.what() << "\n";
 	}
 #endif
 }
@@ -244,7 +252,8 @@ int64_t SimpleTestDB::mostRecentDuration( const std::string &i_testSuiteName,
 	}
 	catch ( std::exception &ex )
 	{
-		std::cerr << "ERROR: inserting in database failed: " << ex.what() << std::endl;
+		std::cerr << "ERROR: inserting in database failed: "
+					<< ex.what() << "\n";
 	}
 #endif
 	return std::numeric_limits<int64_t>::max();
@@ -253,6 +262,12 @@ int64_t SimpleTestDB::mostRecentDuration( const std::string &i_testSuiteName,
 }
 
 namespace su {
+
+bool TestSuiteAbstract::match( const std::unordered_set<std::string> &i_list ) const
+{
+	return i_list.find( name() ) != i_list.end() or
+			i_list.find( displayName( name() ) ) != i_list.end();
+}
 
 void addTestSuite( TestSuiteAbstract *i_testsuite )
 {
@@ -296,7 +311,8 @@ int64_t TestTimer::nanoseconds()
 {
 	if ( _end < _start )
 		end();
-	return std::chrono::duration_cast<std::chrono::nanoseconds>(_end - _start).count();
+	using namespace std::chrono;
+	return duration_cast<std::chrono::nanoseconds>(_end - _start).count();
 }
 
 }
@@ -341,13 +357,13 @@ int main( int argc, char **argv )
 	switch ( action )
 	{
 		case Action::kRunAll:
-			std::cout << "Running all tests" << std::endl;
+			std::cout << "Running all tests\n";
 			break;
 		case Action::kRunSome:
-			std::cout << "Running selected tests" << std::endl;
+			std::cout << "Running selected tests\n";
 			break;
 		case Action::kList:
-			std::cout << "Listing all tests" << std::endl;
+			std::cout << "Listing all tests\n";
 			break;
 	}
 	std::unique_ptr<SimpleTestDB> db;
@@ -362,37 +378,25 @@ int main( int argc, char **argv )
 	int failure = 0;
 	for ( auto testSuite : getTestSuites() )
 	{
-		auto testSuiteDisplayName = displayName(testSuite->name());
 		if ( action == Action::kRunSome )
 		{
-			if ( not testsToSkip.empty() )
-			{
-				if ( testsToSkip.find( testSuite->name() ) != testsToSkip.end() or
-					testsToSkip.find( testSuiteDisplayName ) != testsToSkip.end() )
-				{
-					continue;
-				}
-			}
-			else
-			{
-				if ( testsToRun.find( testSuite->name() ) == testsToRun.end() and
-						testsToRun.find( testSuiteDisplayName ) == testsToRun.end() )
-				{
-					continue;
-				}
-			}
+			if ( testSuite->match( testsToSkip ) )
+				continue;
+			if ( not testSuite->match( testsToRun ) )
+				continue;
 		}
 		
+		auto testSuiteDisplayName = displayName(testSuite->name());
 		std::cout << styleTTY{ttyUnderline|ttyBold} << "Test suite:"
 					<< styleTTY{} << " "
-					<< testSuiteDisplayName << std::endl;
+					<< testSuiteDisplayName << "\n";
 		auto tests = testSuite->getTests();
 		for ( auto test : tests )
 		{
 			std::cout << "  " << displayName(test.name());
 			if ( action == Action::kList )
 			{
-				std::cout << std::endl;
+				std::cout << "\n";
 				continue;
 			}
 
@@ -421,7 +425,9 @@ int main( int argc, char **argv )
 					auto prev = db->mostRecentDuration( testSuite->name(), test.name() );
 					std::cout << " (" << duration << "ns";
 					if ( duration > prev )
-						std::cout << styleTTY{ttyRed} << " regression: " << duration - prev << "ns slower" << styleTTY{};
+						std::cout << styleTTY{ttyRed} << " regression: "
+										<< duration - prev << "ns slower"
+										<< styleTTY{};
 					std::cout << ")";
 				}
 			}
@@ -446,7 +452,7 @@ int main( int argc, char **argv )
 				std::cout << styleTTY{ttyRed} << kFailed << " " << errorString
 							 << styleTTY{};
 			}
-			std::cout << std::endl;
+			std::cout << "\n";
 			
 			// record results
 			db->addResult( testSuite->name(), test.name(), errorString, duration );
@@ -455,10 +461,12 @@ int main( int argc, char **argv )
 	if ( action != Action::kList )
 	{
 		std::cout << styleTTY{ttyBold} << "Success: " << styleTTY{}
-					<< (total-failure) << "/" << total << std::endl;
+					<< (total-failure) << "/" << total << "\n";
 		if ( failure == 0 )
 			std::cout << styleTTY{ttyGreen|ttyBold} << "All good!"
-						<< styleTTY{} << std::endl;
+						<< styleTTY{} << "\n";
 	}
-	std::cout << std::endl;
+	std::cout << "\n";
+	
+	return failure == 0 ? 0 : -1;
 }

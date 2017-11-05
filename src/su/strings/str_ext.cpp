@@ -109,34 +109,29 @@ struct convert_utf<IN,OUT,2,2>
 
 namespace su {
 
-std::string to_string( const std::wstring &s )
+std::string to_string( const std::wstring_view &s )
 {
-    return convert_utf<std::wstring,std::string>::convert( s );
+    return convert_utf<std::wstring_view,std::string>::convert( s );
 }
-
-std::string to_string( const std::u16string &s )
+std::string to_string( const std::u16string_view &s )
 {
-    return convert_utf<std::u16string,std::string>::convert( s );
+    return convert_utf<std::u16string_view,std::string>::convert( s );
 }
-
 std::wstring to_wstring( const std::string_view &s )
 {
     return convert_utf<std::string_view,std::wstring>::convert( s );
 }
-
-std::wstring to_wstring( const std::u16string &s )
+std::wstring to_wstring( const std::u16string_view &s )
 {
-    return convert_utf<std::u16string,std::wstring>::convert( s );
+    return convert_utf<std::u16string_view,std::wstring>::convert( s );
 }
-
 std::u16string to_u16string( const std::string_view &s )
 {
     return convert_utf<std::string_view,std::u16string>::convert( s );
 }
-
-std::u16string to_u16string( const std::wstring &s )
+std::u16string to_u16string( const std::wstring_view &s )
 {
-    return convert_utf<std::wstring,std::u16string>::convert( s );
+    return convert_utf<std::wstring_view,std::u16string>::convert( s );
 }
 
 #if UPLATFORM_MAC || UPLATFORM_IOS
@@ -151,7 +146,6 @@ std::string to_string( CFStringRef i_cfstring )
 
 	return to_string( s16 );
 }
-
 CFStringRef CreateCFString( const std::string_view &s )
 {
 	return CFStringCreateWithBytes( 0, (const UInt8 *)s.data(), s.length(),
@@ -336,9 +330,24 @@ bool starts_with( const std::string_view &i_text, const std::string_view &i_s )
 		return false;
     return i_text.substr( 0, i_s.size() ) == i_s;
 }
-//bool starts_with_nocase( const std::string_view &i_text, const std::string_view &i_s );
-//bool ends_with( const std::string_view &i_text, const std::string_view &i_s );
-//bool ends_with_nocase( const std::string_view &i_text, const std::string_view &i_s );
+bool starts_with_nocase( const std::string_view &i_text, const std::string_view &i_s )
+{
+	if ( i_s.size() > i_text.size() )
+		return false;
+    return compare_nocase( i_text.substr( 0, i_s.size() ), i_s ) == 0;
+}
+bool ends_with( const std::string_view &i_text, const std::string_view &i_s )
+{
+	if ( i_s.size() > i_text.size() )
+		return false;
+    return i_text.substr( i_text.size() - i_s.size(), i_s.size() ) == i_s;
+}
+bool ends_with_nocase( const std::string_view &i_text, const std::string_view &i_s )
+{
+	if ( i_s.size() > i_text.size() )
+		return false;
+    return compare_nocase( i_text.substr( i_text.size() - i_s.size(), i_s.size() ), i_s ) == 0;
+}
 
 std::string japanese_hiASCII_fix( const std::string_view &i_s )
 {

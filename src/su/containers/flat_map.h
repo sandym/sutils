@@ -24,7 +24,10 @@ namespace su {
 /*!
 	A map implemented with a vector for better cache coherency
 */
-template<typename Key,typename T,class CMP=std::less<Key>,class STORAGE=std::vector<std::pair<Key,T>>>
+template<typename Key,
+			typename T,
+			class CMP=std::less<Key>,
+			class STORAGE=std::vector<std::pair<Key,T>>>
 class flat_map
 {
 public:
@@ -96,10 +99,22 @@ public:
 		auto it = lower_bound( k );
 		return it == end() and key_equal( it->first, k ) ? 0 : 1;
 	}
-	iterator lower_bound( const key_type &k ) { return std::lower_bound( begin(), end(), k, &key_less2 ); }
-	const_iterator lower_bound( const key_type &k ) const { return std::lower_bound( begin(), end(), k, &key_less2 ); }
-	iterator upper_bound( const key_type &k ) { return std::upper_bound( begin(), end(), k, &key_less2 ); }
-	const_iterator upper_bound( const key_type &k ) const { return std::upper_bound( begin(), end(), k, &key_less2 ); }
+	iterator lower_bound( const key_type &k )
+	{
+		return std::lower_bound( begin(), end(), k, &key_less2 );
+	}
+	const_iterator lower_bound( const key_type &k ) const
+	{
+		return std::lower_bound( begin(), end(), k, &key_less2 );
+	}
+	iterator upper_bound( const key_type &k )
+	{
+		return std::upper_bound( begin(), end(), k, &key_less2 );
+	}
+	const_iterator upper_bound( const key_type &k ) const
+	{
+		return std::upper_bound( begin(), end(), k, &key_less2 );
+	}
 	mapped_type &operator[]( const key_type &k )
 	{
 		auto it = lower_bound( k );
@@ -166,7 +181,10 @@ public:
 		else
 			return 0;
 	}
-	void swap( flat_map<key_type,T,key_compare> &i_other ) { _flatlist.swap( i_other._flatlist ); }
+	void swap( flat_map<key_type,T,key_compare> &i_other )
+	{
+		_flatlist.swap( i_other._flatlist );
+	}
 
 	bool operator<( const flat_map &rhs ) const
 	{
@@ -181,14 +199,24 @@ public:
 	storage_type &storage() { return _flatlist; }
 	void sort()
 	{
-		std::sort( _flatlist.begin(), _flatlist.end(), []( auto &a, auto &b ){ return key_compare()( a.first, b.first ); } );
+		std::sort( _flatlist.begin(), _flatlist.end(),
+				[]( auto &a, auto &b )
+				{
+					return key_compare()( a.first, b.first );
+				} );
 	}
 
 private:
 	storage_type _flatlist;
 
-	static inline bool key_less2( const value_type &a, const key_type &b ) { return key_compare()( a.first, b ); }
-	static inline bool key_equal( const key_type &a, const key_type &b ) { return not key_compare()( a, b ) and not key_compare()( b, a ); }
+	static inline bool key_less2( const value_type &a, const key_type &b )
+	{
+		return key_compare()( a.first, b );
+	}
+	static inline bool key_equal( const key_type &a, const key_type &b )
+	{
+		return not key_compare()( a, b ) and not key_compare()( b, a );
+	}
 };
 
 }

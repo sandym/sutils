@@ -43,7 +43,7 @@ public:
 	FormatArg( const std::string &v ) : _which( arg_type::kString ), u( std::string_view(v) ){}
 	FormatArg( const std::string_view &v ) : _which( arg_type::kString ), u( std::string_view(v) ){}
 
-	template<typename T,typename = std::enable_if_t<not std::is_base_of_v<std::string,T>>>
+	template<typename T,typename = std::enable_if_t<not std::is_base_of<std::string,T>::value>>
 	FormatArg( const T &v ) : _which( arg_type::kOther ){ u._other = new any<T>( v ); }
 	FormatArg( FormatArg &&i_other ) noexcept : _which( i_other._which )
 	{

@@ -54,8 +54,14 @@ public:
 		auto it = lower_bound( v );
 		return it != end() and value_equal( *it, v ) ? it : end();
 	}
-	const_iterator lower_bound( const value_type &v ) const { return std::lower_bound( begin(), end(), v, &value_less ); }
-	const_iterator upper_bound( const value_type &v ) const { return std::upper_bound( begin(), end(), v, &value_less ); }
+	const_iterator lower_bound( const value_type &v ) const
+	{
+		return std::lower_bound( begin(), end(), v, &value_less );
+	}
+	const_iterator upper_bound( const value_type &v ) const
+	{
+		return std::upper_bound( begin(), end(), v, &value_less );
+	}
 	void insert( const value_type &v )
 	{
 		auto it = std::lower_bound( _flatlist.begin(), _flatlist.end(), v, &value_less );
@@ -66,15 +72,32 @@ public:
 	}
 
 	void erase( const_iterator it ) { _flatlist.erase( it ); }
-	void swap( flat_set<T,CMP> &i_other ) { _flatlist.swap( i_other._flatlist ); }
+	void swap( flat_set<T,CMP> &i_other )
+	{
+		_flatlist.swap( i_other._flatlist );
+	}
 	const storage_type &storage() const { return _flatlist; }
 	storage_type &storage() { return _flatlist; }
+	void sort()
+	{
+		std::sort( _flatlist.begin(), _flatlist.end(),
+				[]( auto &a, auto &b )
+				{
+					return CMP()( a.first, b.first );
+				} );
+	}
 	
 private:
 	storage_type _flatlist;
 
-	static inline bool value_less( const value_type &a, const value_type &b ) { return CMP()( a, b ); }
-	static inline bool value_equal( const value_type &a, const value_type &b ) { return not CMP()( a, b ) and not CMP()( b, a ); }
+	static inline bool value_less( const value_type &a, const value_type &b )
+	{
+		return CMP()( a, b );
+	}
+	static inline bool value_equal( const value_type &a, const value_type &b )
+	{
+		return not CMP()( a, b ) and not CMP()( b, a );
+	}
 };
 
 }

@@ -18,6 +18,7 @@
 #include <type_traits>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <functional>
 #include <vector>
 #include <cmath>
@@ -99,6 +100,8 @@ public:
 	
 	//! all test cases
 	virtual std::vector<TestCase> getTests() = 0;
+	
+	bool match( const std::unordered_set<std::string> &i_list ) const;
 	
 protected:
 	TestSuiteAbstract( const std::string_view &i_name ) : _name( i_name ){}

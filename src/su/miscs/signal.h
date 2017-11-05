@@ -44,16 +44,15 @@ public:
 	//! represent a connection
 	struct conn_node
 	{
+		conn_node( const func_type &i_func, std::unique_ptr<conn_node> &&i_next )
+			: func( i_func ), next( std::move(i_next) ){}
 		func_type func;
-		conn_node *next = nullptr;
+		std::unique_ptr<conn_node> next;
 	};
 	using conn = conn_node *;
 
 	signal() = default;
-	~signal()
-	{
-		disconnectAll();
-	}
+	~signal() = default;
 	signal( const signal & ) = delete;
 	signal &operator=( const signal & ) = delete;
 
@@ -63,10 +62,8 @@ public:
 			return nullptr;
 		
 		assert( not _in_signal );
-		auto c = new conn_node{ i_func, _head  };
-		_head = c;
-		return c;
-		
+		_head = std::make_unique<conn_node>( i_func, std::move(_head) );
+		return _head.get();
 	}
 
 	//! invoke the signal
@@ -74,11 +71,11 @@ public:
 	{
 		assert( not _in_signal );
 		statesaver<bool> save( _in_signal, false );
-		auto ptr = _head;
+		auto ptr = _head.get();
 		while ( ptr != nullptr )
 		{
 			ptr->func( std::forward<Args>( args )... );
-			ptr = ptr->next;
+			ptr = ptr->next.get();
 		}
 	}
 
@@ -88,33 +85,24 @@ public:
 			return;
 		
 		assert( not _in_signal );
-		if ( c == _head )
+		if ( c == _head.get() )
 		{
-			_head = _head->next;
-			delete c;
+			_head = std::move(_head->next);
 		}
 		else
 		{
-			auto p = _head;
-			while ( p != nullptr and p->next != c )
-				p = p->next;
+			auto p = _head.get();
+			while ( p != nullptr and p->next.get() != c )
+				p = p->next.get();
 			if ( p != nullptr )
-			{
-				p->next = c->next;
-				delete c;
-			}
+				p->next = std::move(c->next);
 		}
 	}
 
 	void disconnectAll()
 	{
 		assert( not _in_signal );
-		while ( _head != nullptr )
-		{
-			auto c = _head;
-			_head = _head->next;
-			delete c;
-		}
+		_head.reset();
 	}
 
 	class scoped_conn
@@ -136,7 +124,7 @@ public:
 
 private:
 	bool _in_signal = false;
-	conn_node *_head = nullptr;
+	std::unique_ptr<conn_node> _head;
 };
 }
 

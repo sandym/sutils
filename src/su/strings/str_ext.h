@@ -25,12 +25,12 @@
 namespace su {
 
 // conversion
-std::string to_string( const std::wstring &s );
-std::string to_string( const std::u16string &s );
+std::string to_string( const std::wstring_view &s );
+std::string to_string( const std::u16string_view &s );
 std::wstring to_wstring( const std::string_view &s );
-std::wstring to_wstring( const std::u16string &s );
+std::wstring to_wstring( const std::u16string_view &s );
 std::u16string to_u16string( const std::string_view &s );
-std::u16string to_u16string( const std::wstring &s );
+std::u16string to_u16string( const std::wstring_view &s );
 
 #if UPLATFORM_MAC || UPLATFORM_IOS
 std::string to_string( CFStringRef i_cfstring );

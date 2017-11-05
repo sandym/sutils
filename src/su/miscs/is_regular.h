@@ -21,11 +21,11 @@ namespace su {
 template<typename T>
 struct is_regular :
     std::integral_constant<bool,
-        std::is_default_constructible_v<T> and
-        std::is_copy_constructible_v<T> and
-        std::is_move_constructible_v<T> and
-        std::is_copy_assignable_v<T> and
-        std::is_move_assignable_v<T>>
+        std::is_default_constructible<T>::value and
+        std::is_copy_constructible<T>::value and
+        std::is_move_constructible<T>::value and
+        std::is_copy_assignable<T>::value and
+        std::is_move_assignable<T>::value>
      {};
 
 template<typename T>

@@ -448,7 +448,7 @@ inline char* Prettify(char* buffer, int length, int k) {
     }
 }
 
-template<typename N,int B=sizeof(N),bool S=std::is_signed_v<N>>
+template<typename N,int B=sizeof(N),bool S=std::is_signed<N>::value>
 struct numtoa_impl
 {
 static char *impl( N value, char* buffer );
