@@ -29,7 +29,7 @@ public:
 	uuid( const uuid & ) = default;
 	uuid( uuid && ) = default;
 	uuid( const std::array<uint8_t, 16> &i_value ) : _uuid( i_value ){}
-	uuid( const std::string &i_value );
+	uuid( const std::string_view &i_value );
 
 	uuid &operator=( const uuid & ) = default;
 	uuid &operator=( uuid && ) = default;

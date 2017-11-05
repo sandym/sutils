@@ -68,7 +68,7 @@ inline TestOptions timed_test( int i_repeat = 5 )
 class TestCase
 {
 public:
-	TestCase( const std::string &i_name, const TestOptions &i_options,
+	TestCase( const std::string_view &i_name, const TestOptions &i_options,
 				const std::function<void(TestTimer&)> &i_test )
 		: _name( i_name ), _options( i_options ), _test( i_test ){}
 

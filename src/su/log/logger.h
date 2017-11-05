@@ -188,7 +188,7 @@ struct logger_output
 class logger_base
 {
 protected:
-	logger_base( std::unique_ptr<logger_output> &&i_output, const std::string &i_subsystem );
+	logger_base( std::unique_ptr<logger_output> &&i_output, const std::string_view &i_subsystem );
 	virtual ~logger_base();
 
 	std::unique_ptr<logger_output> _output;
@@ -211,10 +211,10 @@ template <int COMPILETIME_LOG_MASK=kCOMPILETIME_LOG_MASK>
 class Logger final : public logger_base
 {
 public:
-	Logger( const std::string &i_ss = {} ) : logger_base( {}, i_ss ){}
-	Logger( std::unique_ptr<logger_output> &&i_output, const std::string &i_ss = {} )
+	Logger( const std::string_view &i_ss = {} ) : logger_base( {}, i_ss ){}
+	Logger( std::unique_ptr<logger_output> &&i_output, const std::string_view &i_ss = {} )
 		: logger_base( std::move(i_output), i_ss ){}
-	Logger( std::ostream &ostr, const std::string &i_ss = {} )
+	Logger( std::ostream &ostr, const std::string_view &i_ss = {} )
 		: logger_base( std::make_unique<logger_output>(ostr), i_ss ){}
 	
 	int getLogMask() const { return _runtimeLogMask; }

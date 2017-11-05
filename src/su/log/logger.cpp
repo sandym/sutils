@@ -503,7 +503,7 @@ void logger_output::flush()
 	ostr.flush();
 }
 
-logger_base::logger_base( std::unique_ptr<logger_output> &&i_output, const std::string &i_subsystem )
+logger_base::logger_base( std::unique_ptr<logger_output> &&i_output, const std::string_view &i_subsystem )
 	: _output( std::move(i_output) ),
 		_subsystem( i_subsystem )
 {

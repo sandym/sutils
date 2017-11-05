@@ -84,7 +84,7 @@ std::ostream &operator<<( std::ostream &ostr, styleTTY i_style )
 }
 
 //! nicer display name, for test suites and test cases
-std::string displayName( const std::string &s )
+std::string displayName( const std::string_view &s )
 {
 	std::string result( s );
 	// replate '_' with spaces
@@ -105,12 +105,12 @@ public:
 	SimpleTestDB( const std::string_view &i_processName );
 	~SimpleTestDB();
 	
-	void addResult( const std::string &i_testSuiteName,
-					const std::string &i_testName,
-					const std::string &i_result,
+	void addResult( const std::string_view &i_testSuiteName,
+					const std::string_view &i_testName,
+					const std::string_view &i_result,
 					int64_t i_duration );
-	int64_t mostRecentDuration( const std::string &i_testSuiteName,
-								const std::string &i_testName );
+	int64_t mostRecentDuration( const std::string_view &i_testSuiteName,
+								const std::string_view &i_testName );
 
 private:
 	std::string _processName;
@@ -207,9 +207,9 @@ SimpleTestDB::~SimpleTestDB()
 #endif
 }
 
-void SimpleTestDB::addResult( const std::string &i_testSuiteName,
-								const std::string &i_testName,
-								const std::string &i_result,
+void SimpleTestDB::addResult( const std::string_view &i_testSuiteName,
+								const std::string_view &i_testName,
+								const std::string_view &i_result,
 								int64_t i_duration )
 {
 #ifdef HAS_SQLITE3
@@ -217,10 +217,13 @@ void SimpleTestDB::addResult( const std::string &i_testSuiteName,
 	{
 		std::string cmd( "INSERT INTO test_cases (process_name,test_suite,"
 							"test_case,result,duration,datetime) VALUES (" );
-		cmd += "'" + _processName + "',";
-		cmd += "'" + i_testSuiteName + "',";
-		cmd += "'" + i_testName + "',";
-		cmd += "'" + i_result + "',";
+		cmd += "'" + _processName + "','";
+		cmd += i_testSuiteName;
+		cmd += "','";
+		cmd += i_testName;
+		cmd += "','";
+		cmd += i_result;
+		cmd += "',";
 		cmd += std::to_string(i_duration) + ",";
 		cmd += "'" + _datetime;
 		cmd += "');";
@@ -234,18 +237,19 @@ void SimpleTestDB::addResult( const std::string &i_testSuiteName,
 #endif
 }
 
-int64_t SimpleTestDB::mostRecentDuration( const std::string &i_testSuiteName,
-											const std::string &i_testName )
+int64_t SimpleTestDB::mostRecentDuration( const std::string_view &i_testSuiteName,
+											const std::string_view &i_testName )
 {
 #ifdef HAS_SQLITE3
 	try
 	{
 		std::string cmd( "SELECT duration FROM test_cases WHERE " );
 		cmd += "process_name='" + _processName + "' AND ";
-		cmd += "test_suite='" + i_testSuiteName + "' AND ";
-		cmd += "test_case='" + i_testName + "' AND ";
-		cmd += "result='' ";
-		cmd += "ORDER BY datetime DESC LIMIT 1";
+		cmd += "test_suite='";
+		cmd += i_testSuiteName;
+		cmd += "' AND test_case='";
+		cmd += i_testName;
+		cmd += "' AND result='' ORDER BY datetime DESC LIMIT 1";
 		auto result = sqlite3_exec( cmd );
 		if ( not result.empty() )
 			return std::stoll( result.begin()->second );

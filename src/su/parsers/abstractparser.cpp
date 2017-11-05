@@ -367,7 +367,7 @@ void abstractparserbase::throwTokenizerException() const
 #pragma mark -
 #endif
 
-lineparser::lineparser( std::istream &i_str, const std::string &i_name )
+lineparser::lineparser( std::istream &i_str, const std::string_view &i_name )
 	: abstractparser<linetoken_t>( i_str, i_name )
 {
 }

@@ -48,7 +48,7 @@ uuid uuid::create()
 	return v;
 }
 
-uuid::uuid( const std::string &i_value )
+uuid::uuid( const std::string_view &i_value )
 {
 	int i = 0, j = 0;
 	int v[2];

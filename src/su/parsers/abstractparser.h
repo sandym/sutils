@@ -31,7 +31,7 @@ public:
 	token &operator=( const token & ) = default;
 
 	token() = default;
-	token( TOKEN_TYPE i_tok, const std::string &i_val )
+	token( TOKEN_TYPE i_tok, const std::string_view &i_val )
 		: _isValid( true ),
 			_tokenid( i_tok ),
 			_value( i_val )
@@ -55,11 +55,11 @@ public:
 	TOKEN_TYPE type() const { return _tokenid; }
 	const std::string &value() const { return _value; }
 	
-	void setProperty( const std::string &i_name, const std::string &i_value )
+	void setProperty( const std::string_view &i_name, const std::string_view &i_value )
 	{
 		_properties[i_name] = i_value;
 	}
-	std::string getProperty( const std::string &i_name ) const
+	std::string getProperty( const std::string_view &i_name ) const
 	{
 		auto it = _properties.find( i_name );
 		if ( it != _properties.end() )
@@ -227,7 +227,7 @@ enum linetoken_t
 class lineparser : public abstractparser<linetoken_t>
 {
 public:
-	lineparser( std::istream &i_str, const std::string &i_name );
+	lineparser( std::istream &i_str, const std::string_view &i_name );
 
 protected:
 	virtual bool parseAToken( token_type &o_token );

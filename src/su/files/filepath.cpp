@@ -75,9 +75,9 @@ inline bool isAbsolute( const std::string_view &i_path )
 
 #if UPLATFORM_MAC
 
-CFURLRef createURLRef( const std::string i_path )
+CFURLRef createURLRef( const std::string_view &i_path )
 {
-	return CFURLCreateFromFileSystemRepresentation( nullptr, (const UInt8 *)i_path.c_str(), (CFIndex)i_path.size(), false );
+	return CFURLCreateFromFileSystemRepresentation( nullptr, (const UInt8 *)i_path.data(), (CFIndex)i_path.size(), false );
 }
 
 std::string CFURLToPath( CFURLRef i_url )
