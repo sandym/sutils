@@ -15,6 +15,7 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
+#include <memory>
 #include <string.h>
 
 #if __has_include(<sqlite3.h>)

@@ -47,10 +47,7 @@ public:
 	using const_reverse_iterator = typename storage_type::const_reverse_iterator;
 
 	// construct/copy/destroy:
-	flat_set() noexcept(
-		std::is_nothrow_default_constructible_v<allocator_type> &&
-		std::is_nothrow_default_constructible_v<key_compare> &&
-		std::is_nothrow_copy_constructible_v<key_compare>) = default;
+	flat_set() = default;
 	explicit flat_set( const value_compare &comp )
 		: _storage( {}, comp ){}
 	flat_set( const value_compare &comp, const allocator_type &a )

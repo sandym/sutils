@@ -16,6 +16,7 @@
 #include "su/miscs/statesaver.h"
 #include <ciso646>
 #include <functional>
+#include <memory>
 #include <cassert>
 
 namespace su {

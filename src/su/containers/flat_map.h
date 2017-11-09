@@ -63,10 +63,7 @@ public:
 	};
 
 	// construct/copy/destroy:
-	flat_map() noexcept(
-				std::is_nothrow_default_constructible_v<storage_type> &&
-				std::is_nothrow_default_constructible_v<key_compare> &&
-				std::is_nothrow_copy_constructible_v<key_compare>) = default;
+	flat_map() = default;
 	explicit flat_map( const key_compare &comp )
 		: _storage( {}, comp ){}
 	flat_map( const key_compare &comp, const allocator_type &a )

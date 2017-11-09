@@ -140,7 +140,7 @@ bool Tokenizer::parseAToken( su::token<token_t> &o_token )
  *  .strings file syntaxic parsing
  *      load the given string table in the localized string repository
  */
-void loadStringTable( const std::string_view &i_table )
+void loadStringTable( const std::string &i_table )
 {
 	string_hash_map table;
 	try

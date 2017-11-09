@@ -106,7 +106,7 @@ std::string getUserSysDir( sysdir_search_path_directory_t i_sysdir )
 }
 
 #elif UPLATFORM_UNIX
-std::string getUserSysDir( const std::string_view &i_key, const std::string_view &i_default )
+std::string getUserSysDir( const std::string &i_key, const std::string_view &i_default )
 {
 	su::filepath home( su::filepath::location::kHome );
 	su::filepath fs( home );
@@ -118,25 +118,25 @@ std::string getUserSysDir( const std::string_view &i_key, const std::string_view
 		std::string buf;
 		while ( std::getline( istr, buf ) )
 		{
-			auto line = su::trimSpaces_view( buf );
+			auto line = su::trim_spaces_view( buf );
 			if ( line.empty() or line[0] == '#' )
 				continue;
 			auto l = su::split<char>( line, '=' );
 			if ( l.size() != 2 )
 				continue;
-			auto p = su::trimSpaces_view( l[1] );
+			auto p = su::trim_spaces_view( l[1] );
 			if ( p.size() >= 2 and p.front() == '"' and p.back() == '"' )
 			{
 				p.remove_prefix( 1 );
 				p.remove_suffix( 1 );
 			}
-			folderMap[su::trimSpaces(l[0])] = p.to_string();
+			folderMap[su::trim_spaces(l[0])] = p;
 		}
 		auto it = folderMap.find( i_key );
 		if ( it != folderMap.end() )
 		{
 			auto path = it->second;
-			if ( su::startsWith( path, "$HOME" ) )
+			if ( su::starts_with( path, "$HOME" ) )
 			{
 				path.erase( 0, 5 );
 				path.insert( 0, home.path() );

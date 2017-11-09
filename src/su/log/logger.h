@@ -32,6 +32,7 @@
 #include <iosfwd>
 #include <memory>
 #include <string>
+#include <string.h>
 #include <string_view>
 #include <thread>
 #include "su/base/always_inline.h"

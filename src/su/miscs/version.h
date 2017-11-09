@@ -23,6 +23,13 @@
 #include <string>
 #include <string_view>
 
+#ifdef minor
+#undef minor
+#endif
+#ifdef major
+#undef major
+#endif
+
 namespace su {
 
 class version final

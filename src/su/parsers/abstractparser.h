@@ -55,11 +55,11 @@ public:
 	TOKEN_TYPE type() const { return _tokenid; }
 	const std::string &value() const { return _value; }
 	
-	void setProperty( const std::string_view &i_name, const std::string_view &i_value )
+	void setProperty( const std::string &i_name, const std::string_view &i_value )
 	{
 		_properties[i_name] = i_value;
 	}
-	std::string getProperty( const std::string_view &i_name ) const
+	std::string getProperty( const std::string &i_name ) const
 	{
 		auto it = _properties.find( i_name );
 		if ( it != _properties.end() )

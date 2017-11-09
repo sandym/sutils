@@ -11,7 +11,7 @@
  */
 
 #include "su/strings/str_ext.h"
-#include "su/base/cfauto.h"
+#include "su/base/platform.h"
 #include "su/containers/flat_map.h"
 #include "ConvertUTF.h"
 #include <stack>
@@ -19,6 +19,13 @@
 #include <cstring>
 #include <cctype>
 #include <ciso646>
+
+#if UPLATFORM_MAC || UPLATFORM_IOS
+#include "su/base/cfauto.h"
+#elif UPLATFORM_UNIX
+#include "unicode/uchar.h"
+#include "unicode/unistr.h"
+#endif
 
 namespace {
 
@@ -163,7 +170,9 @@ std::string tolower( const std::string_view &s )
 #elif UPLATFORM_WIN
 #error
 #else
-#error
+	auto us = icu::UnicodeString::fromUTF8( icu::StringPiece( s.data(), s.size() ) );
+	std::string s8;
+	return us.toLower().toUTF8String(s8);
 #endif
 }
 
@@ -177,7 +186,9 @@ std::string toupper( const std::string_view &s )
 #elif UPLATFORM_WIN
 #error
 #else
-#error
+	auto us = icu::UnicodeString::fromUTF8( icu::StringPiece( s.data(), s.size() ) );
+	std::string s8;
+	return us.toUpper().toUTF8String(s8);
 #endif
 }
 

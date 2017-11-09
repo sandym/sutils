@@ -13,6 +13,7 @@
 #include "su/files/resource_access.h"
 #include "su/base/platform.h"
 #include "su/strings/str_ext.h"
+#include <cassert>
 
 #if (UPLATFORM_MAC || UPLATFORM_IOS)
 #include "su/base/cfauto.h"
@@ -74,7 +75,7 @@ su::filepath get( const std::string_view &i_name )
 	// get the filespec for the resource's url
 	cfauto<CFStringRef> pathRef( CFURLCopyFileSystemPath( urlRef, kCFURLPOSIXPathStyle ) );
 	return su::filepath( su::to_string( pathRef ) );
-#else
+#elif UPLATFORM_WIN
 	static su::filepath rsrc = getFolder();
 	static su::filepath s_locale;
 	if ( s_locale.empty() )
@@ -140,6 +141,8 @@ su::filepath get( const std::string_view &i_name )
 	
 	// give up, resource not found...
 	return {};
+#else
+	assert( false );
 #endif
 }
 
