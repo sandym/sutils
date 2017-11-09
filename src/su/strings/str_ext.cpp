@@ -209,7 +209,7 @@ int compare_nocase( const std::string_view &lhs, const std::string_view &rhs )
 	cfauto<CFStringRef> rhsRef( CFStringCreateWithBytesNoCopy( 0, (const UInt8 *)rhs.data(), rhs.length(), kCFStringEncodingUTF8, false, kCFAllocatorNull ) );
 	return CFStringCompare( lhsRef, rhsRef, kCFCompareCaseInsensitive+kCFCompareNonliteral );
 #elif UPLATFORM_WIN
-	return _wcsicmp( to_wstring(lhs).c_str(), to_wstring(rhs).c_str() );
+	return tolower(lhs).compare(tolower(rhs));
 #else
 	auto lhsus = icu::UnicodeString::fromUTF8( icu::StringPiece( lhs.data(), lhs.size() ) );
 	auto rhsus = icu::UnicodeString::fromUTF8( icu::StringPiece( rhs.data(), rhs.size() ) );

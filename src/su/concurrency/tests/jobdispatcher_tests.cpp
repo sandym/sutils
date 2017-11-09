@@ -343,7 +343,7 @@ void jobdispatcher_tests::test_case_cancel_3()
 			[&isRunningAsync, &finished]( su::job &i_job )
 			{
 				isRunningAsync = true;
-				for ( int i = 0; i < 100; ++i )
+				for ( int i = 0; i < 50; ++i )
 				{
 					std::this_thread::sleep_for( kNanoSleep );
 					i_job.cancellationPoint();
@@ -368,7 +368,7 @@ void jobdispatcher_tests::test_case_cancel_3()
 			std::make_shared<su::asyncJob>(
 				[]( su::job &i_job )
 				{
-					for ( int i = 0; i < 100; ++i )
+					for ( int i = 0; i < 50; ++i )
 					{
 						std::this_thread::sleep_for( kNanoSleep );
 						i_job.cancellationPoint();
@@ -390,7 +390,7 @@ void jobdispatcher_tests::test_case_cancel_3()
 	
 	while ( nbFinished < nbStarted or _needIdleTime )
 	{
-		std::this_thread::sleep_for( kQuarterSleep );
+		std::this_thread::sleep_for( kNanoSleep );
 		if ( _needIdleTime )
 		{
 			_dispatcher->idle();
@@ -567,7 +567,7 @@ void jobdispatcher_tests::test_case_prioritise_1()
 	TEST_ASSERT( not didIdle );
 	
 	// wait
-	int counter = 0, rank = 0;
+	int counter = 0, rank = -1;
 	while ( nbFinished < nbStarted or _needIdleTime )
 	{
 		std::this_thread::sleep_for( kTenthSleep );
@@ -576,7 +576,7 @@ void jobdispatcher_tests::test_case_prioritise_1()
 			_dispatcher->idle();
 			++counter;
 			_needIdleTime = false;
-			if ( didIdle )
+			if (rank < 0 and didIdle )
 				rank = counter;
 		}
 	}
