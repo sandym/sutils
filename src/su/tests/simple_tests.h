@@ -23,6 +23,8 @@
 #include <vector>
 #include <cmath>
 #include <chrono>
+#include <ciso646>
+#include <cctype>
 
 namespace su {
 

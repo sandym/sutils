@@ -33,7 +33,7 @@ REGISTER_TEST_SUITE( flat_map_tests,
 // MARK: -
 // MARK:  === test cases ===
 
-struct my_less : std::binary_function<int, int, bool>
+struct my_less
 {
 	int dummy = 0;
 	bool operator()( const int &lhs, const int &rhs ) const

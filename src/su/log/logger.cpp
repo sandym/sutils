@@ -77,7 +77,7 @@ std::ostream &operator<<( std::ostream &os, const thread_name &t )
 	typedef HRESULT(WINAPI* GetThreadDescriptionPtr)( HANDLE, PWSTR* );
 
 	auto GetThreadDescriptionFunc = reinterpret_cast<GetThreadDescriptionPtr>(
-							::GetProcAddress( ::GetModuleHandle(L"Kernel32.dll"), "GetThreadDescription" ) );
+							::GetProcAddress( ::GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription" ) );
 	if ( GetThreadDescriptionFunc )
 	{
 		wchar_t *name = nullptr;
@@ -88,7 +88,7 @@ std::ostream &operator<<( std::ostream &os, const thread_name &t )
 			LocalFree( name );
 			if ( l > 0 )
 			{
-				buffer[i] = 0;
+				buffer[l] = 0;
 				return os << buffer;
 			}
 		}
