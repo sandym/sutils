@@ -80,7 +80,9 @@ class MyDispatcher : public su::jobdispatcher
 
 su::jobdispatcher *MyDispatcher::g_globalJobDispatcher = nullptr;
 
-MyDispatcher::MyDispatcher( bool &io_needIdleTime ) : _needIdleTime( io_needIdleTime )
+MyDispatcher::MyDispatcher( bool &io_needIdleTime )
+	: su::jobdispatcher(),
+		_needIdleTime( io_needIdleTime )
 {
 	g_globalJobDispatcher = this;
 }
@@ -124,7 +126,8 @@ class MyAsyncAndCompletionJob : public su::job
 		bool &_completed;
 };
 
-MyAsyncAndCompletionJob::MyAsyncAndCompletionJob( bool &io_completedAsync, bool &io_completed )
+MyAsyncAndCompletionJob::MyAsyncAndCompletionJob( bool &io_completedAsync,
+													bool &io_completed )
 	: _completedAsync( io_completedAsync ),
 		_completed( io_completed )
 {
@@ -219,8 +222,11 @@ void jobdispatcher_tests::test_case_cancel_1()
 	const int nbStarted = 20;
 	int	nbFinished = 0;
 	for ( int i = 0 ; i < nbStarted; ++i )
-		su::jobdispatcher::instance()->postAsync( std::make_shared<LongAsyncJob>( nbFinished, kHalfSleep ) );
-	
+	{
+		su::jobdispatcher::instance()->postAsync(
+				std::make_shared<LongAsyncJob>( nbFinished, kHalfSleep ) );
+	}
+
 	bool completedAsync = false, completed = false;
 	auto job = std::make_shared<MyAsyncAndCompletionJob>( completedAsync, completed );
 	
@@ -251,7 +257,9 @@ void jobdispatcher_tests::test_case_cancel_1()
 class TestAsyncCancelJob : public su::job
 {
 	public:
-		TestAsyncCancelJob( bool &i_isRunningAsync, bool &i_isRunningIdle, bool &i_finished );
+		TestAsyncCancelJob( bool &i_isRunningAsync,
+							bool &i_isRunningIdle,
+							bool &i_finished );
 		virtual ~TestAsyncCancelJob() = default;
 		virtual void runAsync();
 		virtual void runIdle();
@@ -261,7 +269,9 @@ class TestAsyncCancelJob : public su::job
 		bool &_finished;
 };
 
-TestAsyncCancelJob::TestAsyncCancelJob( bool &i_isRunningAsync, bool &i_isRunningIdle, bool &i_finished )
+TestAsyncCancelJob::TestAsyncCancelJob( bool &i_isRunningAsync,
+										bool &i_isRunningIdle,
+										bool &i_finished )
 	: _isRunningAsync( i_isRunningAsync ),
 		_isRunningIdle( i_isRunningIdle ),
 		_finished( i_finished )
@@ -299,8 +309,11 @@ void jobdispatcher_tests::test_case_cancel_2()
 	const int nbStarted = 20;
 	int nbFinished = 0;
 	for ( int i = 0 ; i < nbStarted; ++i )
-		su::jobdispatcher::instance()->postAsync( std::make_shared<LongAsyncJob>( nbFinished, kHalfSleep ) );
-	
+	{
+		su::jobdispatcher::instance()->postAsync(
+					std::make_shared<LongAsyncJob>( nbFinished, kHalfSleep ) );
+	}
+
 	std::this_thread::sleep_for( kQuarterSleep );
 	TEST_ASSERT( isRunningAsync );
 	longJob->cancel();
@@ -351,7 +364,8 @@ void jobdispatcher_tests::test_case_cancel_3()
 	int	nbFinished = 0;
 	for ( int i = 0 ; i < nbStarted; ++i )
 	{
-		su::jobdispatcher::instance()->postAsync( std::make_shared<su::asyncJob>(
+		su::jobdispatcher::instance()->postAsync(
+			std::make_shared<su::asyncJob>(
 				[]( su::job &i_job )
 				{
 					for ( int i = 0; i < 100; ++i )
@@ -429,7 +443,11 @@ void FirstToFinishJob::runIdle()
 class FirstToFinishJobLog : public FirstToFinishJob
 {
 	public:
-		FirstToFinishJobLog( int &i_nbFinished, int &o_result, bool &i_didAsync, bool &i_didIdle, int i_id );
+		FirstToFinishJobLog( int &i_nbFinished,
+								int &o_result,
+								bool &i_didAsync,
+								bool &i_didIdle,
+								int i_id );
 		virtual ~FirstToFinishJobLog() = default;
 		virtual void runAsync();
 		virtual void runIdle();
@@ -437,7 +455,11 @@ class FirstToFinishJobLog : public FirstToFinishJob
 		bool &didAsync, &didIdle;
 };
 
-FirstToFinishJobLog::FirstToFinishJobLog( int &i_nbFinished, int &o_result, bool &i_didAsync, bool &i_didIdle, int i_id )
+FirstToFinishJobLog::FirstToFinishJobLog( int &i_nbFinished,
+											int &o_result,
+											bool &i_didAsync,
+											bool &i_didIdle,
+											int i_id )
 	:FirstToFinishJob( i_nbFinished, o_result, i_id ),
 		didAsync( i_didAsync ),
 		didIdle( i_didIdle )
@@ -466,8 +488,11 @@ void jobdispatcher_tests::test_case_sprint_1()
 	// flood the dispatcher with jobs
 	int nbStarted = 20;
 	for ( int i = 0 ; i < nbStarted; ++i )
-		su::jobdispatcher::instance()->postAsync( std::make_shared<FirstToFinishJob>( nbFinished, winner, 1 ) );
-	
+	{
+		su::jobdispatcher::instance()->postAsync(
+				std::make_shared<FirstToFinishJob>( nbFinished, winner, 1 ) );
+	}
+
 	// add one more
 	++nbStarted;
 	bool didAsync = false, didIdle = false;
@@ -521,15 +546,17 @@ void jobdispatcher_tests::test_case_sprint_2()
 void jobdispatcher_tests::test_case_prioritise_1()
 {
 	// prioritise while in async queue
-	
 	int winner = -1;
 	int nbFinished = 0;
 	
 	// flood the dispatcher with jobs
-	int nbStarted = 20;
+	int nbStarted = 200;
 	for ( int i = 0 ; i < nbStarted; ++i )
-		su::jobdispatcher::instance()->postAsync( std::make_shared<FirstToFinishJob>( nbFinished, winner, 1 ) );
-	
+	{
+		su::jobdispatcher::instance()->postAsync(
+				std::make_shared<FirstToFinishJob>( nbFinished, winner, 1 ) );
+	}
+
 	// add one more
 	++nbStarted;
 	bool didAsync = false, didIdle = false;
@@ -554,5 +581,6 @@ void jobdispatcher_tests::test_case_prioritise_1()
 		}
 	}
 	TEST_ASSERT( didAsync );
-	TEST_ASSERT( rank < 19, "rank should be much smaller than 20 since job should have jump ahead of most others." );
+	TEST_ASSERT( rank < 199, "rank should be much smaller than 20 since job "
+									"should have jump ahead of most others." );
 }

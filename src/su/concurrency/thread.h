@@ -15,6 +15,7 @@
 
 #include <thread>
 #include <cassert>
+#include <string_view>
 
 namespace su {
 
@@ -23,7 +24,7 @@ namespace this_thread {
 // extension
 void set_as_main();
 bool is_main();
-void set_name( const char *n );
+void set_name( const std::string_view &n );
 
 }
 

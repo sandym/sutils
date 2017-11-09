@@ -398,6 +398,7 @@ bool filepath::getBookmarkData( BookmarkData &o_data, const filepath *i_relative
 	//	append the path data
 	o_data.insert( o_data.end(), kPathTag, kPathTag + sizeof(kPathTag)-1 );
 	o_data.insert( o_data.end(), the_path.begin(), the_path.end() );
+	o_data.push_back( 0 );
 	
 #if UPLATFORM_MAC
 	//	add the "ALIAS:" tag for the Mac

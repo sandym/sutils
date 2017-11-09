@@ -75,13 +75,13 @@ su::filepath get( const std::string_view &i_name )
 	// get the filespec for the resource's url
 	cfauto<CFStringRef> pathRef( CFURLCopyFileSystemPath( urlRef, kCFURLPOSIXPathStyle ) );
 	return su::filepath( su::to_string( pathRef ) );
-#elif UPLATFORM_WIN
+#else
 	static su::filepath rsrc = getFolder();
 	static su::filepath s_locale;
 	if ( s_locale.empty() )
 	{
+#if UPLATFORM_WIN
 		std::string specific;
-
 		wchar_t lang[8];
 		/*int s =*/ GetLocaleInfoW( LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, lang, 8 );
 		auto locale = su::to_string( lang );
@@ -111,6 +111,9 @@ su::filepath get( const std::string_view &i_name )
 			if ( f.isFolder() )
 				s_locale = f;
 		}
+#else
+		//! @todo: linux impl
+#endif
 		if ( s_locale.empty() )
 		{
 			s_locale = rsrc;
@@ -141,8 +144,6 @@ su::filepath get( const std::string_view &i_name )
 	
 	// give up, resource not found...
 	return {};
-#else
-	assert( false );
 #endif
 }
 

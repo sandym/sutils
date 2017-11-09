@@ -37,9 +37,9 @@ bool is_main()
 	return g_mainThreadID == std::this_thread::get_id();
 }
 
-void set_name( const char *n )
+void set_name( const std::string_view &n )
 {
-	if ( n == nullptr or n[0] == 0 )
+	if ( n.empty() )
 		return;
 	
 #if UPLATFORM_WIN
@@ -50,7 +50,7 @@ void set_name( const char *n )
 	if ( SetThreadDescriptionFunc )
 	{
 		wchar_t name[64];
-		int l = MultiByteToWideChar( CP_UTF8, MB_COMPOSITE, n, strlen(n), name, 64 );
+		int l = MultiByteToWideChar( CP_UTF8, MB_COMPOSITE, n.data(), n.size()), name, 64 );
 		if ( l > 0 )
 		{
 			name[l] = 0;
@@ -58,9 +58,13 @@ void set_name( const char *n )
 		}
 	}
 #elif UPLATFORM_MAC
-	pthread_setname_np( n );
+	std::string name( n );
+	pthread_setname_np( name.c_str() );
 #else
-	pthread_setname_np( pthread_self(), n );
+	std::string name( n );
+	if ( name.size() > 15 ) // limited to 16 (including terminator) on linux
+		name.resize( 15 );
+	pthread_setname_np( pthread_self(), name.c_str() );
 #endif
 }
 

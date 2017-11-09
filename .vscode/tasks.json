@@ -1,0 +1,24 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "taskName": "cmake",
+            "type": "shell",
+            "command": "mkdir build ; cd build ; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug ../tests"
+        },
+        {
+            "taskName": "build",
+            "type": "shell",
+            "options": {
+                "cwd": "${cwd}/build"
+            },
+            "command": "ninja",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

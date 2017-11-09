@@ -42,11 +42,20 @@ add_executable ( sutils_tests
 					${SUTILS_HEADERS}
 					${SUTILS_SOURCES} )
 
-add_custom_command( TARGET sutils_tests
-					POST_BUILD
-					COMMAND ${CMAKE_COMMAND} -E copy_directory rsrc "$<TARGET_FILE_DIR:sutils_tests>"
-					WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-					COMMENT "copy rsrc" )
+if(APPLE)
+	add_custom_command( TARGET sutils_tests
+						POST_BUILD
+						COMMAND ${CMAKE_COMMAND} -E copy_directory rsrc "$<TARGET_FILE_DIR:sutils_tests>"
+						WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+						COMMENT "copy rsrc" )
+else()
+	add_custom_command( TARGET sutils_tests
+						POST_BUILD
+						COMMAND ${CMAKE_COMMAND} -E copy_directory rsrc "$<TARGET_FILE_DIR:sutils_tests>/Resources"
+						WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+						COMMENT "copy rsrc" )
+endif()
+
 
 source_group( "sutils" FILES
 					${SUTILS_HEADERS}

@@ -201,7 +201,9 @@ int compare_nocase( const std::string_view &lhs, const std::string_view &rhs )
 #elif UPLATFORM_WIN
 	return _wcsicmp( to_wstring(lhs).c_str(), to_wstring(rhs).c_str() );
 #else
-	return wcscasecmp( to_wstring(lhs).c_str(), to_wstring(rhs).c_str() );
+	auto lhsus = icu::UnicodeString::fromUTF8( icu::StringPiece( lhs.data(), lhs.size() ) );
+	auto rhsus = icu::UnicodeString::fromUTF8( icu::StringPiece( rhs.data(), rhs.size() ) );
+	return lhsus.caseCompare( rhsus, U_FOLD_CASE_DEFAULT );
 #endif
 }
 

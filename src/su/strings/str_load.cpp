@@ -207,7 +207,7 @@ std::string string_load( const std::string_view &i_key, const std::string_view &
 		return it->second;
 	else
 	{
-		log_debug() << "key not found " << i_key <<", " << i_table;
+//		log_debug() << "key not found " << i_key <<", " << i_table;
 		return std::string(i_key);
 	}
 #endif

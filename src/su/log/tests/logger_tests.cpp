@@ -189,7 +189,7 @@ struct logger_tests
 		// redirect
 		std::ostringstream ss;
 		
-		su::this_thread::set_name( "funny_thread_name" );
+		su::this_thread::set_name( "fun_thread_name" );
 		{
 			su::Logger<> test_logger( ss, "test" );
 			
@@ -197,7 +197,7 @@ struct logger_tests
 		}
 		
 		auto res = ss.str();
-		TEST_ASSERT_NOT_EQUAL( res.find( "[funny_thread_name]" ), std::string::npos );
+		TEST_ASSERT_NOT_EQUAL( res.find( "[fun_thread_name]" ), std::string::npos );
 	}
 	
 	void test_case_long_message()
