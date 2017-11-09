@@ -550,7 +550,7 @@ void jobdispatcher_tests::test_case_prioritise_1()
 	int nbFinished = 0;
 	
 	// flood the dispatcher with jobs
-	int nbStarted = 200;
+	int nbStarted = 20;
 	for ( int i = 0 ; i < nbStarted; ++i )
 	{
 		su::jobdispatcher::instance()->postAsync(
@@ -581,6 +581,6 @@ void jobdispatcher_tests::test_case_prioritise_1()
 		}
 	}
 	TEST_ASSERT( didAsync );
-	TEST_ASSERT( rank < 199, "rank should be much smaller than 20 since job "
+	TEST_ASSERT( rank < 19, "rank should be much smaller than 20 since job "
 									"should have jump ahead of most others." );
 }

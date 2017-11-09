@@ -49,18 +49,18 @@ public:
 	// construct/copy/destroy:
 	flat_set() = default;
 	explicit flat_set( const value_compare &comp )
-		: _storage( {}, comp ){}
+		: _pair( {}, comp ){}
 	flat_set( const value_compare &comp, const allocator_type &a )
-		: _storage( { {}, a }, comp ){}
+		: _pair( { {}, a }, comp ){}
 	template<class InputIterator>
 	flat_set( InputIterator first, InputIterator last, const value_compare& comp = value_compare() )
-		: _storage( { first, last }, comp )
+		: _pair( { first, last }, comp )
 	{
 		sort();
 	}
 	template<class InputIterator>
 	flat_set( InputIterator first, InputIterator last, const value_compare& comp, const allocator_type& a )
-		: _storage( { first, last, a }, comp )
+		: _pair( { first, last, a }, comp )
 	{
 		sort();
 	}
@@ -71,7 +71,7 @@ public:
 		std::is_nothrow_move_constructible_v<key_compare>);
 #endif
 	explicit flat_set( const allocator_type &a )
-		: _storage( a , {} ){}
+		: _pair( a , {} ){}
 #if 0
 	flat_set( const flat_set &s, const allocator_type &a );
 	flat_set( flat_set &&s, const allocator_type &a );
@@ -180,12 +180,12 @@ public:
 		noexcept( std::allocator_traits<allocator_type>::is_always_equal::value &&
 		std::is_nothrow_swappable_v<key_compare>)
 	{
-		_storage.swap( s._storage );
+		std::swap( _pair, s._pair );
 	}
 	
 	// observers:
 	allocator_type get_allocator() const noexcept { return storage().get_allocator(); }
-	key_compare key_comp() const { return std::get<1>(_storage); }
+	key_compare key_comp() const { return _pair; }
 	value_compare value_comp() const { return key_comp(); }
 
 	// set operations:
@@ -299,8 +299,8 @@ public:
 	std::pair<const_iterator,const_iterator> equal_range( const K &k ) const;
 #endif
 
-	const storage_type &storage() const { return std::get<0>(_storage); }
-	storage_type &storage() { return std::get<0>(_storage); }
+	const storage_type &storage() const { return _pair.storage; }
+	storage_type &storage() { return _pair.storage; }
 	void sort()
 	{
 		std::sort( storage().begin(), storage().end(),
@@ -311,7 +311,13 @@ public:
 	}
 
 private:
-	std::tuple<storage_type,key_compare> _storage;
+	struct compress_pair : key_compare
+	{
+		compress_pair() = default;
+		compress_pair( const storage_type &s, const key_compare &k )
+			: key_compare( k ), storage( s ){}
+		storage_type storage;
+	} _pair;
 
 	template<typename K>
 	inline bool key_equal( const key_type &a, const K &b )
