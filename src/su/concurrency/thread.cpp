@@ -12,6 +12,7 @@
 
 #include "su/concurrency/thread.h"
 #include "su/base/platform.h"
+#include <string>
 
 #if UPLATFORM_WIN
 #include <Windows.h>
