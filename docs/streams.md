@@ -4,6 +4,12 @@ Defines a `basic_nullbuf` and `basic_null_stream`. streambuf
 and stream that discard their output (like redirecting to
 /dev/null).
 
+Usage:
+```C++
+su::null_stream devnull;
+devnull << "will be lost" << std::endl;
+```
+
 ## `su/streams/teebuf.h`
 
 Defines a tee streambuf, a streambuf that redirect to 2 sub
@@ -12,13 +18,14 @@ std::cout.
 
 Usage:
 ```C++
-std::ostringstream os1, os2;
-su::teebuf tb( os1.rdbuf(), os2.rdbuf() );
+std::ostringstream output1, output2;
+su::teebuf tb( output1.rdbuf(), output2.rdbuf() );
 std::ostream ostr( &tb );
-ostr << 123 << " allo" << std::flush;
+ostr << 123 << " allo" << std::endl;
 ```
 
-This will write "123 allo" to both os1 **and** os2.
+This will write "123 allo\n" to both streams, output1
+**and** output2.
 
 ## `su/streams/membuf.h`
 
@@ -27,7 +34,9 @@ Defines a streambuf that takes raw memory as input, does
 
 Usage:
 ```C++
-su::membuf buf( buffer, bufferEnd );
+char buffer[len];
+// ...
+su::membuf buf( buffer, buffer + len );
 std::istream istr( &buf );
 // reading from istr will read from the memory buffer
 ```

@@ -59,7 +59,7 @@ public:
 	}
 	
 	template<typename T,typename... Args>
-	std::enable_if_t<std::is_trivially_destructible<T>::value,T*> alloc( Args... args )
+	std::enable_if_t<std::is_trivially_destructible_v<T>,T*> alloc( Args... args )
 	{
 		// can't allocate element larger than SIZE
 		static_assert( sizeof(T) <= SIZE, "" );

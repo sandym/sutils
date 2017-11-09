@@ -11,7 +11,7 @@ required.
 
 ### Documenttion:
 
-* [base](docs/base.md)	
+* [Base](docs/base.md)	
 * [Streams](docs/streams.md)
 * [Containers](docs/containers.md)
 * [Strings](docs/strings.md)
@@ -19,8 +19,8 @@ required.
 * [Concurrency](docs/concurrency.md)
 * [JSON](docs/json.md)
 * [XML / parser](docs/parsers.md)
-* [files](docs/files.md)
-* [tests](docs/tests.md)
+* [Files](docs/files.md)
+* [Tests](docs/tests.md)
 * [Miscellaneous](docs/miscs.md)
 
 ---

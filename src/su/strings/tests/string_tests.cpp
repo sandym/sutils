@@ -20,6 +20,12 @@
 #include "su/tests/simple_tests.h"
 #include "su/strings/str_ext.h"
 
+namespace {
+const char lowerEAcute1[] = { char(0xC3), char(0xA9), 0x00 };
+const char lowerEAcute2[] = { 0x65, char(0xCC), char(0x81), 0x00 };
+const char upperEAcute1[] = { char(0xC3), char(0x89), 0x00 };
+const char upperEAcute2[] = { 0x45, char(0xCC), char(0x81), 0x00 };
+}
 struct string_tests
 {
 	//	declare all test cases here...
@@ -27,6 +33,7 @@ struct string_tests
 	void test_case_upper_lower();
 	void test_case_trim_spaces();
 	void test_case_compare();
+	void test_case_end_start();
 	void test_case_split_join();
 	void test_case_japanese();
 	void test_case_levenshtein_distance();
@@ -37,6 +44,7 @@ REGISTER_TEST_SUITE( string_tests,
 				&string_tests::test_case_upper_lower,
 				&string_tests::test_case_trim_spaces,
 				&string_tests::test_case_compare,
+				&string_tests::test_case_end_start,
 				&string_tests::test_case_split_join,
 				&string_tests::test_case_japanese,
 				&string_tests::test_case_levenshtein_distance );
@@ -64,6 +72,12 @@ void string_tests::test_case_upper_lower()
 {
 	TEST_ASSERT_EQUAL( su::tolower("aAbBcC"), "aabbcc" );
 	TEST_ASSERT_EQUAL( su::toupper("aAbBcC"), "AABBCC" );
+
+	TEST_ASSERT_EQUAL( su::toupper(lowerEAcute1), upperEAcute1 );
+	TEST_ASSERT_EQUAL( su::toupper(lowerEAcute2), upperEAcute2 );
+
+	TEST_ASSERT_EQUAL( su::tolower(upperEAcute1), lowerEAcute1 );
+	TEST_ASSERT_EQUAL( su::tolower(upperEAcute2), lowerEAcute2 );
 }
 
 void string_tests::test_case_trim_spaces()
@@ -81,6 +95,23 @@ void string_tests::test_case_compare()
 	TEST_ASSERT_EQUAL( su::ucompare_nocase( "AaAa", "aAaA" ), 0 );
 	TEST_ASSERT( su::ucompare_nocase_numerically( "A1", "a5" ) < 0 );
 	TEST_ASSERT( su::ucompare_nocase_numerically( "a5", "A10" ) < 0 );
+
+	TEST_ASSERT_EQUAL( su::compare_nocase( lowerEAcute1, upperEAcute1 ), 0 );
+	TEST_ASSERT_EQUAL( su::compare_nocase( lowerEAcute2, upperEAcute2 ), 0 );
+}
+
+void string_tests::test_case_end_start()
+{
+	TEST_ASSERT( su::contains_nocase( "bbAAbb", "aaB" ) );
+	TEST_ASSERT( not su::contains_nocase( "bbAbb", "aaB" ) );
+
+	TEST_ASSERT( su::starts_with( "bbAAbb", "bbA" ) );
+	TEST_ASSERT( not su::starts_with( "bbAbb", "aaB" ) );
+	TEST_ASSERT( su::starts_with_nocase( "bbAAbb", "Bba" ) );
+
+	TEST_ASSERT( su::ends_with( "bbAAbb", "Abb" ) );
+	TEST_ASSERT( not su::ends_with( "bbAbb", "aaB" ) );
+	TEST_ASSERT( su::ends_with_nocase( "bbAAbb", "abB" ) );
 }
 
 void string_tests::test_case_split_join()

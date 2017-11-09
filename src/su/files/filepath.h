@@ -26,7 +26,8 @@ class filepath final
 {
 public:
 	filepath() = default;
-	filepath( const std::string_view &i_path, const filepath *i_relativeTo = nullptr );
+	filepath( const std::string_view &i_path,
+				const filepath *i_relativeTo = nullptr );
 	
 	filepath( const filepath &rhs ) = default;
 	filepath &operator=( const filepath &rhs ) = default;
@@ -48,8 +49,10 @@ public:
 	filepath( location i_folder );
 
 	using BookmarkData = std::vector<char>;
-	filepath( const BookmarkData &i_fileBookmark, const filepath *i_relativeTo = nullptr );
-	bool getBookmarkData( BookmarkData &o_data, const filepath *i_relativeTo = nullptr ) const;
+	filepath( const BookmarkData &i_fileBookmark,
+				const filepath *i_relativeTo = nullptr );
+	bool getBookmarkData( BookmarkData &o_data,
+				const filepath *i_relativeTo = nullptr ) const;
 
 	bool empty() const { return _path.empty(); }
 	
@@ -59,7 +62,10 @@ public:
 	bool operator==( const filepath &rhs ) const { return _path == rhs._path; }
 	bool operator!=( const filepath &rhs ) const { return _path != rhs._path; }
 	bool operator<( const filepath &rhs ) const { return _path < rhs._path; }
-
+	bool operator<=( const filepath &rhs ) const { return _path <= rhs._path; }
+	bool operator>( const filepath &rhs ) const { return _path > rhs._path; }
+	bool operator>=( const filepath &rhs ) const { return _path >= rhs._path; }
+	
 	const std::string &path() const { return _path; }
 	
 	std::string name() const;
@@ -89,11 +95,17 @@ public:
 	bool add( const std::string_view &i_name );
 
 	// opening files
-	std::ifstream &fsopen( std::ifstream &o_fs, std::ios_base::openmode i_mode = std::ios_base::in | std::ios_base::binary ) const;
-	std::ofstream &fsopen( std::ofstream &o_fs, std::ios_base::openmode i_mode = std::ios_base::out | std::ios_base::trunc |
-																				 std::ios_base::binary ) const;
+	std::ifstream &fsopen( std::ifstream &o_fs,
+					std::ios_base::openmode i_mode = std::ios_base::in |
+												std::ios_base::binary ) const;
+	std::ofstream &fsopen( std::ofstream &o_fs,
+					std::ios_base::openmode i_mode = std::ios_base::out |
+												std::ios_base::trunc |
+												std::ios_base::binary ) const;
 	std::fstream &fsopen( std::fstream &o_fs,
-							std::ios_base::openmode i_mode = std::ios_base::in | std::ios_base::out | std::ios_base::binary ) const;
+					std::ios_base::openmode i_mode = std::ios_base::in |
+												std::ios_base::out |
+												std::ios_base::binary ) const;
 
 	// file operation
 	bool unlink() const;

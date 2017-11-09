@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 3.8 )
 project( sutils_tests )
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set( TEST_RUNNER ../src/su/tests/simple_tests_runner.cpp
@@ -42,6 +42,12 @@ add_executable ( sutils_tests
 					${SUTILS_HEADERS}
 					${SUTILS_SOURCES} )
 
+add_custom_command( TARGET sutils_tests
+					POST_BUILD
+					COMMAND ${CMAKE_COMMAND} -E copy_directory rsrc "$<TARGET_FILE_DIR:sutils_tests>"
+					WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+					COMMENT "copy rsrc" )
+
 source_group( "sutils" FILES
 					${SUTILS_HEADERS}
 					${SUTILS_SOURCES} )
@@ -81,8 +87,6 @@ if(SQLITE3_LIBRARY)
 	target_link_libraries( sutils_tests ${SQLITE3_LIBRARY} )
 endif()
 
-add_definitions( -DDATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/data" )
-
 find_package( Threads )
 target_link_libraries( sutils_tests ${CMAKE_THREAD_LIBS_INIT} )
 
@@ -109,3 +113,4 @@ foreach( test ${ALL_TESTS} )
 				COMMAND sutils_tests --run ${test}
 				WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 endforeach()
+

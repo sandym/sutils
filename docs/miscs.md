@@ -1,17 +1,36 @@
 
-## `su_signal.h`
+## `su/miscs/signal.h`
 
 Extremely simple signal class.
 
 Usage:
 ```C++
+// simple
 su::signal<int> signalTakingAnInt;
 signalTakingAnInt.connect( []( int i )
 	{ std::cout << i << std::endl; } );
 signalTakingAnInt( 45 ); // this will print '45'
+
+// connection handling
+su::signal<int> sig;
+auto conn = sig.connect( []( int i )
+	{ std::cout << i << std::endl; } );
+sig( 45 ); // this will print '45'
+sig.disconnect( conn );
+sig( 45 ); // does nothing
+
+// automatic connection handling
+su::signal<int> sig;
+auto conn = std::make_unique<su::signal<int>::scoped_conn>( sig, []( int i )
+	{ std::cout << i << std::endl; } );
+sig( 45 ); // this will print '45'
+conn.reset();
+sig( 45 ); // does nothing
 ```
 
-## `su_attachable.h`
+There is nothing else to it, no thread safety, no return value from signals.
+
+## `su/miscs/attachable.h`
 
 This kind of implement a basis for the decorator pattern.
 Subclasses of `su::attachable` can have arbitrary named
@@ -37,7 +56,7 @@ View v;
 v.attach( "frame", std::make_unique<DrawFrame>() );
 ```
 
-## `su_version.h`
+## `su/miscs/version.h`
 
 Helper to retrieve and compare version information at
 runtime. You need to have the macro `PRODUCT_VERSION_FULL`
@@ -63,7 +82,7 @@ You can also create version object from strings
 (`su::version::from_string("1.2.3.4")`) and compare version
 objects (==, !=, <, >, etc).
 
-## `su_mempool.h`
+## `su/miscs/mempool.h`
 
 Overly simplistic memory pool allocation. It's a growing only
 pool of trivially destructible type.
@@ -87,7 +106,7 @@ Defines a `is_regular` type traits. Regular type are  default constructible, cop
 Usage:
 ```C++
 struct S {};
-static_assert(is_regular_v<S>, "huh?");
+static_assert(su::is_regular_v<S>, "huh?");
 ```
 
 ## `su/base/statesaver.h`
@@ -98,8 +117,8 @@ Usage:
 ```C++
 int i = 2;
 {
-	su::statesaver st( i, 3 );
-	// here i == 3
+  su::statesaver st( i, 3 );
+  // here i == 3
 }
 // st went out-of-scope i was restored to 2
 
@@ -112,7 +131,7 @@ Simple UUID class.
 
 Usage:
 ```C++
-auto myId = su::uuid::create();
-// myId is a unique UUID
+su::uuid myId; // note: uninitialised!
+myId = su::uuid::create(); // myId is a unique UUID
 std::cout << myId.string() << std::endl;
 ```

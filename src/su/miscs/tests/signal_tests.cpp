@@ -37,6 +37,23 @@ struct signal_tests
 		TEST_ASSERT_EQUAL( i, 10 );
 	}
 
+	void test_case_2()
+	{
+		su::signal<int> s;
+		int i = 0;
+		auto c = std::make_unique<su::signal<int>::scoped_conn>( s, [&i](int v){ i += v; } );
+		TEST_ASSERT_EQUAL( i, 0 );
+		s( 5 );
+		TEST_ASSERT_EQUAL( i, 5 );
+		s( 5 );
+		TEST_ASSERT_EQUAL( i, 10 );
+		c.reset();
+		s( 5 );
+		TEST_ASSERT_EQUAL( i, 10 );
+	}
+
 };
 
-REGISTER_TEST_SUITE( signal_tests, &signal_tests::test_case_1 );
+REGISTER_TEST_SUITE( signal_tests,
+	&signal_tests::test_case_1,
+	&signal_tests::test_case_2 );

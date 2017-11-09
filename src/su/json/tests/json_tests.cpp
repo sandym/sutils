@@ -20,6 +20,7 @@
 #include "su/tests/simple_tests.h"
 #include "su/json/json.h"
 #include "su/base/platform.h"
+#include "su/files/resource_access.h"
 #include <list>
 #include <set>
 #include <map>
@@ -60,11 +61,13 @@ REGISTER_TEST_SUITE( json_tests,
 			   su::timed_test(), &json_tests::test_case_2,
 			   su::timed_test(), &json_tests::test_case_3 );
 
-std::string loadFile( const std::string &i_path )
+std::string loadFile( const std::string &i_name )
 {
-	std::string s;
+	auto fpath = su::resource_access::get( i_name );
 	
-	std::ifstream f( i_path );
+	std::ifstream f;
+	fpath.fsopen( f );
+	std::string s;
 	while ( f )
 	{
 		char buf[4096];
@@ -76,9 +79,9 @@ std::string loadFile( const std::string &i_path )
 
 json_tests::json_tests()
 {
-	kCanada = loadFile( DATA_FOLDER "/canada.json" );
-	kCITM = loadFile( DATA_FOLDER "/citm_catalog.json" );
-	kTwitter = loadFile( DATA_FOLDER "/twitter.json" );
+	kCanada = loadFile( "canada.json" );
+	kCITM = loadFile( "citm_catalog.json" );
+	kTwitter = loadFile( "twitter.json" );
 }
 
 // MARK: -

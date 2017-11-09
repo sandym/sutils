@@ -448,7 +448,7 @@ inline char* Prettify(char* buffer, int length, int k) {
     }
 }
 
-template<typename N,int B=sizeof(N),bool S=std::is_signed<N>::value>
+template<typename N,int B=sizeof(N),bool S=std::is_signed_v<N>>
 struct numtoa_impl
 {
 static char *impl( N value, char* buffer );
@@ -1365,8 +1365,8 @@ inline double StrtodFullPrecision( double d, int p, const char *decimals, size_t
 struct Statics
 {
 	const std::string empty_string;
-	const std::vector<su::Json> empty_array;
-	const su::flat_map<std::string,su::Json> empty_object{};
+	const su::Json::array empty_array;
+	const su::Json::object empty_object{};
 	Statics() {}
 };
 
@@ -1853,7 +1853,7 @@ const Json &Json::operator[]( size_t i ) const
 	return static_null();
 }
 
-const Json &Json::operator[]( const std::string &key ) const
+const Json &Json::operator[]( const std::string_view &key ) const
 {
 	if ( type() == Type::OBJECT )
 	{

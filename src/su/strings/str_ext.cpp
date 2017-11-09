@@ -323,7 +323,10 @@ std::string_view trim_spaces_view( const std::string_view &i_s )
         return {};
 }
 
-//bool contains_nocase( const std::string_view &i_text, const std::string_view &i_s );
+bool contains_nocase( const std::string_view &i_text, const std::string_view &i_s )
+{
+	return contains( tolower(i_text), tolower(i_s) );
+}
 bool starts_with( const std::string_view &i_text, const std::string_view &i_s )
 {
 	if ( i_s.size() > i_text.size() )

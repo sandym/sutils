@@ -28,7 +28,7 @@ public:
 
 	// Array and object typedefs
 	typedef std::vector<Json> array;
-	typedef flat_map<std::string,Json> object;
+	typedef flat_map<std::string,Json,std::less<>> object;
 
 	~Json();
 
@@ -61,13 +61,13 @@ public:
 	Json( const T &t ) : Json( t.to_json() ) {}
 
 	// Implicit constructor: map-like objects (std::map, std::unordered_map, etc)
-	template <class M, typename std::enable_if_t<std::is_constructible<std::string, typename M::key_type>::value &&
-													std::is_constructible<Json, typename M::mapped_type>::value,
+	template <class M, std::enable_if_t<std::is_constructible_v<std::string, typename M::key_type> &&
+													std::is_constructible_v<Json, typename M::mapped_type>,
 												int> = 0>
 	Json( const M &m ) : Json( object( m.begin(), m.end() ) ){}
 
 	// Implicit constructor: vector-like objects (std::list, std::vector, std::set, etc)
-	template <class V, typename std::enable_if_t<std::is_constructible<Json, typename V::value_type>::value, int> = 0>
+	template <class V, std::enable_if_t<std::is_constructible_v<Json, typename V::value_type>, int> = 0>
 	Json( const V &v ) : Json( array( v.begin(), v.end() ) ){}
 
 	// This prevents Json(some_pointer) from accidentally producing a bool. Use
@@ -124,7 +124,7 @@ public:
 	// Return a reference to arr[i] if this is an array, Json() otherwise.
 	const Json &operator[]( size_t i ) const;
 	// Return a reference to obj[key] if this is an object, Json() otherwise.
-	const Json &operator[]( const std::string &key ) const;
+	const Json &operator[]( const std::string_view &key ) const;
 
 	// Serialize.
 	void dump( std::string &output ) const;

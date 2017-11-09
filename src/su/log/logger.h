@@ -162,7 +162,7 @@ public:
 	}
 	
 	template<typename T>
-	typename std::enable_if_t<std::is_same<std::remove_cv_t<T>,char *>::value,log_event &>
+	std::enable_if_t<std::is_same_v<std::remove_cv_t<T>,char *>,log_event &>
 	operator<<( const T &v )
 	{
 		encode_string_data( v, strlen( v ) );

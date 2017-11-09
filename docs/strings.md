@@ -1,8 +1,15 @@
 ## `su/strings/str_ext.h`
 
-Various utilities: conversions, tolower, toupper,
-comparisons, split, join, trim spaces, starts with,
-ends with, etc
+Various utilities, mostly built to work in utf8
+- utf conversions: to_string(), to_wstring(), to_u16string()
+- case conversion tolower(), toupper()
+- case insensitive compare: compare_nocase()
+- locale-aware compare: ucompare() and ucompare_nocase()
+- number-aware compare: ucompare_numerically(),
+where "a1" < "a5" < "a10"
+- split(), split_view() and join()
+- trim_spaces(), trim_spaces_view()
+- starts_with(), ends_with() and _nocae variants
 
 ## `su/strings/str_format.h`
 
@@ -11,8 +18,11 @@ string formatting.
 Support:
 - All of printf formatting
 - The posix extension for localisation, (re-ordering arguments).
-- An extra format character, '@' that auto detect the type and print anything that has a to_string() function defined for it.
-- The %s format character can take std::string and string_view
+- An extra format character, '@' that auto detect the type and print anything
+that has a to_string() function defined for it.
+- The %s format character can take std::string and string_view as well as string literal.
+- Will throw an exception if format string and argument type
+does not match.
 
 Usage 1, re-ordering argument:
 ```C++
@@ -40,3 +50,6 @@ Simple string loading utility, for localisation.
 ```C++
 auto s = su::string_load( "key", "table" );
 ```
+
+Uses macOS ".strings" files and the bundle's resources.
+See su::resource_access for other platforms.
