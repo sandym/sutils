@@ -47,11 +47,11 @@ void set_name( const std::string_view &n )
 	typedef HRESULT(WINAPI* SetThreadDescriptionPtr)( HANDLE, PCWSTR );
 
 	auto SetThreadDescriptionFunc = reinterpret_cast<SetThreadDescriptionPtr>(
-							::GetProcAddress( ::GetModuleHandle(L"Kernel32.dll"), "SetThreadDescription" ) );
+							::GetProcAddress( ::GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription" ) );
 	if ( SetThreadDescriptionFunc )
 	{
 		wchar_t name[64];
-		int l = MultiByteToWideChar( CP_UTF8, MB_COMPOSITE, n.data(), n.size()), name, 64 );
+		int l = MultiByteToWideChar( CP_UTF8, MB_COMPOSITE, n.data(), n.size(), name, 64 );
 		if ( l > 0 )
 		{
 			name[l] = 0;

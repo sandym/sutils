@@ -385,9 +385,12 @@ int main( int argc, char **argv )
 	{
 		if ( action == Action::kRunSome )
 		{
-			if ( testSuite->match( testsToSkip ) )
-				continue;
-			if ( not testSuite->match( testsToRun ) )
+			if (not testsToSkip.empty())
+			{
+				if (testSuite->match(testsToSkip))
+					continue;
+			}
+			else if (not testSuite->match(testsToRun))
 				continue;
 		}
 		

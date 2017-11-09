@@ -14,6 +14,7 @@
 #include "su/base/endian.h"
 #include "su/strings/ConvertUTF.h"
 #include <cctype>
+#include <ciso646>
 
 namespace su {
 

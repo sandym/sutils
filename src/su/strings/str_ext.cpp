@@ -25,6 +25,12 @@
 #elif UPLATFORM_UNIX
 #include "unicode/uchar.h"
 #include "unicode/unistr.h"
+#elif UPLATFORM_WIN
+#include <Windows.h>
+#include <Winuser.h>
+#undef OUT
+#undef IN
+#undef min
 #endif
 
 namespace {
@@ -168,7 +174,9 @@ std::string tolower( const std::string_view &s )
 	CFStringLowercase( ms, nullptr );
 	return to_string( ms );
 #elif UPLATFORM_WIN
-#error
+	auto w = to_wstring(s);
+	CharLowerW(w.data());
+	return to_string(w);
 #else
 	auto us = icu::UnicodeString::fromUTF8( icu::StringPiece( s.data(), s.size() ) );
 	std::string s8;
@@ -184,7 +192,9 @@ std::string toupper( const std::string_view &s )
 	CFStringUppercase( ms, nullptr );
 	return to_string( ms );
 #elif UPLATFORM_WIN
-#error
+	auto w = to_wstring(s);
+	CharUpperW( w.data() );
+	return to_string( w );
 #else
 	auto us = icu::UnicodeString::fromUTF8( icu::StringPiece( s.data(), s.size() ) );
 	std::string s8;
