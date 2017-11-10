@@ -1,6 +1,19 @@
 {
         "version": "0.2.0",
         "configurations": [
+			{
+				"name": "(lldb) Launch",
+				"type": "cppdbg",
+				"request": "launch",
+                "program": "${workspaceRoot}/build/sutils_tests",
+				"args": [],
+				"stopAtEntry": false,
+                "cwd": "${workspaceRoot}/build",
+				"environment": [],
+				"externalConsole": true,
+				"MIMode": "lldb",
+                "preLaunchTask": "build"
+			},
             {
                 "name": "(gdb) Launch",
                 "type": "cppdbg",
