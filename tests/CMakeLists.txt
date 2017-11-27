@@ -15,27 +15,18 @@ execute_process( COMMAND git rev-parse HEAD
 				WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 				OUTPUT_VARIABLE GIT_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
 
-set( PRODUCT_VERSION_MAJOR 0 )
-set( PRODUCT_VERSION_MINOR 2 )
-set( PRODUCT_VERSION_PATCH 3 )
-set( PRODUCT_VERSION_BUILD 4 )
+set( PRODUCT_VERSION "0.2.3.4" )
 
-configure_file("../include/su/base/config.h.in" "../include/su/base/config.h" )
+add_subdirectory( .. lib )
 
 file( GLOB ALL_TESTS "*_tests.cpp" )
 
-file( GLOB_RECURSE SUTILS_HEADERS "../include/su/*.h" )
-file( GLOB_RECURSE SUTILS_SOURCES "../source/*.cpp" )
-
 add_executable ( sutils_tests
 					${TEST_RUNNER}
-					${ALL_TESTS}
-					
-					${SUTILS_HEADERS}
-					${SUTILS_SOURCES} )
+					${ALL_TESTS} )
 
-target_include_directories( sutils_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include )
-					
+target_link_libraries( sutils_tests sutils )
+
 if(APPLE)
 	add_custom_command( TARGET sutils_tests
 						POST_BUILD
@@ -51,9 +42,6 @@ else()
 endif()
 
 
-source_group( "sutils" FILES
-					${SUTILS_HEADERS}
-					${SUTILS_SOURCES} )
 source_group( "tests" FILES
 					${TEST_RUNNER}
 					${ALL_TESTS} )

@@ -6,7 +6,7 @@
         {
             "taskName": "cmake",
             "type": "shell",
-			"command": "mkdir build ; cd build ; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug ../tests",
+			"command": "mkdir tests/build ; cd tests/build ; cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug ../.",
 			"presentation": {
 				"echo": true,
 				"reveal": "always",
@@ -18,7 +18,7 @@
             "taskName": "build",
             "type": "shell",
             "options": {
-                "cwd": "${cwd}/build"
+                "cwd": "${cwd}/tests/build"
             },
 			"command": "ninja",
 			"presentation": {
