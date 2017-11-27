@@ -12,7 +12,7 @@
 
 #include "su/parsers/abstractparser.h"
 #include "su/base/endian.h"
-#include "su/strings/ConvertUTF.h"
+#include "../strings/ConvertUTF.h"
 #include <cctype>
 #include <ciso646>
 

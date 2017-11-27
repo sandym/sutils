@@ -3,13 +3,8 @@ project( sutils_tests )
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if(MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
-endif(MSVC)
 
-set( TEST_RUNNER ../src/su/tests/simple_tests_runner.cpp
-				../src/su/tests/simple_tests.h )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../src )
+set( TEST_RUNNER ../include/su/tests/simple_tests_runner.cpp )
 
 # configure
 execute_process( COMMAND svn info --show-item revision
@@ -25,34 +20,12 @@ set( PRODUCT_VERSION_MINOR 2 )
 set( PRODUCT_VERSION_PATCH 3 )
 set( PRODUCT_VERSION_BUILD 4 )
 
-configure_file("../src/su/base/config.h.in" "../src/su/base/config.h" )
+configure_file("../include/su/base/config.h.in" "../include/su/base/config.h" )
 
-file( GLOB ALL_TESTS "../src/su/*/tests/*_tests.cpp" )
+file( GLOB ALL_TESTS "*_tests.cpp" )
 
-file( GLOB SUTILS_HEADERS
-		"../src/su/base/*.h"
-		"../src/su/concurrency/*.h"
-		"../src/su/containers/*.h"
-		"../src/su/files/*.h"
-		"../src/su/json/*.h"
-		"../src/su/log/*.h"
-		"../src/su/miscs/*.h"
-		"../src/su/parsers/*.h"
-		"../src/su/streams/*.h"
-		"../src/su/strings/*.h"
-)
-file( GLOB SUTILS_SOURCES
-		"../src/su/base/*.cpp"
-		"../src/su/concurrency/*.cpp"
-		"../src/su/containers/*.cpp"
-		"../src/su/files/*.cpp"
-		"../src/su/json/*.cpp"
-		"../src/su/log/*.cpp"
-		"../src/su/miscs/*.cpp"
-		"../src/su/parsers/*.cpp"
-		"../src/su/streams/*.cpp"
-		"../src/su/strings/*.cpp"
-)
+file( GLOB_RECURSE SUTILS_HEADERS "../include/su/*.h" )
+file( GLOB_RECURSE SUTILS_SOURCES "../source/*.cpp" )
 
 add_executable ( sutils_tests
 					${TEST_RUNNER}
@@ -61,6 +34,8 @@ add_executable ( sutils_tests
 					${SUTILS_HEADERS}
 					${SUTILS_SOURCES} )
 
+target_include_directories( sutils_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include )
+					
 if(APPLE)
 	add_custom_command( TARGET sutils_tests
 						POST_BUILD
