@@ -11,6 +11,22 @@ set( TEST_RUNNER ../src/su/tests/simple_tests_runner.cpp
 				../src/su/tests/simple_tests.h )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../src )
 
+# configure
+execute_process( COMMAND svn info --show-item revision
+				WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+				OUTPUT_VARIABLE SVN_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
+
+execute_process( COMMAND git rev-parse HEAD
+				WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+				OUTPUT_VARIABLE GIT_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
+
+set( PRODUCT_VERSION_MAJOR 0 )
+set( PRODUCT_VERSION_MINOR 2 )
+set( PRODUCT_VERSION_PATCH 3 )
+set( PRODUCT_VERSION_BUILD 4 )
+
+configure_file("../src/su/base/config.h.in" "../src/su/base/config.h" )
+
 file( GLOB ALL_TESTS "../src/su/*/tests/*_tests.cpp" )
 
 file( GLOB SUTILS_HEADERS
@@ -69,29 +85,9 @@ source_group( "tests" FILES
 
 add_definitions( -DENABLE_SIMPLE_TESTS )
 
-add_definitions( -DPRODUCT_VERSION_FULL=1,2,3,4 )
-execute_process( COMMAND svn info --show-item revision
-					WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-					OUTPUT_VARIABLE SVN_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
-if(SVN_REVISION)
-	add_definitions( -DSVN_REVISION=${SVN_REVISION} )
-else()
-	message("no svn revision")
-endif()
-
-execute_process( COMMAND git rev-parse HEAD
-					WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-					OUTPUT_VARIABLE GIT_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
-if(GIT_REVISION)
-	add_definitions( -DGIT_REVISION=${GIT_REVISION} )
-else()
-	message("no git revision")
-endif()
-
 find_library( EXPAT_LIBRARY expat )
 if(EXPAT_LIBRARY)
 	target_link_libraries( sutils_tests ${EXPAT_LIBRARY} )
-	add_definitions( -DHAS_EXPAT )
 endif()
 
 find_library( SQLITE3_LIBRARY sqlite3 )

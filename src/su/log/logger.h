@@ -36,6 +36,7 @@
 #include <string_view>
 #include <thread>
 #include "su/base/always_inline.h"
+#include "su/base/config.h"
 
 namespace su {
 

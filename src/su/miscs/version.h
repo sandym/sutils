@@ -13,9 +13,7 @@
 #ifndef H_SU_VERSION
 #define H_SU_VERSION
 
-#ifndef PRODUCT_VERSION_FULL
-#define PRODUCT_VERSION_FULL 0,0,1,1
-#endif
+#include "su/base/config.h"
 
 #ifdef __cplusplus
 
@@ -80,7 +78,13 @@ private:
 	}
 };
 
-constexpr version CURRENT_VERSION() { return version(PRODUCT_VERSION_FULL); }
+constexpr version CURRENT_VERSION()
+{
+	return version(PRODUCT_VERSION_MAJOR,
+					PRODUCT_VERSION_MINOR,
+					PRODUCT_VERSION_PATCH,
+					PRODUCT_VERSION_BUILD);
+}
 
 std::string build_revision();
 constexpr const char *build_date() { return __DATE__ " " __TIME__; }
@@ -91,38 +95,12 @@ inline std::string to_string( const su::version &v ) { return v.full_string(); }
 
 #endif
 
+#define PRODUCT_VERSION PRODUCT_VERSION_MAJOR.PRODUCT_VERSION_MINOR.PRODUCT_VERSION_PATCH
+
 // helper macros
 #define _STRINGIFY(x) #x
 #define STRINGIFY(x) _STRINGIFY(x)
 
-#define _SELECT_0(a0,...) a0
-#define SELECT_0(x) _SELECT_0(x)
-#define _SELECT_1(a0,a1,...) a1
-#define SELECT_1(x) _SELECT_1(x)
-#define _SELECT_2(a0,a1,a2,...) a2
-#define SELECT_2(x) _SELECT_2(x)
-#define _SELECT_3(a0,a1,a2,a3) a3
-#define SELECT_3(x) _SELECT_3(x)
-
-// macro version
-#ifndef PRODUCT_VERSION_MAJOR
-#	define PRODUCT_VERSION_MAJOR SELECT_0(PRODUCT_VERSION_FULL)
-#endif
-#ifndef PRODUCT_VERSION_MINOR
-#	define PRODUCT_VERSION_MINOR SELECT_1(PRODUCT_VERSION_FULL)
-#endif
-#ifndef PRODUCT_VERSION_PATCH
-#	define PRODUCT_VERSION_PATCH SELECT_2(PRODUCT_VERSION_FULL)
-#endif
-#ifndef PRODUCT_VERSION_BUILD
-#	define PRODUCT_VERSION_BUILD SELECT_3(PRODUCT_VERSION_FULL)
-#endif
-
-#ifndef PRODUCT_VERSION
-#	define PRODUCT_VERSION SELECT_0(PRODUCT_VERSION_FULL).SELECT_2(PRODUCT_VERSION_FULL).SELECT_2(PRODUCT_VERSION_FULL)
-#endif
-#ifndef PRODUCT_VERSION_STRING
-#	define PRODUCT_VERSION_STRING STRINGIFY(PRODUCT_VERSION)
-#endif
+#define PRODUCT_VERSION_STRING STRINGIFY(PRODUCT_VERSION)
 
 #endif

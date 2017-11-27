@@ -1,8 +1,9 @@
 {
         "version": "0.2.0",
         "configurations": [
+			
 			{
-				"name": "(lldb) Launch",
+				"name": "lldb Launch",
 				"type": "cppdbg",
 				"request": "launch",
                 "program": "${workspaceRoot}/build/sutils_tests",
@@ -10,20 +11,20 @@
 				"stopAtEntry": false,
                 "cwd": "${workspaceRoot}/build",
 				"environment": [],
-				"externalConsole": true,
+				"externalConsole": false,
 				"MIMode": "lldb",
-                "preLaunchTask": "build"
+				"preLaunchTask": "build"
 			},
             {
-                "name": "(gdb) Launch",
+                "name": "gdb Launch",
                 "type": "cppdbg",
                 "request": "launch",
                 "program": "${workspaceRoot}/build/sutils_tests",
                 "args": [],
                 "stopAtEntry": false,
                 "cwd": "${workspaceRoot}/build",
-                "environment": [],
-                "externalConsole": false,
+				"environment": [],
+				"externalConsole": false,
                 "MIMode": "gdb",
                 "preLaunchTask": "build",
                 "setupCommands": [

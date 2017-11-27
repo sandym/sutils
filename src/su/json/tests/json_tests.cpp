@@ -61,6 +61,7 @@ REGISTER_TEST_SUITE( json_tests,
 			   su::timed_test(), &json_tests::test_case_2,
 			   su::timed_test(), &json_tests::test_case_3 );
 
+namespace {
 std::string loadFile( const std::string &i_name )
 {
 	auto fpath = su::resource_access::get( i_name );
@@ -75,6 +76,7 @@ std::string loadFile( const std::string &i_name )
 		s.append( buf, f.gcount() );
 	}
 	return s;
+}
 }
 
 json_tests::json_tests()

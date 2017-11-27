@@ -9,6 +9,8 @@
 #include <intrin.h>
 #endif
 
+static_assert( sizeof( su::Json ) <= 16, "" );
+
 namespace {
 
 // string-to-number and number-to-string

@@ -1,1 +1,3 @@
+.vscode/settings.json
 build
+src/su/base/config.h

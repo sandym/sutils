@@ -21,7 +21,7 @@ class Json final
 {
 public:
 	// Types
-	enum class Type : int32_t
+	enum class Type
 	{
 		NUL, BOOL, NUMBER, STRING, ARRAY, OBJECT
 	};
@@ -89,7 +89,7 @@ public:
 	bool is_array() const { return type() == Type::ARRAY; }
 	bool is_object() const { return type() == Type::OBJECT; }
 
-	enum class NumberType : int32_t { NOTANUMBER, INTEGER, INTEGER64, DOUBLE };
+	enum class NumberType { NOTANUMBER, INTEGER, INTEGER64, DOUBLE };
 	NumberType number_type() const { return _numberType; }
 	bool is_int() const { return number_type() == NumberType::INTEGER; }
 	bool is_int64() const { return number_type() == NumberType::INTEGER64; }

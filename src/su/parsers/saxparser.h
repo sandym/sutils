@@ -13,7 +13,8 @@
 #ifndef H_SU_SAXPARSER
 #define H_SU_SAXPARSER
 
-#ifdef HAS_EXPAT
+#if __has_include(<expat.h>)
+#define HAS_EXPAT
 
 #include <unordered_map>
 #include <string_view>
@@ -63,7 +64,7 @@ struct hash<su::NameURI>
 {
 	std::size_t operator()( const su::NameURI &k ) const
 	{
-		return su::hash_combine( 0, k.name, k.URI );
+		return su::hash_combine( k.name, k.URI );
 	}
 };
 

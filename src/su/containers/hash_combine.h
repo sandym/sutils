@@ -18,17 +18,23 @@
 
 namespace su {
 
-inline std::size_t hash_combine( std::size_t seed )
+inline std::size_t _hash_combine( std::size_t seed )
 {
 	return seed;
 }
 	
 template<typename T, typename... R>
-inline std::size_t hash_combine( std::size_t seed, const T &v, R... r )
+inline std::size_t _hash_combine( std::size_t seed, const T &v, R... r )
 {
 	std::hash<T> hasher;
 	seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-	return hash_combine( seed, r... );
+	return _hash_combine( seed, r... );
+}
+
+template<typename... T>
+inline std::size_t hash_combine( const T&... args )
+{
+	return _hash_combine( 0, args... );
 }
 
 }

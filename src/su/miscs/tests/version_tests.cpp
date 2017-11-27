@@ -25,7 +25,7 @@ struct version_tests
 {
 	void test_case_1()
 	{
-		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().major(), 1 );
+		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().major(), 0 );
 		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().minor(), 2 );
 		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().patch(), 3 );
 		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().build(), 4 );
@@ -43,8 +43,13 @@ struct version_tests
 		TEST_ASSERT_EQUAL( v.build(), 4 );
 	}
 
+	void test_case_3()
+	{
+		TEST_ASSERT_EQUAL( PRODUCT_VERSION_STRING, "0.2.3" );
+	}
 };
 
 REGISTER_TEST_SUITE( version_tests,
 	&version_tests::test_case_1,
-	&version_tests::test_case_2 );
+	&version_tests::test_case_2,
+	&version_tests::test_case_3 );
