@@ -173,7 +173,7 @@ public:
 
 	// modifiers:
 	template<class... Args>
-	std::pair<iterator,bool> emplace( Args&&... args );
+	std::pair<iterator,bool> emplace( const key_type& k, Args&&... args );
 	template<class... Args>
 	iterator emplace_hint( const_iterator position, Args&&... args );
 #endif
@@ -419,7 +419,7 @@ private:
 	} _pair;
 
 	template<typename K>
-	inline bool key_equal( const key_type &a, const K &b )
+	inline bool key_equal( const key_type &a, const K &b ) const
 	{
 		return not key_comp()( a, b ) and not key_comp()( b, a );
 	}

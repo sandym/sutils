@@ -320,7 +320,7 @@ private:
 	} _pair;
 
 	template<typename K>
-	inline bool key_equal( const key_type &a, const K &b )
+	inline bool key_equal( const key_type &a, const K &b ) const
 	{
 		return not key_comp()( a, b ) and not key_comp()( b, a );
 	}
