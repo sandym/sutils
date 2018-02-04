@@ -166,6 +166,7 @@ public:
 		return *this;
 	}
 	
+	void message( std::ostream &ostr ) const;
 	std::string message() const;
 };
 

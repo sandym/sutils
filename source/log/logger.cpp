@@ -133,10 +133,10 @@ std::ostream &operator<<( std::ostream &os, const thread_name &t )
 #if UPLATFORM_WIN
 	typedef HRESULT( WINAPI * GetThreadDescriptionPtr )( HANDLE, PWSTR * );
 
-	auto GetThreadDescriptionFunc =
+	static auto GetThreadDescriptionFunc =
 	    reinterpret_cast<GetThreadDescriptionPtr>(::GetProcAddress(
 	        ::GetModuleHandleW( L"Kernel32.dll" ), "GetThreadDescription" ) );
-	if ( GetThreadDescriptionFunc )
+	if ( GetThreadDescriptionFunc and t.threadId )
 	{
 		wchar_t *name = nullptr;
 		if ( SUCCEEDED( GetThreadDescriptionFunc( t.threadId, &name ) ) )
@@ -160,7 +160,7 @@ std::ostream &operator<<( std::ostream &os, const thread_name &t )
 	}
 #else
 	char buffer[20];
-	if ( pthread_getname_np( t.threadId, buffer, 20 ) == 0 and buffer[0] != 0 )
+	if ( t.threadId and pthread_getname_np( t.threadId, buffer, 20 ) == 0 and buffer[0] != 0 )
 		return os << buffer;
 #endif
 	return os << t.threadId;
@@ -471,16 +471,23 @@ void log_event::encode_string_literal( const char *i_data )
 
 std::string log_event::message() const
 {
+	std::ostringstream ostr;
+	message( ostr );
+	return ostr.str();
+}
+
+void log_event::message( std::ostream &ostr ) const
+{
 	// [TIME][LEVEL][thread][file:func:line] msg
 
 	int state = 0;
 	
-	unsigned long long us;
-	int level;
-	std::thread::native_handle_type threadId;
-	const char *file_name = nullptr;
-	const char *function_name = nullptr;
-	int line;
+	unsigned long long us = 0;
+	int level = su::kINFO;
+	std::thread::native_handle_type threadId = nullptr;
+	const char *file_name = "";
+	const char *function_name = "";
+	int line = -1;
 	
 	auto ptr = _buffer;
 	auto end = _ptr;
@@ -493,56 +500,90 @@ std::string log_event::message() const
 			case 0: // time
 			{
 				if ( t != log_data_type::kUnsignedLongLong )
-					return {};
-				us = *reinterpret_cast<const unsigned long long *>( ptr );
-				ptr += sizeof( unsigned long long );
+				{
+					ptr -= sizeof( log_data_type );
+					state = 6;
+				}
+				else
+				{
+					us = *reinterpret_cast<const unsigned long long *>( ptr );
+					ptr += sizeof( unsigned long long );
+				}
 				break;
 			}
 			case 1: // level
 			{
 				if ( t != log_data_type::kInt )
-					return {};
-				level = *reinterpret_cast<const int *>( ptr );
-				ptr += sizeof( int );
+				{
+					ptr -= sizeof( log_data_type );
+					state = 6;
+				}
+				else
+				{
+					level = *reinterpret_cast<const int *>( ptr );
+					ptr += sizeof( int );
+				}
 				break;
 			}
 			case 2: // thread
 			{
 				if ( t != TypeToEnum<uintptr_t>::value )
-					return {};
-				threadId = (std::thread::native_handle_type)*reinterpret_cast<const uintptr_t *>( ptr );
-				ptr += sizeof( uintptr_t );
+				{
+					ptr -= sizeof( log_data_type );
+					state = 6;
+				}
+				else
+				{
+					threadId = (std::thread::native_handle_type)*reinterpret_cast<const uintptr_t *>( ptr );
+					ptr += sizeof( uintptr_t );
+				}
 				break;
 			}
 			case 3: // file
 			{
 				if ( t != log_data_type::kStringLiteral )
-					return {};
-				file_name = *reinterpret_cast<const char *const *>( ptr );
-				ptr += sizeof( const char * );
+				{
+					ptr -= sizeof( log_data_type );
+					state = 6;
+				}
+				else
+				{
+					file_name = *reinterpret_cast<const char *const *>( ptr );
+					ptr += sizeof( const char * );
+				}
 				break;
 			}
 			case 4: // func
 			{
 				if ( t != log_data_type::kStringLiteral )
-					return {};
-				function_name = *reinterpret_cast<const char *const *>( ptr );
-				ptr += sizeof( const char * );
+				{
+					ptr -= sizeof( log_data_type );
+					state = 6;
+				}
+				else
+				{
+					function_name = *reinterpret_cast<const char *const *>( ptr );
+					ptr += sizeof( const char * );
+				}
 				break;
 			}
 			case 5: // line
 			{
 				if ( t != log_data_type::kInt )
-					return {};
-				line = *reinterpret_cast<const int *>( ptr );
-				ptr += sizeof( int );
+				{
+					ptr -= sizeof( log_data_type );
+					state = 6;
+				}
+				else
+				{
+					line = *reinterpret_cast<const int *>( ptr );
+					ptr += sizeof( int );
+				}
 				break;
 			}
 		}
 		++state;
 	}
-	if ( state < 6 )
-		return {};
 	
 	const char *levelStr = "";
 	switch ( level )
@@ -566,7 +607,7 @@ std::string log_event::message() const
 			levelStr = "TRACE";
 			break;
 		default:
-			return {};
+			break;
 	}
 
 	std::time_t t = us / 1000000;
@@ -583,8 +624,6 @@ std::string log_event::message() const
 	strftime( isoTime, 32, "%Y-%m-%dT%T", localtime_r( &t, &tmdata ) );
 	sprintf( ms, ".%06lu", (unsigned long)( us % 1000000 ) );
 #endif
-
-	std::ostringstream ostr;
 
 	ostr << "[" << isoTime << ms << "][" << levelStr << "]["
 	     << thread_name( threadId ) << "]";
@@ -679,7 +718,6 @@ std::string log_event::message() const
 				break;
 		}
 	}
-	return ostr.str();
 }
 
 Logger<kCOMPILETIME_LOG_MASK> logger( std::clog );
