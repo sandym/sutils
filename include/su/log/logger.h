@@ -29,7 +29,6 @@
 #define H_SU_LOGGER
 
 #include <ciso646>
-#include <iosfwd>
 #include <memory>
 #include <string>
 #include <string.h>
@@ -81,7 +80,7 @@ struct source_location
 	int line() const { return _line; }
 };
 
-//! record on log event
+//! record one log event
 class log_event final
 {
 private:
@@ -117,7 +116,9 @@ private:
 	// info
 	int _level;
 	source_location _sl;
-	
+	std::chrono::system_clock::time_point _timestamp;
+	std::thread::native_handle_type _threadId;
+
 public:
 	~log_event();
 	
@@ -174,17 +175,24 @@ public:
 	int level() const { return _level; }
 	const source_location &sl() const { return _sl; }
 	
-	std::string message() const;
-	std::ostream &message( std::ostream &ostr ) const;
+	std::string message( const std::string &i_subsystem ) const;
+	std::chrono::system_clock::time_point timestamp() const { return _timestamp; }
+	std::thread::native_handle_type threadId() const { return _threadId; }
 };
 
-struct logger_output
+//! output for logs
+class logger_output
 {
-	logger_output( std::ostream &s ) : ostr(s){}
+public:
+	logger_output( std::ostream &i_out ) : _out( i_out ){}
 	virtual ~logger_output() = default;
 	
-	std::ostream &ostr;
+	virtual void writeEvent( const std::string &i_subsystem, const log_event &i_event );
+	virtual void write( const char *i_text, size_t l );
 	virtual void flush();
+
+private:
+	std::ostream &_out;
 };
 
 class logger_base
@@ -218,7 +226,7 @@ public:
 		: logger_base( std::move(i_output), i_ss ){}
 	Logger( std::ostream &ostr, const std::string_view &i_ss = {} )
 		: logger_base( std::make_unique<logger_output>(ostr), i_ss ){}
-	
+
 	int getLogMask() const { return _runtimeLogMask; }
 	void setLogMask( int l ) { _runtimeLogMask = l & COMPILETIME_LOG_MASK; }
 	
