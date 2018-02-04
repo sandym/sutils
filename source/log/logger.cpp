@@ -273,7 +273,7 @@ void logger_thread_data::func()
 				exitLoop = true;
 			else if ( rec.logger->output() )
 			{
-				rec.logger->output()->writeEvent( rec.logger->subsystem(), rec.event );
+				rec.logger->output()->writeEvent( rec.event );
 				toFlush.insert( rec.logger );
 			}
 		}
@@ -294,26 +294,39 @@ void logger_thread_data::func()
 namespace su {
 
 log_event::log_event( int i_level )
-	: _level( i_level ),
-		_timestamp( std::chrono::system_clock::now() ),
-#if UPLATFORM_WIN
-		_threadId( GetCurrentThread() )
-#else
-		_threadId( pthread_self() )
-#endif
 {
+	// [TIME][LEVEL][thread][file:func:line] msg
+	auto us = std::chrono::duration_cast<std::chrono::microseconds>(
+	              std::chrono::system_clock::now().time_since_epoch() )
+	              .count();
+	encode<unsigned long long>( us );
+	encode( i_level );
+#if UPLATFORM_WIN
+	encode<uintptr_t>( (uintptr_t)GetCurrentThread() );
+#else
+	encode<uintptr_t>( (uintptr_t)pthread_self() );
+#endif
+	encode_string_literal( "" ); // file
+	encode_string_literal( "" ); // func
+	encode<int>( -1 ); // line
 }
 
-log_event::log_event( int i_level, su::source_location &&i_sl )
-	: _level( i_level ),
-    	_sl( std::move( i_sl ) ),
-		_timestamp( std::chrono::system_clock::now() ),
-#if UPLATFORM_WIN
-		_threadId( GetCurrentThread() )
-#else
-		_threadId( pthread_self() )
-#endif
+log_event::log_event( int i_level, const su::source_location &i_sl )
 {
+	// [TIME][LEVEL][thread][file:func:line] msg
+	auto us = std::chrono::duration_cast<std::chrono::microseconds>(
+	              std::chrono::system_clock::now().time_since_epoch() )
+	              .count();
+	encode<unsigned long long>( us );
+	encode( i_level );
+#if UPLATFORM_WIN
+	encode<uintptr_t>( (uintptr_t)GetCurrentThread() );
+#else
+	encode<uintptr_t>( (uintptr_t)pthread_self() );
+#endif
+	encode_string_literal( i_sl.file_name() );
+	encode_string_literal( i_sl.function_name() );
+	encode<int>( i_sl.line() );
 }
 
 log_event::~log_event()
@@ -327,8 +340,6 @@ log_event::log_event( log_event &&lhs )
 	_storage = lhs._storage;
 	_buffer = lhs._buffer;
 	_ptr = lhs._ptr;
-	_level = lhs._level;
-	_sl = lhs._sl;
 
 	lhs._buffer = lhs._storage.inlineBuffer;
 	lhs._ptr = lhs._buffer;
@@ -341,8 +352,6 @@ log_event &log_event::operator=( log_event &&lhs )
 		_storage = lhs._storage;
 		_buffer = lhs._buffer;
 		_ptr = lhs._ptr;
-		_level = lhs._level;
-		_sl = lhs._sl;
 
 		lhs._buffer = lhs._storage.inlineBuffer;
 		lhs._ptr = lhs._buffer;
@@ -460,12 +469,83 @@ void log_event::encode_string_literal( const char *i_data )
 	_ptr += sizeof( const char * );
 }
 
-std::string log_event::message( const std::string &i_subsystem ) const
+std::string log_event::message() const
 {
-	// [TIME][LEVEL][thread][subsystem][file:func:line] msg
+	// [TIME][LEVEL][thread][file:func:line] msg
 
+	int state = 0;
+	
+	unsigned long long us;
+	int level;
+	std::thread::native_handle_type threadId;
+	const char *file_name = nullptr;
+	const char *function_name = nullptr;
+	int line;
+	
+	auto ptr = _buffer;
+	auto end = _ptr;
+	while ( ptr < end and state < 6 )
+	{
+		auto t = *reinterpret_cast<const log_data_type *>( ptr );
+		ptr += sizeof( log_data_type );
+		switch ( state )
+		{
+			case 0: // time
+			{
+				if ( t != log_data_type::kUnsignedLongLong )
+					return {};
+				us = *reinterpret_cast<const unsigned long long *>( ptr );
+				ptr += sizeof( unsigned long long );
+				break;
+			}
+			case 1: // level
+			{
+				if ( t != log_data_type::kInt )
+					return {};
+				level = *reinterpret_cast<const int *>( ptr );
+				ptr += sizeof( int );
+				break;
+			}
+			case 2: // thread
+			{
+				if ( t != TypeToEnum<uintptr_t>::value )
+					return {};
+				threadId = (std::thread::native_handle_type)*reinterpret_cast<const uintptr_t *>( ptr );
+				ptr += sizeof( uintptr_t );
+				break;
+			}
+			case 3: // file
+			{
+				if ( t != log_data_type::kStringLiteral )
+					return {};
+				file_name = *reinterpret_cast<const char *const *>( ptr );
+				ptr += sizeof( const char * );
+				break;
+			}
+			case 4: // func
+			{
+				if ( t != log_data_type::kStringLiteral )
+					return {};
+				function_name = *reinterpret_cast<const char *const *>( ptr );
+				ptr += sizeof( const char * );
+				break;
+			}
+			case 5: // line
+			{
+				if ( t != log_data_type::kInt )
+					return {};
+				line = *reinterpret_cast<const int *>( ptr );
+				ptr += sizeof( int );
+				break;
+			}
+		}
+		++state;
+	}
+	if ( state < 6 )
+		return {};
+	
 	const char *levelStr = "";
-	switch ( level() )
+	switch ( level )
 	{
 		case su::kFAULT:
 			levelStr = "FAULT";
@@ -489,9 +569,6 @@ std::string log_event::message( const std::string &i_subsystem ) const
 			return {};
 	}
 
-	auto us = std::chrono::duration_cast<std::chrono::microseconds>(
-	              timestamp().time_since_epoch() )
-	              .count();
 	std::time_t t = us / 1000000;
 	char isoTime[32] = "";
 	char ms[8] = "";
@@ -510,32 +587,28 @@ std::string log_event::message( const std::string &i_subsystem ) const
 	std::ostringstream ostr;
 
 	ostr << "[" << isoTime << ms << "][" << levelStr << "]["
-	     << thread_name( threadId() ) << "]";
-	if ( not i_subsystem.empty() )
-		ostr << "[" << i_subsystem << "]";
+	     << thread_name( threadId ) << "]";
 
 	// output location, if available
-	if ( sl().file_name() != nullptr )
+	if ( *file_name != 0 )
 	{
 		//	just write the basename
-		std::string_view file{sl().file_name()};
+		std::string_view file{file_name};
 		auto pos = file.find_last_of( UPLATFORM_WIN ? '\\' : '/' );
 		if ( pos != std::string_view::npos )
 			file = file.substr( pos + 1 );
 		ostr << "[" << file;
-		if ( sl().function_name() != nullptr )
-			ostr << ":" << sl().function_name();
-		if ( sl().line() != -1 )
-			ostr << ":" << sl().line();
+		if ( *function_name != 0 )
+			ostr << ":" << function_name;
+		if ( line != -1 )
+			ostr << ":" << line;
 		ostr << "]";
 	}
-	else if ( sl().function_name() != nullptr )
-		ostr << "[" << sl().function_name() << "]";
+	else if ( *function_name != 0 )
+		ostr << "[" << function_name << "]";
 
 	ostr << " ";
 
-	auto ptr = _buffer;
-	auto end = _ptr;
 	while ( ptr < end )
 	{
 		auto t = *reinterpret_cast<const log_data_type *>( ptr );
@@ -611,9 +684,9 @@ std::string log_event::message( const std::string &i_subsystem ) const
 
 Logger<kCOMPILETIME_LOG_MASK> logger( std::clog );
 
-void logger_output::writeEvent( const std::string &i_subsystem, const log_event &i_event )
+void logger_output::writeEvent( const log_event &i_event )
 {
-	auto msg = i_event.message( i_subsystem );
+	auto msg = i_event.message();
 	write( msg.data(), msg.size() );
 	write( "\n", 1 );
 }
@@ -626,10 +699,8 @@ void logger_output::flush()
 	_out.flush();
 }
 
-logger_base::logger_base( std::unique_ptr<logger_output> &&i_output,
-                          const std::string_view &i_subsystem ) :
-    _output( std::move( i_output ) ),
-    _subsystem( i_subsystem )
+logger_base::logger_base( std::unique_ptr<logger_output> &&i_output ) :
+    _output( std::move( i_output ) )
 {
 }
 
@@ -647,7 +718,7 @@ bool logger_base::operator==( log_event &i_event )
 		g_thread->push( this, std::move( i_event ) );
 	else if ( output() != nullptr )
 	{
-		output()->writeEvent( subsystem(), i_event );
+		output()->writeEvent( i_event );
 	}
 	return false;
 }

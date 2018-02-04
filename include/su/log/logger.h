@@ -113,12 +113,6 @@ private:
 	template<typename T>
 	void encode( const T &v );
 	
-	// info
-	int _level;
-	source_location _sl;
-	std::chrono::system_clock::time_point _timestamp;
-	std::thread::native_handle_type _threadId;
-
 public:
 	~log_event();
 	
@@ -129,7 +123,7 @@ public:
 	log_event &operator=( log_event &&lhs );
 	
 	log_event( int i_level );
-	log_event( int i_level, su::source_location &&i_sl );
+	log_event( int i_level, const su::source_location &i_sl );
 
 	log_event &operator<<( bool v );
 	log_event &operator<<( char v );
@@ -172,12 +166,7 @@ public:
 		return *this;
 	}
 	
-	int level() const { return _level; }
-	const source_location &sl() const { return _sl; }
-	
-	std::string message( const std::string &i_subsystem ) const;
-	std::chrono::system_clock::time_point timestamp() const { return _timestamp; }
-	std::thread::native_handle_type threadId() const { return _threadId; }
+	std::string message() const;
 };
 
 //! output for logs
@@ -187,7 +176,7 @@ public:
 	logger_output( std::ostream &i_out ) : _out( i_out ){}
 	virtual ~logger_output() = default;
 	
-	virtual void writeEvent( const std::string &i_subsystem, const log_event &i_event );
+	virtual void writeEvent( const log_event &i_event );
 	virtual void write( const char *i_text, size_t l );
 	virtual void flush();
 
@@ -198,11 +187,10 @@ private:
 class logger_base
 {
 protected:
-	logger_base( std::unique_ptr<logger_output> &&i_output, const std::string_view &i_subsystem );
+	logger_base( std::unique_ptr<logger_output> &&i_output );
 	virtual ~logger_base();
 
 	std::unique_ptr<logger_output> _output;
-	std::string _subsystem;
 	
 public:
 	logger_base( const logger_base & ) = delete;
@@ -211,7 +199,6 @@ public:
 	std::unique_ptr<logger_output> exchangeOutput( std::unique_ptr<logger_output> &&i_output );
 
 	logger_output *output() const { return _output.get(); }
-	const std::string &subsystem() const { return _subsystem; }
 
 	// don't call those directly.
 	bool operator==( log_event &i_event );
@@ -221,11 +208,11 @@ template <int COMPILETIME_LOG_MASK=kCOMPILETIME_LOG_MASK>
 class Logger final : public logger_base
 {
 public:
-	Logger( const std::string_view &i_ss = {} ) : logger_base( {}, i_ss ){}
-	Logger( std::unique_ptr<logger_output> &&i_output, const std::string_view &i_ss = {} )
-		: logger_base( std::move(i_output), i_ss ){}
-	Logger( std::ostream &ostr, const std::string_view &i_ss = {} )
-		: logger_base( std::make_unique<logger_output>(ostr), i_ss ){}
+	Logger() : logger_base( {} ){}
+	Logger( std::unique_ptr<logger_output> &&i_output )
+		: logger_base( std::move(i_output) ){}
+	Logger( std::ostream &ostr )
+		: logger_base( std::make_unique<logger_output>(ostr) ){}
 
 	int getLogMask() const { return _runtimeLogMask; }
 	void setLogMask( int l ) { _runtimeLogMask = l & COMPILETIME_LOG_MASK; }

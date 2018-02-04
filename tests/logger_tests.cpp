@@ -50,14 +50,13 @@ struct logger_tests
 		std::ostringstream ss;
 		
 		{
-			su::Logger<> test_logger( ss, "test" );
+			su::Logger<> test_logger( ss );
 			log_debug(test_logger) << 3;
 		}
 		
 		auto res = ss.str();
 		TEST_ASSERT_NOT_EQUAL( res.find( "] 3\n" ), std::string::npos );
 		TEST_ASSERT_NOT_EQUAL( res.find( "test_case_1" ), std::string::npos );
-		TEST_ASSERT_NOT_EQUAL( res.find( "[test]" ), std::string::npos );
 	}
 
 	void test_case_2()
@@ -106,13 +105,12 @@ struct logger_tests
 	{
 		std::ostringstream ss;
 		{
-			su::Logger<> test_logger( ss, "test" );
+			su::Logger<> test_logger( ss );
 			log_info(test_logger) << "123 " << 2;
 		}
 		
 		auto res = ss.str();
 		TEST_ASSERT_NOT_EQUAL( res.find( "123 2\n" ), std::string::npos );
-		TEST_ASSERT_NOT_EQUAL( res.find( "[test]" ), std::string::npos );
 		TEST_ASSERT_NOT_EQUAL( res.find( "[INFO]" ), std::string::npos );
 	}
 
@@ -155,7 +153,7 @@ struct logger_tests
 		std::ostringstream ss;
 		
 		{
-			su::Logger<> test_logger( ss, "test" );
+			su::Logger<> test_logger( ss );
 			
 			bool b = true;
 			uint8_t u8 = 3;
@@ -191,8 +189,7 @@ struct logger_tests
 		
 		su::this_thread::set_name( "fun_thread_name" );
 		{
-			su::Logger<> test_logger( ss, "test" );
-			
+			su::Logger<> test_logger( ss );
 			log_debug(test_logger) << "literal";
 		}
 		
@@ -205,7 +202,7 @@ struct logger_tests
 		std::ostringstream ss;
 		
 		{
-			su::Logger<> test_logger( ss, "test" );
+			su::Logger<> test_logger( ss );
 			
 			log_debug(test_logger) << "very long message "
 									<< "very long message "
