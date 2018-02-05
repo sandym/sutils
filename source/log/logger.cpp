@@ -20,7 +20,6 @@
 #include <condition_variable>
 #include <ctime>
 #include <iostream>
-#include <sstream>
 #include <unordered_set>
 #include <vector>
 
@@ -120,15 +119,7 @@ struct RecordedEvent
 };
 
 // helper to print thread's name
-struct thread_name
-{
-	std::thread::native_handle_type threadId;
-	thread_name( std::thread::native_handle_type i_threadId ) :
-	    threadId( i_threadId )
-	{
-	}
-};
-std::ostream &operator<<( std::ostream &os, const thread_name &t )
+std::string thread_name( std::thread::native_handle_type i_threadId )
 {
 #if UPLATFORM_WIN
 	typedef HRESULT( WINAPI * GetThreadDescriptionPtr )( HANDLE, PWSTR * );
@@ -136,10 +127,10 @@ std::ostream &operator<<( std::ostream &os, const thread_name &t )
 	static auto GetThreadDescriptionFunc =
 	    reinterpret_cast<GetThreadDescriptionPtr>(::GetProcAddress(
 	        ::GetModuleHandleW( L"Kernel32.dll" ), "GetThreadDescription" ) );
-	if ( GetThreadDescriptionFunc and t.threadId )
+	if ( GetThreadDescriptionFunc and i_threadId )
 	{
 		wchar_t *name = nullptr;
-		if ( SUCCEEDED( GetThreadDescriptionFunc( t.threadId, &name ) ) )
+		if ( SUCCEEDED( GetThreadDescriptionFunc( i_threadId, &name ) ) )
 		{
 			char buffer[64];
 			int l = WideCharToMultiByte( CP_UTF8,
@@ -152,18 +143,22 @@ std::ostream &operator<<( std::ostream &os, const thread_name &t )
 			                             nullptr );
 			LocalFree( name );
 			if ( l > 0 )
-			{
-				buffer[l] = 0;
-				return os << buffer;
-			}
+				return std::string( buffer, l );
 		}
 	}
 #else
 	char buffer[20];
-	if ( t.threadId and pthread_getname_np( t.threadId, buffer, 20 ) == 0 and buffer[0] != 0 )
-		return os << buffer;
+	if ( i_threadId and pthread_getname_np( i_threadId, buffer, 20 ) == 0 and
+	     buffer[0] != 0 )
+		return buffer;
 #endif
-	return os << t.threadId;
+	static const char *s_digits = "0123456789ABCDEF";
+	uintptr_t threadId = (uintptr_t)i_threadId;
+	const auto hex_len = sizeof( threadId ) << 1;
+	std::string s( "0x" );
+	for ( size_t i = 0, j = ( hex_len - 1 ) * 4; i < hex_len; ++i, j -= 4 )
+		s.append( 1, s_digits[( threadId >> j ) & 0x0f] );
+	return s;
 }
 
 class logger_thread_data
@@ -223,13 +218,11 @@ bool logger_thread_data::logQueueIsEmpty()
 	return logQueue.empty();
 }
 
-void logger_thread_data::push(
-    su::logger_base *i_logger,
-    su::log_event &&i_event )
+void logger_thread_data::push( su::logger_base *i_logger,
+                               su::log_event &&i_event )
 {
 	std::unique_lock<su::spinlock> l( queueSpinLock );
-	logQueue.emplace_back(
-	    RecordedEvent{i_logger, std::move( i_event )} );
+	logQueue.emplace_back( RecordedEvent{i_logger, std::move( i_event )} );
 	l.unlock();
 	queueCond.notify_one();
 }
@@ -327,6 +320,13 @@ log_event::log_event( int i_level, const su::source_location &i_sl )
 	encode_string_literal( i_sl.file_name() );
 	encode_string_literal( i_sl.function_name() );
 	encode<int>( i_sl.line() );
+}
+
+log_event::log_event( const dataView_t &i_data )
+{
+	ensure_extra_capacity( i_data.len );
+	memcpy( _ptr, i_data.start, i_data.len );
+	_ptr += i_data.len;
 }
 
 log_event::~log_event()
@@ -469,45 +469,53 @@ void log_event::encode_string_literal( const char *i_data )
 	_ptr += sizeof( const char * );
 }
 
-std::string log_event::message() const
-{
-	std::ostringstream ostr;
-	message( ostr );
-	return ostr.str();
-}
-
-void log_event::message( std::ostream &ostr ) const
+log_event::data_t log_event::extractData( char *&io_ptr ) const
 {
 	// [TIME][LEVEL][thread][file:func:line] msg
+	data_t data;
 
 	int state = 0;
-	
-	unsigned long long us = 0;
-	int level = su::kINFO;
-	std::thread::native_handle_type threadId = nullptr;
-	const char *file_name = "";
-	const char *function_name = "";
-	int line = -1;
-	
-	auto ptr = _buffer;
+
 	auto end = _ptr;
-	while ( ptr < end and state < 6 )
+	while ( io_ptr < end and state < 6 )
 	{
-		auto t = *reinterpret_cast<const log_data_type *>( ptr );
-		ptr += sizeof( log_data_type );
+		auto t = *reinterpret_cast<const log_data_type *>( io_ptr );
+		io_ptr += sizeof( log_data_type );
 		switch ( state )
 		{
 			case 0: // time
 			{
 				if ( t != log_data_type::kUnsignedLongLong )
 				{
-					ptr -= sizeof( log_data_type );
+					io_ptr -= sizeof( log_data_type );
 					state = 6;
 				}
 				else
 				{
-					us = *reinterpret_cast<const unsigned long long *>( ptr );
-					ptr += sizeof( unsigned long long );
+					auto us =
+					    *reinterpret_cast<const unsigned long long *>( io_ptr );
+					io_ptr += sizeof( unsigned long long );
+
+					std::time_t t = us / 1000000;
+					char isoTime[32] = "";
+					char ms[8] = "";
+					struct tm tmdata;
+#if UPLATFORM_WIN
+					if ( localtime_s( &tmdata, &t ) == 0 )
+					{
+						strftime( isoTime, 32, "%Y-%m-%dT%T", &tmdata );
+						sprintf_s(
+						    ms, ".%06lu", (unsigned long)( us % 1000000 ) );
+					}
+#else
+					strftime( isoTime,
+					          32,
+					          "%Y-%m-%dT%T",
+					          localtime_r( &t, &tmdata ) );
+					sprintf( ms, ".%06lu", (unsigned long)( us % 1000000 ) );
+#endif
+					strcpy( data.timestamp, isoTime );
+					strcat( data.timestamp, ms );
 				}
 				break;
 			}
@@ -515,13 +523,36 @@ void log_event::message( std::ostream &ostr ) const
 			{
 				if ( t != log_data_type::kInt )
 				{
-					ptr -= sizeof( log_data_type );
+					io_ptr -= sizeof( log_data_type );
 					state = 6;
 				}
 				else
 				{
-					level = *reinterpret_cast<const int *>( ptr );
-					ptr += sizeof( int );
+					auto level = *reinterpret_cast<const int *>( io_ptr );
+					io_ptr += sizeof( int );
+					switch ( level )
+					{
+						case su::kFAULT:
+							data.level = "FAULT";
+							break;
+						case su::kERROR:
+							data.level = "ERROR";
+							break;
+						case su::kWARN:
+							data.level = "WARN";
+							break;
+						case su::kINFO:
+							data.level = "INFO";
+							break;
+						case su::kDEBUG:
+							data.level = "DEBUG";
+							break;
+						case su::kTRACE:
+							data.level = "TRACE";
+							break;
+						default:
+							break;
+					}
 				}
 				break;
 			}
@@ -529,13 +560,16 @@ void log_event::message( std::ostream &ostr ) const
 			{
 				if ( t != TypeToEnum<uintptr_t>::value )
 				{
-					ptr -= sizeof( log_data_type );
+					io_ptr -= sizeof( log_data_type );
 					state = 6;
 				}
 				else
 				{
-					threadId = (std::thread::native_handle_type)*reinterpret_cast<const uintptr_t *>( ptr );
-					ptr += sizeof( uintptr_t );
+					auto threadId =
+					    ( std::thread::native_handle_type ) *
+					    reinterpret_cast<const uintptr_t *>( io_ptr );
+					io_ptr += sizeof( uintptr_t );
+					data.threadId = thread_name( threadId );
 				}
 				break;
 			}
@@ -543,13 +577,14 @@ void log_event::message( std::ostream &ostr ) const
 			{
 				if ( t != log_data_type::kStringLiteral )
 				{
-					ptr -= sizeof( log_data_type );
+					io_ptr -= sizeof( log_data_type );
 					state = 6;
 				}
 				else
 				{
-					file_name = *reinterpret_cast<const char *const *>( ptr );
-					ptr += sizeof( const char * );
+					data.file_name =
+					    *reinterpret_cast<const char *const *>( io_ptr );
+					io_ptr += sizeof( const char * );
 				}
 				break;
 			}
@@ -557,13 +592,14 @@ void log_event::message( std::ostream &ostr ) const
 			{
 				if ( t != log_data_type::kStringLiteral )
 				{
-					ptr -= sizeof( log_data_type );
+					io_ptr -= sizeof( log_data_type );
 					state = 6;
 				}
 				else
 				{
-					function_name = *reinterpret_cast<const char *const *>( ptr );
-					ptr += sizeof( const char * );
+					data.function_name =
+					    *reinterpret_cast<const char *const *>( io_ptr );
+					io_ptr += sizeof( const char * );
 				}
 				break;
 			}
@@ -571,147 +607,160 @@ void log_event::message( std::ostream &ostr ) const
 			{
 				if ( t != log_data_type::kInt )
 				{
-					ptr -= sizeof( log_data_type );
+					io_ptr -= sizeof( log_data_type );
 					state = 6;
 				}
 				else
 				{
-					line = *reinterpret_cast<const int *>( ptr );
-					ptr += sizeof( int );
+					data.line = *reinterpret_cast<const int *>( io_ptr );
+					io_ptr += sizeof( int );
 				}
 				break;
 			}
 		}
 		++state;
 	}
-	
-	const char *levelStr = "";
-	switch ( level )
-	{
-		case su::kFAULT:
-			levelStr = "FAULT";
-			break;
-		case su::kERROR:
-			levelStr = "ERROR";
-			break;
-		case su::kWARN:
-			levelStr = "WARN";
-			break;
-		case su::kINFO:
-			levelStr = "INFO";
-			break;
-		case su::kDEBUG:
-			levelStr = "DEBUG";
-			break;
-		case su::kTRACE:
-			levelStr = "TRACE";
-			break;
-		default:
-			break;
-	}
+	return data;
+}
 
-	std::time_t t = us / 1000000;
-	char isoTime[32] = "";
-	char ms[8] = "";
-	struct tm tmdata;
-#if UPLATFORM_WIN
-	if ( localtime_s( &tmdata, &t ) == 0 )
-	{
-		strftime( isoTime, 32, "%Y-%m-%dT%T", &tmdata );
-		sprintf_s( ms, ".%06lu", (unsigned long)( us % 1000000 ) );
-	}
-#else
-	strftime( isoTime, 32, "%Y-%m-%dT%T", localtime_r( &t, &tmdata ) );
-	sprintf( ms, ".%06lu", (unsigned long)( us % 1000000 ) );
-#endif
+log_event::data_t log_event::getData() const
+{
+	auto ptr = _buffer;
+	auto data = extractData( ptr );
+	extractMessage( ptr, data.msg );
+	return data;
+}
 
-	ostr << "[" << isoTime << ms << "][" << levelStr << "]["
-	     << thread_name( threadId ) << "]";
+std::string log_event::message() const
+{
+	// [TIME][LEVEL][thread][file:func:line] msg
+
+	auto ptr = _buffer;
+	auto data = extractData( ptr );
+
+	std::string msg;
+	msg.reserve( 256 );
+	msg.append( 1, '[' );
+	msg.append( data.timestamp );
+	msg.append( "][" );
+	msg.append( data.level );
+	msg.append( "][" );
+	msg.append( data.threadId );
+	msg.append( 1, ']' );
 
 	// output location, if available
-	if ( *file_name != 0 )
+	if ( data.file_name != nullptr and *data.file_name != 0 )
 	{
 		//	just write the basename
-		std::string_view file{file_name};
+		std::string_view file{data.file_name};
 		auto pos = file.find_last_of( UPLATFORM_WIN ? '\\' : '/' );
 		if ( pos != std::string_view::npos )
 			file = file.substr( pos + 1 );
-		ostr << "[" << file;
-		if ( *function_name != 0 )
-			ostr << ":" << function_name;
-		if ( line != -1 )
-			ostr << ":" << line;
-		ostr << "]";
+		msg.append( 1, '[' );
+		msg.append( file );
+		if ( data.function_name != nullptr and *data.function_name != 0 )
+		{
+			msg.append( 1, ':' );
+			msg.append( data.function_name );
+		}
+		if ( data.line != -1 )
+		{
+			msg.append( 1, ':' );
+			msg.append( std::to_string( data.line ) );
+		}
+		msg.append( 1, ']' );
 	}
-	else if ( *function_name != 0 )
-		ostr << "[" << function_name << "]";
-
-	ostr << " ";
-
-	while ( ptr < end )
+	else if ( data.function_name != nullptr and *data.function_name != 0 )
 	{
-		auto t = *reinterpret_cast<const log_data_type *>( ptr );
-		ptr += sizeof( log_data_type );
+		msg.append( 1, '[' );
+		msg.append( data.function_name );
+		msg.append( 1, ']' );
+	}
+
+	msg.append( 1, ' ' );
+	extractMessage( ptr, msg );
+	return msg;
+}
+
+void log_event::extractMessage( char *&io_ptr, std::string &o_msg ) const
+{
+	auto end = _ptr;
+	while ( io_ptr < end )
+	{
+		auto t = *reinterpret_cast<const log_data_type *>( io_ptr );
+		io_ptr += sizeof( log_data_type );
 		switch ( t )
 		{
 			case log_data_type::kBool:
-				if ( *reinterpret_cast<const bool *>( ptr ) )
-					ostr << "true";
+				if ( *reinterpret_cast<const bool *>( io_ptr ) )
+					o_msg.append( "true" );
 				else
-					ostr << "false";
-				ptr += sizeof( bool );
+					o_msg.append( "false" );
+				io_ptr += sizeof( bool );
 				break;
 			case log_data_type::kChar:
-				ostr << *reinterpret_cast<const char *>( ptr );
-				ptr += sizeof( char );
+				o_msg.append( 1, *reinterpret_cast<const char *>( io_ptr ) );
+				io_ptr += sizeof( char );
 				break;
 			case log_data_type::kUnsignedChar:
-				ostr << (int)*reinterpret_cast<const unsigned char *>( ptr );
-				ptr += sizeof( unsigned char );
+				o_msg.append( std::to_string(
+				    (int)*reinterpret_cast<const unsigned char *>( io_ptr ) ) );
+				io_ptr += sizeof( unsigned char );
 				break;
 			case log_data_type::kShort:
-				ostr << *reinterpret_cast<const short *>( ptr );
-				ptr += sizeof( short );
+				o_msg.append( std::to_string(
+				    *reinterpret_cast<const short *>( io_ptr ) ) );
+				io_ptr += sizeof( short );
 				break;
 			case log_data_type::kUnsignedShort:
-				ostr << *reinterpret_cast<const unsigned short *>( ptr );
-				ptr += sizeof( unsigned short );
+				o_msg.append( std::to_string(
+				    *reinterpret_cast<const unsigned short *>( io_ptr ) ) );
+				io_ptr += sizeof( unsigned short );
 				break;
 			case log_data_type::kInt:
-				ostr << *reinterpret_cast<const int *>( ptr );
-				ptr += sizeof( int );
+				o_msg.append( std::to_string(
+				    *reinterpret_cast<const int *>( io_ptr ) ) );
+				io_ptr += sizeof( int );
 				break;
 			case log_data_type::kUnsignedInt:
-				ostr << *reinterpret_cast<const unsigned int *>( ptr );
-				ptr += sizeof( unsigned int );
+				o_msg.append( std::to_string(
+				    *reinterpret_cast<const unsigned int *>( io_ptr ) ) );
+				io_ptr += sizeof( unsigned int );
 				break;
 			case log_data_type::kLong:
-				ostr << *reinterpret_cast<const long *>( ptr );
-				ptr += sizeof( long );
+				o_msg.append( std::to_string(
+				    *reinterpret_cast<const long *>( io_ptr ) ) );
+				io_ptr += sizeof( long );
 				break;
 			case log_data_type::kUnsignedLong:
-				ostr << *reinterpret_cast<const unsigned long *>( ptr );
-				ptr += sizeof( unsigned long );
+				o_msg.append( std::to_string(
+				    *reinterpret_cast<const unsigned long *>( io_ptr ) ) );
+				io_ptr += sizeof( unsigned long );
 				break;
 			case log_data_type::kLongLong:
-				ostr << *reinterpret_cast<const long long *>( ptr );
-				ptr += sizeof( long long );
+				o_msg.append( std::to_string(
+				    *reinterpret_cast<const long long *>( io_ptr ) ) );
+				io_ptr += sizeof( long long );
 				break;
 			case log_data_type::kUnsignedLongLong:
-				ostr << *reinterpret_cast<const unsigned long long *>( ptr );
-				ptr += sizeof( unsigned long long );
+				o_msg.append( std::to_string(
+				    *reinterpret_cast<const unsigned long long *>( io_ptr ) ) );
+				io_ptr += sizeof( unsigned long long );
 				break;
 			case log_data_type::kDouble:
-				ostr << *reinterpret_cast<const double *>( ptr );
-				ptr += sizeof( double );
+				o_msg.append( std::to_string(
+				    *reinterpret_cast<const double *>( io_ptr ) ) );
+				io_ptr += sizeof( double );
 				break;
 			case log_data_type::kStringLiteral:
-				ostr << *reinterpret_cast<const char *const *>( ptr );
-				ptr += sizeof( const char * );
+				o_msg.append(
+				    *reinterpret_cast<const char *const *>( io_ptr ) );
+				io_ptr += sizeof( const char * );
 				break;
 			case log_data_type::kStringData:
-				ostr << reinterpret_cast<const char *>( ptr );
-				ptr += strlen( reinterpret_cast<const char *>( ptr ) ) + 1;
+				o_msg.append( reinterpret_cast<const char *>( io_ptr ) );
+				io_ptr +=
+				    strlen( reinterpret_cast<const char *>( io_ptr ) ) + 1;
 				break;
 			default:
 				assert( false );
@@ -725,8 +774,8 @@ Logger<kCOMPILETIME_LOG_MASK> logger( std::clog );
 void logger_output::writeEvent( const log_event &i_event )
 {
 	auto msg = i_event.message();
+	msg.append( 1, '\n' );
 	write( msg.data(), msg.size() );
-	write( "\n", 1 );
 }
 void logger_output::write( const char *i_text, size_t l )
 {
