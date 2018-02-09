@@ -10,17 +10,16 @@ list( GET PRODUCT_VERSION_COMPS 1 PRODUCT_VERSION_MINOR )
 list( GET PRODUCT_VERSION_COMPS 2 PRODUCT_VERSION_PATCH )
 list( GET PRODUCT_VERSION_COMPS 3 PRODUCT_VERSION_BUILD )
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/include/su/base/config.h.in"
-				"${CMAKE_CURRENT_SOURCE_DIR}/include/su/base/config.h" )
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/source/su/base/config.h.in"
+				"${CMAKE_CURRENT_SOURCE_DIR}/source/su/base/config.h" )
 
-file( GLOB_RECURSE SUTILS_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/su/*.h" )
+file( GLOB_RECURSE SUTILS_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.h" )
 file( GLOB_RECURSE SUTILS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp" )
 
 add_library( sutils STATIC
 					${SUTILS_HEADERS}
 					${SUTILS_SOURCES} )
 
-target_include_directories( sutils  PUBLIC include )
+target_include_directories( sutils PUBLIC source )
 
-source_group( TREE "${CMAKE_CURRENT_SOURCE_DIR}/include" FILES ${SUTILS_HEADERS} )
-source_group( TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "src" FILES ${SUTILS_SOURCES} )
+source_group( TREE "${CMAKE_CURRENT_SOURCE_DIR}/source" PREFIX "source" FILES ${SUTILS_HEADERS} ${SUTILS_SOURCES} )

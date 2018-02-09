@@ -4,7 +4,7 @@ project( sutils_tests )
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set( TEST_RUNNER ../include/su/tests/simple_tests_runner.cpp )
+set( TEST_RUNNER ../source/su/tests/simple_tests_runner.cpp )
 
 # configure
 execute_process( COMMAND svn info --show-item revision
@@ -16,6 +16,7 @@ execute_process( COMMAND git rev-parse HEAD
 				OUTPUT_VARIABLE GIT_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
 
 set( PRODUCT_VERSION "0.2.3.4" )
+add_definitions( -DENABLE_SIMPLE_TESTS )
 
 add_subdirectory( .. lib )
 
@@ -45,8 +46,6 @@ endif()
 source_group( "tests" FILES
 					${TEST_RUNNER}
 					${ALL_TESTS} )
-
-add_definitions( -DENABLE_SIMPLE_TESTS )
 
 find_library( EXPAT_LIBRARY expat )
 if(EXPAT_LIBRARY)
