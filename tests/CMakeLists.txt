@@ -4,7 +4,7 @@ project( sutils_tests )
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set( TEST_RUNNER ../source/su/tests/simple_tests_runner.cpp )
+set( TEST_RUNNER ../src/su/tests/simple_tests_runner.cpp )
 
 # configure
 execute_process( COMMAND svn info --show-item revision
