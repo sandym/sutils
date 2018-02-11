@@ -26,17 +26,20 @@ private:
 public:
 	void lock()
 	{
+		// spin for a while...
 		for ( int i = 0; i < 100; ++i )
 		{
 			if ( not _locked.test_and_set(std::memory_order_acquire) )
 				return;
 		}
+		// spin and yield for a bit longer
 		for ( int i = 0; i < 1000; ++i )
 		{
 			if ( not _locked.test_and_set(std::memory_order_acquire) )
 				return;
 			std::this_thread::yield();
 		}
+		// looks like no one is in a hurry to release...
 		while ( _locked.test_and_set(std::memory_order_acquire) )
 			std::this_thread::sleep_for(std::chrono::nanoseconds(1));
 	}
