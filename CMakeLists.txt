@@ -15,6 +15,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/su/base/config.h.in"
 
 file( GLOB_RECURSE SUTILS_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h" )
 file( GLOB_RECURSE SUTILS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" )
+list( REMOVE_ITEM SUTILS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/su/tests/simple_tests_runner.cpp" )
 
 add_library( sutils STATIC
 					${SUTILS_HEADERS}
