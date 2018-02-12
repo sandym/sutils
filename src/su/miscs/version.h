@@ -13,7 +13,22 @@
 #ifndef H_SU_VERSION
 #define H_SU_VERSION
 
-#include "su/base/config.h"
+#if __has_include("user_config.h")
+#include "user_config.h"
+#endif
+
+#ifndef PRODUCT_VERSION_MAJOR
+#	define PRODUCT_VERSION_MAJOR 0
+#endif
+#ifndef PRODUCT_VERSION_MINOR
+#	define PRODUCT_VERSION_MINOR 0
+#endif
+#ifndef PRODUCT_VERSION_PATCH
+#	define PRODUCT_VERSION_PATCH 0
+#endif
+#ifndef PRODUCT_VERSION_BUILD
+#	define PRODUCT_VERSION_BUILD 1
+#endif
 
 #ifdef __cplusplus
 

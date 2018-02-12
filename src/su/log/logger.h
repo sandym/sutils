@@ -29,13 +29,16 @@
 #define H_SU_LOGGER
 
 #include "su/base/always_inline.h"
-#include "su/base/config.h"
 #include <string.h>
 #include <ciso646>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <thread>
+
+#if __has_include("user_config.h")
+#include "user_config.h"
+#endif
 
 namespace su {
 

@@ -88,14 +88,11 @@ std::string version::full_string() const
 
 std::string build_revision()
 {
-	std::string rev;
-#ifdef SVN_REVISION
-	rev += "svn(#" STRINGIFY(SVN_REVISION) ")";
-#endif
 #ifdef GIT_REVISION
-	rev += "git(#" STRINGIFY(GIT_REVISION) ")";
+	return "#" STRINGIFY(GIT_REVISION);
+#else
+	return {};
 #endif
-	return rev;
 }
 
 }

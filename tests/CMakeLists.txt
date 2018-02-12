@@ -7,10 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set( TEST_RUNNER ../src/su/tests/simple_tests_runner.cpp )
 
 # configure
-execute_process( COMMAND svn info --show-item revision
-				WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-				OUTPUT_VARIABLE SVN_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
-
 execute_process( COMMAND git rev-parse HEAD
 				WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 				OUTPUT_VARIABLE GIT_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE )
@@ -18,6 +14,7 @@ execute_process( COMMAND git rev-parse HEAD
 set( PRODUCT_VERSION "0.2.3.4" )
 add_definitions( -DENABLE_SIMPLE_TESTS )
 
+set( USER_CONFIG_PATH "${CMAKE_BINARY_DIR}/user_config" )
 add_subdirectory( .. lib )
 
 file( GLOB ALL_TESTS "*_tests.cpp" )

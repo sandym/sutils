@@ -67,8 +67,7 @@ define when compiling as in:
 This would define version 1.2.3 build 4. Note that the
 components are separated by **commas**.
 
-You can also optionally define `SVN_REVISION` and/or
-`GIT_REVISION` so they can be accessed as
+You can also optionally define `GIT_REVISION` so it can be accessed as
 `su::build_revision()`.
 
 Usage:
