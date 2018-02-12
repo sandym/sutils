@@ -41,7 +41,7 @@ auto s = su::format("%@\n", foo); // will call to_string for Foo
 
 ```
 
-TODO: compare with other libs
+@todo: compare with other libs
 
 ## `su/strings/str_load.h`
 

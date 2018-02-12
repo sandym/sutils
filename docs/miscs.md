@@ -59,16 +59,15 @@ v.attach( "frame", std::make_unique<DrawFrame>() );
 ## `su/miscs/version.h`
 
 Helper to retrieve and compare version information at
-runtime. You need to have the macro `PRODUCT_VERSION_FULL`
-define when compiling as in:
+runtime. This need to be configured from cmake.
 
-	-DPRODUCT_VERSION_FULL=1,2,3,4
+```
+set( PRODUCT_VERSION "0.2.3.4" )
+set( USER_CONFIG_PATH "${CMAKE_BINARY_DIR}/user_config" )
+add_subdirectory( sutils )
+```
 
-This would define version 1.2.3 build 4. Note that the
-components are separated by **commas**.
-
-You can also optionally define `GIT_REVISION` so it can be accessed as
-`su::build_revision()`.
+You can also optionally define `GIT_REVISION` so it can be accessed as `su::build_revision()`.
 
 Usage:
 
