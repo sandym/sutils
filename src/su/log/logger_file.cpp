@@ -12,6 +12,7 @@
 
 #include "su/log/logger_file.h"
 #include "su/files/filepath.h"
+#include "su/streams/teebuf.h"
 #include <chrono>
 #include <string>
 
@@ -57,25 +58,19 @@ void roll( const su::filepath &i_path )
 //! logger_output that tee to 2 streams
 struct tee_output : public su::logger_output
 {
-	tee_output( std::ostream &i_out1, logger_output &i_out2 )
+	tee_output( std::ostream &i_out1, std::ostream &i_out2 )
 		: su::logger_output( i_out1 ),
-			_out( i_out2 )
+			tee( i_out1.rdbuf(), i_out2.rdbuf() )
 	{
+		_save = ostr.rdbuf( &tee );
 	}
-	~tee_output() = default;
-
-	virtual void write( const char *i_text, size_t l )
+	~tee_output()
 	{
-		su::logger_output::write( i_text, l );
-		_out.write( i_text, l );
-	}
-	virtual void flush()
-	{
-		su::logger_output::flush();
-		_out.flush();
+		ostr.rdbuf( _save );
 	}
 
-	logger_output &_out;
+	su::teebuf tee;
+	std::streambuf *_save = nullptr;
 };
 
 //! helper that close, roll and re-open a new file daily
@@ -195,7 +190,7 @@ logger_file::~logger_file()
 std::unique_ptr<logger_output> logger_file::createSimpleStream( bool i_tee )
 {
 	if ( i_tee and _logger.output() != nullptr )
-		return std::make_unique<tee_output>( _fstr, *_logger.output() );
+		return std::make_unique<tee_output>( _fstr, _logger.output()->ostr );
 	
 	return std::make_unique<logger_output>( _fstr );
 }
@@ -207,7 +202,7 @@ std::unique_ptr<logger_output> logger_file::createRollDailyStream( const filepat
 		// compose tee and roll daily features
 		struct output : public tee_output, public RollDailyHelper
 		{
-			output( const filepath &i_path, std::ofstream &i_out1, logger_output &i_out2 )
+			output( const filepath &i_path, std::ofstream &i_out1, std::ostream &i_out2 )
 				: tee_output( i_out1, i_out2 ), RollDailyHelper( i_path, i_out1 ) {}
 			
 			virtual void flush()
@@ -216,7 +211,7 @@ std::unique_ptr<logger_output> logger_file::createRollDailyStream( const filepat
 				RollDailyHelper::flush();
 			}
 		};
-		return std::make_unique<output>( i_path, _fstr, *_logger.output() );
+		return std::make_unique<output>( i_path, _fstr, _logger.output()->ostr );
 	}
 
 	// roll daily output
@@ -241,7 +236,7 @@ std::unique_ptr<logger_output> logger_file::createRollOnSizeStream( const filepa
 		// compose tee and roll on size features
 		struct output : public tee_output, public RollOnSizeHelper
 		{
-			output( const filepath &i_path, std::ofstream &i_out1, logger_output &i_out2, int i_bytes )
+			output( const filepath &i_path, std::ofstream &i_out1, std::ostream &i_out2, int i_bytes )
 				: tee_output( i_out1, i_out2 ), RollOnSizeHelper( i_path, i_out1, i_bytes ) {}
 			
 			virtual void flush()
@@ -250,7 +245,7 @@ std::unique_ptr<logger_output> logger_file::createRollOnSizeStream( const filepa
 				RollOnSizeHelper::flush();
 			}
 		};
-		return std::make_unique<output>( i_path, _fstr, *_logger.output(), i_bytes );
+		return std::make_unique<output>( i_path, _fstr, _logger.output()->ostr, i_bytes );
 	}
 
 	// roll on size output

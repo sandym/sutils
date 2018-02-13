@@ -207,18 +207,15 @@ private:
 };
 
 //! output for logs
-class logger_output
+struct logger_output
 {
-public:
-	logger_output( std::ostream &i_out ) : _out( i_out ) {}
+	logger_output( std::ostream &i_out ) : ostr( i_out ) {}
 	virtual ~logger_output() = default;
 
 	virtual void writeEvent( const log_event &i_event );
-	virtual void write( const char *i_text, size_t l );
 	virtual void flush();
 
-private:
-	std::ostream &_out;
+	std::ostream &ostr;
 };
 
 class logger_base

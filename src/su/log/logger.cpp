@@ -775,15 +775,11 @@ void logger_output::writeEvent( const log_event &i_event )
 {
 	auto msg = i_event.message();
 	msg.append( 1, '\n' );
-	write( msg.data(), msg.size() );
-}
-void logger_output::write( const char *i_text, size_t l )
-{
-	_out.write( i_text, l );
+	ostr.write( msg.data(), msg.size() );
 }
 void logger_output::flush()
 {
-	_out.flush();
+	ostr.flush();
 }
 
 logger_base::logger_base( std::unique_ptr<logger_output> &&i_output ) :
