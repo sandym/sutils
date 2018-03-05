@@ -39,4 +39,17 @@ inline std::size_t hash_combine( const T&... args )
 
 }
 
+namespace std {
+
+template<typename T1,typename T2>
+struct hash<std::pair<T1,T2>>
+{
+	std::size_t operator()( const std::pair<T1,T2> &k ) const
+	{
+		return su::hash_combine( k.first, k.second );
+	}
+};
+
+}
+
 #endif

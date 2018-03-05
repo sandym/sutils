@@ -339,7 +339,7 @@ void jobdispatcher_tests::test_case_cancel_3()
 	
 	// add one very long job
 	bool isRunningAsync = false, isRunningIdle = false, finished = false;
-	auto longJob = std::make_shared<su::asyncJob>(
+	auto longJob = su::lambdaJob_create(
 			[&isRunningAsync, &finished]( su::job &i_job )
 			{
 				isRunningAsync = true;
@@ -365,7 +365,7 @@ void jobdispatcher_tests::test_case_cancel_3()
 	for ( int i = 0 ; i < nbStarted; ++i )
 	{
 		su::jobdispatcher::instance()->postAsync(
-			std::make_shared<su::asyncJob>(
+			su::lambdaJob_create(
 				[]( su::job &i_job )
 				{
 					for ( int i = 0; i < 50; ++i )
@@ -520,7 +520,7 @@ void jobdispatcher_tests::test_case_sprint_2()
 {
 	int nbOfIdle = 0;
 
-	auto job = std::make_shared<su::asyncJob>(
+	auto job = su::lambdaJob_create(
 			[]( su::job &i_job )
 			{
 				for ( int i = 0; i < 100; ++i )

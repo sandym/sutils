@@ -31,7 +31,7 @@ public:
 		if ( obj != nullptr )
 			CFRetain( obj );
 	}
-	cfauto( const cfauto<T> &&i_other ) noexcept
+	cfauto( cfauto<T> &&i_other ) noexcept
 		: obj( i_other.obj ) { i_other.obj = nullptr; }
 	~cfauto()
 	{

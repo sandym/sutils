@@ -179,7 +179,7 @@ private:
 public:
 	logger_thread_data();
 
-	inline void inc() { ++refCount; }
+	void inc() { ++refCount; }
 	void dec();
 
 	void push( su::logger_base *i_logger, su::log_event &&i_event );

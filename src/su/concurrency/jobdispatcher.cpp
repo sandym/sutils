@@ -240,7 +240,7 @@ void jobdispatcher::sprint_impl( const job_ptr &i_job )
 		i_job->_cond.wait( l, [i_job](){ return i_job->_threadIndex == -1; } );
 
 		// finish the job right away
-		bool wasInIdleQueue = removeFromQueue( _idleQueue, i_job );
+		bool wasInIdleQueue [[maybe_unused]] = removeFromQueue( _idleQueue, i_job );
 		l.unlock();
 		assert( wasInIdleQueue );
 		i_job->runIdle();
@@ -249,7 +249,7 @@ void jobdispatcher::sprint_impl( const job_ptr &i_job )
 	{
 		// look for it in the async or idle queue
 		bool wasInAsyncQueue = removeFromQueue( _asyncQueue, i_job );
-		bool wasInIdleQueue = wasInAsyncQueue ? false : removeFromQueue( _idleQueue, i_job );
+		bool wasInIdleQueue [[maybe_unused]] = wasInAsyncQueue ? false : removeFromQueue( _idleQueue, i_job );
 		l.unlock();
 		assert( wasInAsyncQueue or wasInIdleQueue ); // could it be in no queue?
 		

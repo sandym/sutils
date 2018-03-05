@@ -51,26 +51,4 @@ void job::prioritise()
 	_dispatcher->prioritise_impl( shared_from_this() );
 }
 
-#if 0
-#pragma mark -
-#endif
-
-asyncJob::asyncJob( const std::function< void(job&) > &i_async,
-					const std::function< void(job&) > &i_idle )
-	: _async( i_async ), _idle( i_idle )
-{
-}
-
-void asyncJob::runAsync()
-{
-	if ( _async )
-		_async( *this );
-}
-
-void asyncJob::runIdle()
-{
-	if ( _idle )
-		_idle( *this );
-}
-
 }

@@ -103,19 +103,57 @@ using job_weak_ptr = std::weak_ptr<job>;
 /*!
 	@brief Job that can run C++ lambdas
 */
+template<typename F>
 class asyncJob : public job
 {
 public:
-	asyncJob( const std::function< void(job&) > &i_async,
-				const std::function< void(job&) > &i_idle );
+	asyncJob( const F &i_async ) : _async( i_async ){}
 	virtual ~asyncJob() = default;
 
 private:
-	std::function< void(job&) > _async, _idle;
-	
-	virtual void runAsync();
-	virtual void runIdle();
+	F _async;
+	virtual void runAsync() { _async( *this ); }
 };
+template<typename F>
+job_ptr asyncJob_create( const F &i_async )
+{
+	return std::make_shared<asyncJob<F>>( i_async );
+}
+template<typename F>
+class idleJob : public job
+{
+public:
+	idleJob( const F &i_idle ) : _idle( i_idle ){}
+	virtual ~idleJob() = default;
+
+private:
+	F _idle;
+	virtual void runIdle() { _idle( *this ); }
+};
+template<typename F>
+job_ptr idleJob_create( const F &i_idle )
+{
+	return std::make_shared<idleJob<F>>( i_idle );
+}
+template<typename F1, typename F2>
+class lambdaJob : public job
+{
+public:
+	lambdaJob( const F1 &i_async, const F2 &i_idle )
+		: _async( i_async ), _idle( i_idle ){}
+	virtual ~lambdaJob() = default;
+
+private:
+	F1 _async;
+	F2 _idle;
+	virtual void runAsync() { _async( *this ); }
+	virtual void runIdle() { _idle( *this ); }
+};
+template<typename F1, typename F2>
+job_ptr lambdaJob_create( const F1 &i_async, const F2 &i_idle )
+{
+	return std::make_shared<lambdaJob<F1,F2>>( i_async, i_idle );
+}
 
 }
 

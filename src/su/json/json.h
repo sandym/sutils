@@ -121,7 +121,7 @@ public:
 	// Return the enclosed value as a string or empty string
 	std::string to_string_value() const;
 
-	// Return a reference to arr[i] if this is an array, Json() otherwise.
+	// Return a reference to array[i] if this is an array, Json() otherwise.
 	const Json &operator[]( size_t i ) const;
 	// Return a reference to obj[key] if this is an object, Json() otherwise.
 	const Json &operator[]( const std::string_view &key ) const;

@@ -11,7 +11,6 @@
  */
 
 #include "su/strings/str_ext.h"
-#include "su/base/platform.h"
 #include "su/containers/flat_map.h"
 #include "ConvertUTF.h"
 #include <stack>

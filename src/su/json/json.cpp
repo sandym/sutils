@@ -1481,8 +1481,8 @@ struct JsonValue
 	virtual ~JsonValue() = default;
 
 	mutable size_t refCount{1};
-	inline void inc() const { ++refCount; }
-	inline void dec() const
+	void inc() const { ++refCount; }
+	void dec() const
 	{
 		--refCount;
 		if ( refCount == 0 )
@@ -2111,7 +2111,7 @@ struct JsonParser final
 		char *_buffer;
 		size_t _capacity = 1024;
 		char *_end;
-		inline InlineString()
+		InlineString()
 		{
 			_buffer = inlineStorage;
 			_end = _buffer;
@@ -2121,7 +2121,7 @@ struct JsonParser final
 			if ( _buffer != inlineStorage )
 				delete [] _buffer;
 		}
-		inline void push_back( char c )
+		void push_back( char c )
 		{
 			auto s = size();
 			if ( s >= (_capacity-2) )
@@ -2138,11 +2138,11 @@ struct JsonParser final
 			*_end = c;
 			++_end;
 		}
-		inline size_t size() const { return _end - _buffer; }
-		inline const char *c_str() const { *_end = 0; return _buffer; }
+		size_t size() const { return _end - _buffer; }
+		const char *c_str() const { *_end = 0; return _buffer; }
 
-		inline const char *begin() const { return _buffer; }
-		inline const char *end() const { return _end; }
+		const char *begin() const { return _buffer; }
+		const char *end() const { return _end; }
 		
 		void clear() { _end = _buffer; }
 		

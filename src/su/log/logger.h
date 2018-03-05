@@ -164,9 +164,15 @@ public:
 		encode_string_literal( v );
 		return *this;
 	}
-
 	template<typename T>
-	std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, char *>, log_event &>
+	std::enable_if_t<std::is_same_v<T, const char *>, log_event &>
+	operator<<( const T &v )
+	{
+		encode_string_data( v, strlen( v ) );
+		return *this;
+	}
+	template<typename T>
+	std::enable_if_t<std::is_same_v<T, char *>, log_event &>
 	operator<<( const T &v )
 	{
 		encode_string_data( v, strlen( v ) );
