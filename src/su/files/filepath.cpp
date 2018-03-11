@@ -602,6 +602,27 @@ std::time_t filepath::creation_date() const
 	return 0;
 }
 
+size_t filepath::file_size() const
+{
+#if UPLATFORM_WIN
+	WIN32_FILE_ATTRIBUTE_DATA info;
+	if ( GetFileAttributesExW(
+	         ospath().c_str(), GetFileExInfoStandard, &info ) )
+	{
+		assert( false );
+	}
+#else
+	struct stat info;
+	if ( stat( ospath().c_str(), &info ) == 0 )
+#	if UPLATFORM_MAC
+		return info.st_size;
+#	else
+		return info.st_size;
+#	endif
+#endif
+	return 0;
+}
+
 bool filepath::isFolderEmpty() const
 {
 	bool foundOne = false;

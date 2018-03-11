@@ -46,6 +46,10 @@ public:
 	array_view( Y &a )
 		: _data( a.data() ), _len( a.size() ){}
 
+	template<typename Y, size_t N>
+	array_view( Y ( &v )[N] )
+		: _data( v ), _len( N ){}
+
 	void swap( array_view & a ) noexcept
 	{
 		std::swap( _data, a._data );

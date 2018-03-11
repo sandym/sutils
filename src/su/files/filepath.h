@@ -85,6 +85,7 @@ public:
 	bool isFile() const;
 
 	std::time_t creation_date() const;
+	size_t file_size() const;
 
 	// iterating folder
 	bool isFolderEmpty() const;
