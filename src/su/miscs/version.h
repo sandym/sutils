@@ -17,18 +17,13 @@
 #include "user_config.h"
 #endif
 
-#ifndef PRODUCT_VERSION_MAJOR
-#	define PRODUCT_VERSION_MAJOR 0
+#ifndef PRODUCT_VERSION
+#	define PRODUCT_VERSION 0.0.0.1
 #endif
-#ifndef PRODUCT_VERSION_MINOR
-#	define PRODUCT_VERSION_MINOR 0
-#endif
-#ifndef PRODUCT_VERSION_PATCH
-#	define PRODUCT_VERSION_PATCH 0
-#endif
-#ifndef PRODUCT_VERSION_BUILD
-#	define PRODUCT_VERSION_BUILD 1
-#endif
+
+// helper macros
+#define _STRINGIFY(x) #x
+#define STRINGIFY(x) _STRINGIFY(x)
 
 #ifdef __cplusplus
 
@@ -49,7 +44,8 @@ class version final
 {
 public:
 	static version from_string( const std::string_view &i_version );
-	constexpr version( int i_major, int i_minor = 0, int i_patch = 0, int i_build = 0 )
+	
+	version( int i_major, int i_minor = 0, int i_patch = 0, int i_build = 1 )
 		: _major( i_major ),
 		  _minor( i_minor ),
 		  _patch( i_patch ),
@@ -57,17 +53,17 @@ public:
 	{
 	}
 
-	constexpr int major() const { return _major; }
-	constexpr int minor() const { return _minor; }
-	constexpr int patch() const { return _patch; }
-	constexpr int build() const { return _build; }
+	int major() const { return _major; }
+	int minor() const { return _minor; }
+	int patch() const { return _patch; }
+	int build() const { return _build; }
 
-	constexpr bool operator<( const version &rhs ) const { return cmp( rhs ) < 0; }
-	constexpr bool operator>( const version &rhs ) const { return cmp( rhs ) > 0; }
-	constexpr bool operator==( const version &rhs ) const { return cmp( rhs ) == 0; }
-	constexpr bool operator>=( const version &rhs ) const { return cmp( rhs ) >= 0; }
-	constexpr bool operator!=( const version &rhs ) const { return cmp( rhs ) != 0; }
-	constexpr bool operator<=( const version &rhs ) const { return cmp( rhs ) <= 0; }
+	bool operator<( const version &rhs ) const { return cmp( rhs ) < 0; }
+	bool operator>( const version &rhs ) const { return cmp( rhs ) > 0; }
+	bool operator==( const version &rhs ) const { return cmp( rhs ) == 0; }
+	bool operator>=( const version &rhs ) const { return cmp( rhs ) >= 0; }
+	bool operator!=( const version &rhs ) const { return cmp( rhs ) != 0; }
+	bool operator<=( const version &rhs ) const { return cmp( rhs ) <= 0; }
 
 	std::string string() const; //!< 1.2.3
 	std::string full_string() const; //!< 1.2.3.4, same as string() + build number
@@ -76,9 +72,9 @@ private:
 	const int _major = 0;
 	const int _minor = 0;
 	const int _patch = 0;
-	const int _build = 0;
+	const int _build = 1;
 	
-	constexpr int cmp( const version &rhs ) const
+	int cmp( const version &rhs ) const
 	{
 		auto d = _major - rhs._major;
 		if ( d != 0 )
@@ -93,28 +89,27 @@ private:
 	}
 };
 
-constexpr version CURRENT_VERSION()
+inline version CURRENT_VERSION()
 {
-	return version(PRODUCT_VERSION_MAJOR,
-					PRODUCT_VERSION_MINOR,
-					PRODUCT_VERSION_PATCH,
-					PRODUCT_VERSION_BUILD);
+	static auto s_version = version::from_string( STRINGIFY(PRODUCT_VERSION) );
+	return s_version;
 }
 
-std::string build_revision();
-constexpr const char *build_date() { return __DATE__ " " __TIME__; }
+inline const char *build_revision()
+{
+#ifdef GIT_REVISION
+	return "#" STRINGIFY(GIT_REVISION);
+#else
+	return "";
+#endif
+}
+inline const char *build_date() { return __DATE__ " " __TIME__; }
 
 }
 
 inline std::string to_string( const su::version &v ) { return v.full_string(); }
 
 #endif
-
-#define PRODUCT_VERSION PRODUCT_VERSION_MAJOR.PRODUCT_VERSION_MINOR.PRODUCT_VERSION_PATCH
-
-// helper macros
-#define _STRINGIFY(x) #x
-#define STRINGIFY(x) _STRINGIFY(x)
 
 #define PRODUCT_VERSION_STRING STRINGIFY(PRODUCT_VERSION)
 

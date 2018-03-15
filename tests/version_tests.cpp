@@ -29,13 +29,14 @@ struct version_tests
 		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().minor(), 2 );
 		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().patch(), 3 );
 		TEST_ASSERT_EQUAL( su::CURRENT_VERSION().build(), 4 );
-		TEST_ASSERT( not su::build_revision().empty() );
+		TEST_ASSERT( not std::string_view(su::build_revision()).empty() );
 	}
 
 	void test_case_2()
 	{
 		// parsing
-		auto v = su::version::from_string( "v1-2.3,4xxx" );
+		std::string s = "v1-2.3,4xxx";
+		auto v = su::version::from_string( s );
 		
 		TEST_ASSERT_EQUAL( v.major(), 1 );
 		TEST_ASSERT_EQUAL( v.minor(), 2 );
@@ -45,7 +46,7 @@ struct version_tests
 
 	void test_case_3()
 	{
-		TEST_ASSERT_EQUAL( PRODUCT_VERSION_STRING, "0.2.3" );
+		TEST_ASSERT_EQUAL( PRODUCT_VERSION_STRING, "0.2.3.4" );
 	}
 };
 

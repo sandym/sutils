@@ -15,15 +15,6 @@
 #include <tuple>
 #include "su/base/platform.h"
 
-namespace {
-
-inline bool is_separator( char c )
-{
-	return c == '.' or c == ',' or c == '-' or c == '_';
-}
-
-}
-
 namespace su {
 
 version version::from_string( const std::string_view &i_version )
@@ -34,7 +25,7 @@ version version::from_string( const std::string_view &i_version )
 	while ( it != i_version.end() and not std::isdigit( *it ) )
 		++it;
 
-	int comp[4];
+	int comp[4] = {};
 	int i = 0;
 	while ( it != i_version.end() and std::isdigit( *it ) )
 	{
@@ -50,7 +41,8 @@ version version::from_string( const std::string_view &i_version )
 			break;
 
 		// expect a separator
-		if ( it == i_version.end() or not is_separator( *it ) )
+		if ( it == i_version.end() or
+			(*it != '.' and *it != ',' and *it != '-' and *it != '_') )
 			break;
 		++it;
 	}
@@ -65,8 +57,7 @@ version version::from_string( const std::string_view &i_version )
 		patch = comp[2];
 	if ( i > 3 )
 		buildNumber = comp[3];
-	
-	return version( major, minor, patch, buildNumber );
+	return { major, minor, patch, buildNumber };
 }
 
 std::string version::string() const
@@ -84,15 +75,6 @@ std::string version::full_string() const
 	s += "." + std::to_string( _patch );
 	s += "." + std::to_string( _build );
  	return s;
-}
-
-std::string build_revision()
-{
-#ifdef GIT_REVISION
-	return "#" STRINGIFY(GIT_REVISION);
-#else
-	return {};
-#endif
 }
 
 }

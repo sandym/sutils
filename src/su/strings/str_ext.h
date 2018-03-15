@@ -91,7 +91,7 @@ int ucompare_nocase_numerically( const std::string_view &lhs, const std::string_
 
 template<typename CHAR_TYPE>
 std::vector<std::basic_string_view<CHAR_TYPE>>
-	split_view( const std::basic_string_view<CHAR_TYPE> &s, CHAR_TYPE c )
+	split_view( std::basic_string_view<CHAR_TYPE> s, CHAR_TYPE c )
 {
 	std::vector<std::basic_string_view<CHAR_TYPE>> res;
 	typename std::basic_string_view<CHAR_TYPE>::size_type a = 0;
@@ -111,7 +111,7 @@ std::vector<std::basic_string_view<CHAR_TYPE>>
 
 template<typename CHAR_TYPE>
 std::vector<std::basic_string<CHAR_TYPE>>
-	split( const std::basic_string_view<CHAR_TYPE> &s, CHAR_TYPE c )
+	split( std::basic_string_view<CHAR_TYPE> s, CHAR_TYPE c )
 {
 	auto viewList = split_view( s, c );
 	std::vector<std::basic_string<CHAR_TYPE>> res;
