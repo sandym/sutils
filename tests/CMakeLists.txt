@@ -42,34 +42,10 @@ source_group( "tests" FILES
 					${TEST_RUNNER}
 					${ALL_TESTS} )
 
-#find_library( EXPAT_LIBRARY expat )
-#if(EXPAT_LIBRARY)
-#	target_link_libraries( sutils_tests ${EXPAT_LIBRARY} )
-#endif()
-
 find_library( SQLITE3_LIBRARY sqlite3 )
 if(SQLITE3_LIBRARY)
 	target_link_libraries( sutils_tests ${SQLITE3_LIBRARY} )
 endif()
-
-#find_package( Threads )
-#target_link_libraries( sutils_tests ${CMAKE_THREAD_LIBS_INIT} )
-
-#if(APPLE)
-#	find_library( COREFOUNDATION_LIBRARY CoreFoundation )
-#	target_link_libraries( sutils_tests
-#							${COREFOUNDATION_LIBRARY} )
-#elseif(UNIX)
-#	find_library( UUID_LIBRARY uuid )
-#	find_package( ICU REQUIRED COMPONENTS uc )
-#	target_link_libraries( sutils_tests
-#							${UUID_LIBRARY} ICU::uc )
-#else()
-#	add_definitions( -D_SCL_SECURE_NO_WARNINGS )
-#	add_definitions( -D_CRT_SECURE_NO_WARNINGS )
-#	find_library( RPCRT4_LIBRARY rpcrt4 )
-#	target_link_libraries( sutils_tests ${RPCRT4_LIBRARY} )
-#endif()
 
 enable_testing()
 
