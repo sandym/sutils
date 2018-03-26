@@ -117,7 +117,7 @@ void string_tests::test_case_end_start()
 void string_tests::test_case_split_join()
 {
 	std::string thisIsFourWords("this is four  words");
-	auto res = su::split<char>( thisIsFourWords, ' ' );
+	auto res = su::split( thisIsFourWords, ' ' );
 	TEST_ASSERT_EQUAL( res.size(), size_t(4) );
 	if ( res.size() == 4 )
 	{
@@ -127,7 +127,7 @@ void string_tests::test_case_split_join()
 		TEST_ASSERT_EQUAL( res[3], "words" );
 	}
 	
-	res = su::split_if<char>( thisIsFourWords, []( char c ){ return c == ' '; } );
+	res = su::split_if( thisIsFourWords, []( char c ){ return c == ' '; } );
 	TEST_ASSERT_EQUAL( res.size(), size_t(4) );
 	if ( res.size() == 4 )
 	{

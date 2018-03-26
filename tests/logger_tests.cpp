@@ -172,7 +172,7 @@ struct logger_tests
 		}
 		
 		auto res = ss.str();
-		auto lines = su::split_view( std::string_view{ res }, '\n' );
+		auto lines = su::split( std::string_view{ res }, '\n' );
 		TEST_ASSERT_EQUAL( lines.size(), 6 );
 		TEST_ASSERT_NOT_EQUAL( lines[0].find( "] true" ), std::string::npos );
 		TEST_ASSERT_NOT_EQUAL( lines[1].find( "] 3" ), std::string::npos );

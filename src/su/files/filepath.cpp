@@ -418,8 +418,8 @@ bool filepath::getBookmarkData( BookmarkData &o_data,
 			std::replace( relativeTo.begin(), relativeTo.end(), '\\', '/' );
 			std::replace( the_path.begin(), the_path.end(), '\\', '/' );
 #endif
-			auto relativeToComp = split_view<char>( relativeTo, '/' );
-			auto pathComp = split_view<char>( _path, '/' );
+			auto relativeToComp = split( std::string_view(relativeTo), '/' );
+			auto pathComp = split( std::string_view(_path), '/' );
 			std::pair<decltype( pathComp )::iterator,
 			          decltype( pathComp )::iterator>
 			    mismatchPoint;
@@ -728,7 +728,7 @@ bool filepath::add( const std::string_view &i_name )
 
 	filepath fspec( *this ); // work copy
 
-	auto components = su::split_view_if<char>( the_name, isSeparator );
+	auto components = su::split_if( std::string_view(the_name), isSeparator );
 	for ( auto it : components )
 	{
 		if ( it.empty() or it == "." )

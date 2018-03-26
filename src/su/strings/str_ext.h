@@ -89,13 +89,12 @@ int ucompare_numerically( const std::string_view &lhs, const std::string_view &r
 */
 int ucompare_nocase_numerically( const std::string_view &lhs, const std::string_view &rhs );
 
-template<typename CHAR_TYPE>
-std::vector<std::basic_string_view<CHAR_TYPE>>
-	split_view( std::basic_string_view<CHAR_TYPE> s, CHAR_TYPE c )
+template<typename T>
+std::vector<T> split( const T &s, typename T::value_type c )
 {
-	std::vector<std::basic_string_view<CHAR_TYPE>> res;
-	typename std::basic_string_view<CHAR_TYPE>::size_type a = 0;
-	for ( typename std::basic_string_view<CHAR_TYPE>::size_type i = 0; i < s.length(); ++i )
+	std::vector<T> res;
+	typename T::size_type a = 0;
+	for ( typename T::size_type i = 0; i < s.length(); ++i )
 	{
 		if ( s[i] == c )
 		{
@@ -109,25 +108,13 @@ std::vector<std::basic_string_view<CHAR_TYPE>>
 	return res;
 }
 
-template<typename CHAR_TYPE>
-std::vector<std::basic_string<CHAR_TYPE>>
-	split( std::basic_string_view<CHAR_TYPE> s, CHAR_TYPE c )
+template<typename T, typename COND>
+std::vector<T>
+	split_if( const T &s, COND i_cond )
 {
-	auto viewList = split_view( s, c );
-	std::vector<std::basic_string<CHAR_TYPE>> res;
-	res.reserve( viewList.size() );
-	for ( auto it : viewList )
-        res.push_back( std::basic_string<CHAR_TYPE>{ it } );
-	return res;
-}
-
-template<typename CHAR_TYPE, typename COND>
-std::vector<std::basic_string_view<CHAR_TYPE>>
-	split_view_if( const std::basic_string_view<CHAR_TYPE> &s, COND i_cond )
-{
-	std::vector<std::basic_string_view<CHAR_TYPE>> res;
-	typename std::basic_string_view<CHAR_TYPE>::size_type a = 0;
-	for ( typename std::basic_string_view<CHAR_TYPE>::size_type i = 0; i < s.length(); ++i )
+	std::vector<T> res;
+	typename T::size_type a = 0;
+	for ( typename T::size_type i = 0; i < s.length(); ++i )
 	{
 		if ( i_cond( s[i] ) )
 		{
@@ -141,22 +128,10 @@ std::vector<std::basic_string_view<CHAR_TYPE>>
 	return res;
 }
 
-template<typename CHAR_TYPE, typename COND>
-std::vector<std::basic_string<CHAR_TYPE>>
-	split_if( const std::basic_string_view<CHAR_TYPE> &s, COND i_cond )
+template<typename T,typename CONT,typename SEP>
+T join( const CONT &i_list, const SEP &sep )
 {
-	auto viewList = split_view_if( s, i_cond );
-	std::vector<std::basic_string<CHAR_TYPE>> res;
-	res.reserve( viewList.size() );
-	for ( auto it : viewList )
-        res.push_back( std::basic_string<CHAR_TYPE>{ it } );
-	return res;
-}
-
-template<class STRING_TYPE,class CONT>
-STRING_TYPE join( const CONT &i_list, typename STRING_TYPE::value_type sep )
-{
-	STRING_TYPE result;
+	T result;
 	size_t len = 0;
 	for ( auto it : i_list )
 		len += it.size();
@@ -168,30 +143,7 @@ STRING_TYPE join( const CONT &i_list, typename STRING_TYPE::value_type sep )
 		++it;
 		while ( it != i_list.end() )
 		{
-			result.append( 1, sep );
-			result.append( *it );
-			++it;
-		}
-	}
-	return result;
-}
-
-template<class STRING_TYPE,class CONT>
-STRING_TYPE join( const CONT &i_list, const STRING_TYPE &i_sep )
-{
-	STRING_TYPE result;
-	size_t len = 0;
-	for ( auto it : i_list )
-		len += it.size();
-	result.reserve( len + i_list.size() + i_sep.size() );
-	auto it = i_list.begin();
-	if ( it != i_list.end() )
-	{
-		result.append( *it );
-		++it;
-		while ( it != i_list.end() )
-		{
-			result.append( i_sep );
+			result += sep;
 			result.append( *it );
 			++it;
 		}
