@@ -22,12 +22,12 @@
 namespace su {
 
 /*!
-	A map implemented with a vector for better cache coherency
+    A map implemented with a vector for better cache coherency
 */
 template<typename Key,
-			typename T,
-			class CMP=std::less<Key>,
-			class STORAGE=std::vector<std::pair<Key,T>>>
+         typename T,
+         class CMP = std::less<Key>,
+         class STORAGE = std::vector<std::pair<Key, T>>>
 class flat_map
 {
 public:
@@ -48,76 +48,91 @@ public:
 	using iterator = typename storage_type::iterator;
 	using const_iterator = typename storage_type::const_iterator;
 	using reverse_iterator = typename storage_type::reverse_iterator;
-	using const_reverse_iterator = typename storage_type::const_reverse_iterator;
+	using const_reverse_iterator =
+	    typename storage_type::const_reverse_iterator;
 
 	class value_compare
 	{
 		friend class flat_map;
-		protected:
-			key_compare comp;
 
-			value_compare( key_compare c ) : comp( c ){}
-		public:
-			bool operator() ( const value_type &lhs, const value_type &rhs ) const;
+	protected:
+		key_compare comp;
+
+		value_compare( key_compare c ) : comp( c ) {}
+
+	public:
+		bool operator()( const value_type &lhs, const value_type &rhs ) const;
 	};
 
 	// construct/copy/destroy:
 	flat_map() = default;
-	explicit flat_map( const key_compare &comp )
-		: _pair( {}, comp ){}
-	flat_map( const key_compare &comp, const allocator_type &a )
-		: _pair( { a }, comp ){}
-	template <class InputIterator>
-	flat_map(InputIterator first, InputIterator last, const key_compare &comp = key_compare() )
-		: _pair( storage_type{ first, last }, comp )
+	explicit flat_map( const key_compare &comp ) : _pair( {}, comp ) {}
+	flat_map( const key_compare &comp, const allocator_type &a ) :
+	    _pair( {a}, comp )
+	{
+	}
+	template<class InputIterator>
+	flat_map( InputIterator first,
+	          InputIterator last,
+	          const key_compare &comp = key_compare() ) :
+	    _pair( storage_type{first, last}, comp )
 	{
 		sort();
 	}
-	template <class InputIterator>
-	flat_map( InputIterator first, InputIterator last, const key_compare &comp, const allocator_type& a)
-		: _pair( { first, last, a }, comp )
+	template<class InputIterator>
+	flat_map( InputIterator first,
+	          InputIterator last,
+	          const key_compare &comp,
+	          const allocator_type &a ) :
+	    _pair( {first, last, a}, comp )
 	{
 		sort();
 	}
 	flat_map( const flat_map &m ) = default;
 	flat_map( flat_map &&m ) noexcept(
-			std::is_nothrow_move_constructible_v<allocator_type> &&
-			std::is_nothrow_move_constructible_v<key_compare> ) = default;
-	explicit flat_map( const allocator_type &a )
-		: _pair( {a}, {} ){}
-	flat_map( const flat_map &m, const allocator_type &a )
-		: _pair( { m.storage(), a }, {} ){}
-//	flat_map( flat_map &&m, const allocator_type &a )
-//		: _pair( { m.storage(), a }, {} ){}
-	flat_map( std::initializer_list<value_type> il, const key_compare &comp = key_compare() )
-		: _pair( il, comp  )
+	    std::is_nothrow_move_constructible_v<allocator_type>
+	        &&std::is_nothrow_move_constructible_v<key_compare> ) = default;
+	explicit flat_map( const allocator_type &a ) : _pair( {a}, {} ) {}
+	flat_map( const flat_map &m, const allocator_type &a ) :
+	    _pair( {m.storage(), a}, {} )
+	{
+	}
+	//	flat_map( flat_map &&m, const allocator_type &a )
+	//		: _pair( { m.storage(), a }, {} ){}
+	flat_map( std::initializer_list<value_type> il,
+	          const key_compare &comp = key_compare() ) :
+	    _pair( il, comp )
 	{
 		sort();
 	}
-	flat_map( std::initializer_list<value_type> il, const key_compare& comp, const allocator_type &a )
-		: _pair( { il, a }, comp  )
+	flat_map( std::initializer_list<value_type> il,
+	          const key_compare &comp,
+	          const allocator_type &a ) :
+	    _pair( {il, a}, comp )
 	{
 		sort();
 	}
 	template<class InputIterator>
-	flat_map( InputIterator first, InputIterator last, const allocator_type &a )
-		: _pair( { first, last, a }, {}  )
+	flat_map( InputIterator first,
+	          InputIterator last,
+	          const allocator_type &a ) :
+	    _pair( {first, last, a}, {} )
 	{
 		sort();
 	}
-	flat_map( std::initializer_list<value_type> il, const allocator_type &a )
-		: _pair( { il, a }, {}  )
+	flat_map( std::initializer_list<value_type> il, const allocator_type &a ) :
+	    _pair( {il, a}, {} )
 	{
 		sort();
 	}
 	~flat_map() = default;
 
-//	flat_map &operator=( const flat_map &m );
-//	flat_map &operator=( flat_map &&m ) noexcept(
-//				allocator_type::propagate_on_container_move_assignment::value &&
-//				std::is_nothrow_move_assignable_v<allocator_type> &&
-//				std::is_nothrow_move_assignable_v<key_compare>);
-//	flat_map &operator=( std::initializer_list<value_type> il );
+	//	flat_map &operator=( const flat_map &m );
+	//	flat_map &operator=( flat_map &&m ) noexcept(
+	//				allocator_type::propagate_on_container_move_assignment::value
+	//&& 				std::is_nothrow_move_assignable_v<allocator_type> &&
+	//				std::is_nothrow_move_assignable_v<key_compare>);
+	//	flat_map &operator=( std::initializer_list<value_type> il );
 
 	// iterators:
 	iterator begin() noexcept { return storage().begin(); }
@@ -126,13 +141,19 @@ public:
 	const_iterator end() const noexcept { return storage().end(); }
 
 	reverse_iterator rbegin() noexcept { return storage().rbegin(); }
-	const_reverse_iterator rbegin() const noexcept { return storage().rbegin(); }
+	const_reverse_iterator rbegin() const noexcept
+	{
+		return storage().rbegin();
+	}
 	reverse_iterator rend() noexcept { return storage().rend(); }
 	const_reverse_iterator rend() const noexcept { return storage().rend(); }
 
 	const_iterator cbegin() const noexcept { return storage().cbegin(); }
 	const_iterator cend() const noexcept { return storage().cend(); }
-	const_reverse_iterator crbegin() const noexcept { return storage().crbegin(); }
+	const_reverse_iterator crbegin() const noexcept
+	{
+		return storage().crbegin();
+	}
 	const_reverse_iterator crend() const noexcept { return storage().crend(); }
 
 	// capacity:
@@ -140,7 +161,7 @@ public:
 	size_type size() const noexcept { return storage().size(); }
 	size_type max_size() const noexcept { return storage().max_size(); }
 	void reserve( size_t s ) { storage().reserve( s ); }
-	
+
 	// element access:
 	mapped_type &operator[]( const key_type &k )
 	{
@@ -159,11 +180,12 @@ public:
 		auto it = lower_bound( k );
 		if ( it == end() )
 		{
-			storage().emplace_back( std::move(k), mapped_type() );
+			storage().emplace_back( std::move( k ), mapped_type() );
 			it = storage().end() - 1;
 		}
 		else if ( not key_equal( it->first, k ) )
-			it = storage().insert( it, std::make_pair( std::move(k), mapped_type() ) );
+			it = storage().insert(
+			    it, std::make_pair( std::move( k ), mapped_type() ) );
 		return it->second;
 	}
 
@@ -180,20 +202,19 @@ public:
 
 	std::pair<iterator, bool> insert( const value_type &v )
 	{
-		auto it = std::lower_bound( begin(), end(), v.first,
-					[this]( auto &a, auto &b )
-					{
-						return key_comp()( a.first, b );
-					} );
+		auto it = std::lower_bound(
+		    begin(), end(), v.first, [this]( auto &a, auto &b ) {
+			    return key_comp()( a.first, b );
+		    } );
 		if ( it == end() )
 		{
 			storage().push_back( v );
-			return { storage().end()-1, true };
+			return {storage().end() - 1, true};
 		}
 		else if ( not key_equal( it->first, v.first ) )
-			return { storage().insert( it, v ), true };
+			return {storage().insert( it, v ), true};
 		else
-			return { it, false };
+			return {it, false};
 	}
 #if 0
 	std::pair<iterator,bool> insert( value_type &&v );
@@ -208,23 +229,23 @@ public:
 	void insert( std::initializer_list<value_type> il );
 #endif
 
-	template <class... Args>
-	std::pair<iterator, bool> try_emplace(const key_type& k, Args&&... args)
+	template<class... Args>
+	std::pair<iterator, bool> try_emplace( const key_type &k, Args &&... args )
 	{
-		auto it = std::lower_bound( begin(), end(), k,
-					[this]( auto &a, auto &b )
-					{
-						return key_comp()( a.first, b );
-					} );
+		auto it =
+		    std::lower_bound( begin(), end(), k, [this]( auto &a, auto &b ) {
+			    return key_comp()( a.first, b );
+		    } );
 		if ( it == end() )
 		{
 			storage().emplace_back( k, std::forward<Args>( args )... );
-			return { storage().end()-1, true };
+			return {storage().end() - 1, true};
 		}
 		else if ( not key_equal( it->first, k ) )
-			return { storage().emplace( it, k, std::forward<Args>( args )... ), true };
+			return {storage().emplace( it, k, std::forward<Args>( args )... ),
+			        true};
 		else
-			return { it, false };
+			return {it, false};
 	}
 #if 0
 	template <class... Args>
@@ -243,14 +264,8 @@ public:
 	iterator insert_or_assign(const_iterator hint, key_type&& k, M&& obj);
 #endif
 
-	iterator erase( const_iterator it )
-	{
-		return storage().erase( it );
-	}
-	iterator erase( iterator it )
-	{
-		return storage().erase( it );
-	}
+	iterator erase( const_iterator it ) { return storage().erase( it ); }
+	iterator erase( iterator it ) { return storage().erase( it ); }
 	size_type erase( const key_type &k )
 	{
 		auto it = lower_bound( k );
@@ -262,15 +277,15 @@ public:
 		else
 			return 0;
 	}
-	iterator erase(const_iterator first, const_iterator last)
+	iterator erase( const_iterator first, const_iterator last )
 	{
 		return storage().erase( first, last );
 	}
 	void clear() noexcept { storage().clear(); }
 
-	void swap( flat_map &m )
-		noexcept( std::allocator_traits<allocator_type>::is_always_equal::value &&
-		std::is_nothrow_swappable_v<key_compare>)
+	void swap( flat_map &m ) noexcept(
+	    std::allocator_traits<allocator_type>::is_always_equal::value
+	        &&std::is_nothrow_swappable_v<key_compare> )
 	{
 		std::swap( _pair, m._pair );
 	}
@@ -319,74 +334,58 @@ public:
 		return it == end() and key_equal( it->first, k ) ? 0 : 1;
 	}
 
-	iterator lower_bound( const key_type &k)
+	iterator lower_bound( const key_type &k )
 	{
-		return std::lower_bound( begin(), end(), k,
-					[this]( auto &a, auto &b )
-					{
-						return key_comp()( a.first, b );
-					} );
+		return std::lower_bound( begin(), end(), k, [this]( auto &a, auto &b ) {
+			return key_comp()( a.first, b );
+		} );
 	}
 	const_iterator lower_bound( const key_type &k ) const
 	{
-		return std::lower_bound( begin(), end(), k,
-					[this]( auto &a, auto &b )
-					{
-						return key_comp()( a.first, b );
-					} );
+		return std::lower_bound( begin(), end(), k, [this]( auto &a, auto &b ) {
+			return key_comp()( a.first, b );
+		} );
 	}
 	template<typename K>
 	iterator lower_bound( const K &k )
 	{
-		return std::lower_bound( begin(), end(), k,
-					[this]( auto &a, auto &b )
-					{
-						return key_comp()( a.first, b );
-					} );
+		return std::lower_bound( begin(), end(), k, [this]( auto &a, auto &b ) {
+			return key_comp()( a.first, b );
+		} );
 	}
 	template<typename K>
 	const_iterator lower_bound( const K &k ) const
 	{
-		return std::lower_bound( begin(), end(), k,
-					[this]( auto &a, auto &b )
-					{
-						return key_comp()( a.first, b );
-					} );
+		return std::lower_bound( begin(), end(), k, [this]( auto &a, auto &b ) {
+			return key_comp()( a.first, b );
+		} );
 	}
 
 	iterator upper_bound( const key_type &k )
 	{
-		return std::upper_bound( begin(), end(), k,
-					[this]( auto &a, auto &b )
-					{
-						return key_comp()( a.first, b );
-					} );
+		return std::upper_bound( begin(), end(), k, [this]( auto &a, auto &b ) {
+			return key_comp()( a.first, b );
+		} );
 	}
-	const_iterator upper_bound( const key_type &k) const
+	const_iterator upper_bound( const key_type &k ) const
 	{
-		return std::upper_bound( begin(), end(), k,
-					[this]( auto &a, auto &b )
-					{
-						return key_comp()( a.first, b );
-					} );
+		return std::upper_bound( begin(), end(), k, [this]( auto &a, auto &b ) {
+			return key_comp()( a.first, b );
+		} );
 	}
 	template<typename K>
 	iterator upper_bound( const K &k )
 	{
-		return std::upper_bound( begin(), end(), k,
-					[this]( auto &a, auto &b )
-					{
-						return key_comp()( a.first, b );
-					} );
+		return std::upper_bound( begin(), end(), k, [this]( auto &a, auto &b ) {
+			return key_comp()( a.first, b );
+		} );
 	}
 	template<typename K>
 	const_iterator upper_bound( const K &k ) const
 	{
-		return std::upper_bound( begin(), end(), k,
-					[this]( auto &a, auto &b )
-					{
-						return key_comp()( a.first, b );
-					} );
+		return std::upper_bound( begin(), end(), k, [this]( auto &a, auto &b ) {
+			return key_comp()( a.first, b );
+		} );
 	}
 
 #if 0
@@ -402,19 +401,21 @@ public:
 	storage_type &storage() { return _pair.storage; }
 	void sort()
 	{
-		std::sort( storage().begin(), storage().end(),
-				[this]( auto &a, auto &b )
-				{
-					return key_comp()( a.first, b.first );
-				} );
+		std::sort(
+		    storage().begin(), storage().end(), [this]( auto &a, auto &b ) {
+			    return key_comp()( a.first, b.first );
+		    } );
 	}
 
 private:
 	struct compress_pair : key_compare
 	{
 		compress_pair() = default;
-		compress_pair( const storage_type &s, const key_compare &k )
-			: key_compare( k ), storage( s ){}
+		compress_pair( const storage_type &s, const key_compare &k ) :
+		    key_compare( k ),
+		    storage( s )
+		{
+		}
 		storage_type storage;
 	} _pair;
 
@@ -428,38 +429,38 @@ private:
 }
 
 template<class Key, class T, class CMP, class STORAGE>
-inline bool operator==( const su::flat_map<Key,T,CMP,STORAGE> &lhs,
-			const su::flat_map<Key,T,CMP,STORAGE> &rhs )
+inline bool operator==( const su::flat_map<Key, T, CMP, STORAGE> &lhs,
+                        const su::flat_map<Key, T, CMP, STORAGE> &rhs )
 {
 	return lhs.storage() == rhs.storage();
 }
 template<class Key, class T, class CMP, class STORAGE>
-inline bool operator<( const su::flat_map<Key,T,CMP,STORAGE> &lhs,
-			const su::flat_map<Key,T,CMP,STORAGE> &rhs)
+inline bool operator<( const su::flat_map<Key, T, CMP, STORAGE> &lhs,
+                       const su::flat_map<Key, T, CMP, STORAGE> &rhs )
 {
 	return lhs.storage() < rhs.storage();
 }
 template<class Key, class T, class CMP, class STORAGE>
-inline bool operator!=(const su::flat_map<Key,T,CMP,STORAGE> &lhs,
-			const su::flat_map<Key,T,CMP,STORAGE> &rhs)
+inline bool operator!=( const su::flat_map<Key, T, CMP, STORAGE> &lhs,
+                        const su::flat_map<Key, T, CMP, STORAGE> &rhs )
 {
 	return lhs.storage() != rhs.storage();
 }
 template<class Key, class T, class CMP, class STORAGE>
-inline bool operator>(const su::flat_map<Key,T,CMP,STORAGE> &lhs,
-			const su::flat_map<Key,T,CMP,STORAGE> &rhs)
+inline bool operator>( const su::flat_map<Key, T, CMP, STORAGE> &lhs,
+                       const su::flat_map<Key, T, CMP, STORAGE> &rhs )
 {
 	return lhs.storage() > rhs.storage();
 }
 template<class Key, class T, class CMP, class STORAGE>
-inline bool operator>=(const su::flat_map<Key,T,CMP,STORAGE> &lhs,
-			const su::flat_map<Key,T,CMP,STORAGE> &rhs)
+inline bool operator>=( const su::flat_map<Key, T, CMP, STORAGE> &lhs,
+                        const su::flat_map<Key, T, CMP, STORAGE> &rhs )
 {
 	return lhs.storage() >= rhs.storage();
 }
 template<class Key, class T, class CMP, class STORAGE>
-inline bool operator<=(const su::flat_map<Key,T,CMP,STORAGE> &lhs,
-			const su::flat_map<Key,T,CMP,STORAGE> &rhs)
+inline bool operator<=( const su::flat_map<Key, T, CMP, STORAGE> &lhs,
+                        const su::flat_map<Key, T, CMP, STORAGE> &rhs )
 {
 	return lhs.storage() <= rhs.storage();
 }

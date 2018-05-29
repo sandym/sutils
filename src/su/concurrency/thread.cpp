@@ -15,7 +15,7 @@
 #include <string>
 
 #if UPLATFORM_WIN
-#include <Windows.h>
+#	include <Windows.h>
 #endif
 
 namespace {
@@ -42,16 +42,18 @@ void set_name( const std::string_view &n )
 {
 	if ( n.empty() )
 		return;
-	
-#if UPLATFORM_WIN
-	typedef HRESULT(WINAPI* SetThreadDescriptionPtr)( HANDLE, PCWSTR );
 
-	auto SetThreadDescriptionFunc = reinterpret_cast<SetThreadDescriptionPtr>(
-							::GetProcAddress( ::GetModuleHandleW(L"Kernel32.dll"), "SetThreadDescription" ) );
+#if UPLATFORM_WIN
+	typedef HRESULT( WINAPI * SetThreadDescriptionPtr )( HANDLE, PCWSTR );
+
+	auto SetThreadDescriptionFunc =
+	    reinterpret_cast<SetThreadDescriptionPtr>( ::GetProcAddress(
+	        ::GetModuleHandleW( L"Kernel32.dll" ), "SetThreadDescription" ) );
 	if ( SetThreadDescriptionFunc )
 	{
 		wchar_t name[64];
-		int l = MultiByteToWideChar( CP_UTF8, MB_COMPOSITE, n.data(), n.size(), name, 64 );
+		int l = MultiByteToWideChar(
+		    CP_UTF8, MB_COMPOSITE, n.data(), n.size(), name, 64 );
 		if ( l > 0 )
 		{
 			name[l] = 0;

@@ -27,7 +27,9 @@ inline MAP::value_type value( const MAP &i_map, const MAP::key_type &k )
 }
 
 template<class MAP>
-inline MAP::value_type value_or( const MAP &i_map, const MAP::key_type &k, const MAP::value_type &i_default )
+inline MAP::value_type value_or( const MAP &i_map,
+                                 const MAP::key_type &k,
+                                 const MAP::value_type &i_default )
 {
 	auto it = i_map.find( k );
 	if ( it != i_map.end() )
@@ -47,7 +49,9 @@ inline MAP::key_type key( const MAP &i_map, const MAP::value_type &v )
 }
 
 template<class MAP>
-inline MAP::key_type key_or( const MAP &i_map, const MAP::value_type &v, const MAP::key_type &i_default  )
+inline MAP::key_type key_or( const MAP &i_map,
+                             const MAP::value_type &v,
+                             const MAP::key_type &i_default )
 {
 	for ( auto &it : i_map )
 	{
@@ -63,7 +67,7 @@ inline MAP::value_type take( MAP &i_map, const MAP::key_type &k )
 	auto it = i_map.find( k );
 	if ( it != i_map.end() )
 	{
-		auto v = std::move(it->second);
+		auto v = std::move( it->second );
 		i_map.erase( it );
 		return v;
 	}
@@ -71,12 +75,14 @@ inline MAP::value_type take( MAP &i_map, const MAP::key_type &k )
 }
 
 template<class MAP>
-inline MAP::value_type take_or( MAP &i_map, const MAP::key_type &k, const MAP::value_type &i_default )
+inline MAP::value_type take_or( MAP &i_map,
+                                const MAP::key_type &k,
+                                const MAP::value_type &i_default )
 {
 	auto it = i_map.find( k );
 	if ( it != i_map.end() )
 	{
-		auto v = std::move(it->second);
+		auto v = std::move( it->second );
 		i_map.erase( it );
 		return v;
 	}
