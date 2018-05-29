@@ -770,8 +770,8 @@ inline char *numtoa( N value, char* buffer )
 
 //! Computes integer powers of 10 in double (10.0^n).
 /*! This function uses lookup table for fast and accurate results.
-	\param n non-negative exponent. Must <= 308.
-	\return 10.0^n
+    \param n non-negative exponent. Must be <= 308.
+    \return 10.0^n
 */
 inline double Pow10( int n )
 {
@@ -1383,8 +1383,6 @@ const su::Json &static_null()
 	return json_null;
 }
 
-
-
 void dump( const std::string &value, std::string &out )
 {
 	auto new_cap = out.size() + value.size() + 2; // at least
@@ -1393,55 +1391,55 @@ void dump( const std::string &value, std::string &out )
 	out.append( 1, '"' );
 	for ( auto ch = value.begin(); ch != value.end(); ++ch )
 	{
-		if ( *ch == '\\' )
+		switch ( *ch )
 		{
-			out.append( "\\\\", 2 );
-		}
-		else if ( *ch == '"' )
-		{
-			out.append( "\\\"", 2 );
-		}
-		else if ( *ch == '\b' )
-		{
-			out.append( "\\b", 2 );
-		}
-		else if ( *ch == '\f' )
-		{
-			out.append( "\\f", 2 );
-		}
-		else if ( *ch == '\n' )
-		{
-			out.append( "\\n", 2 );
-		}
-		else if ( *ch == '\r' )
-		{
-			out.append( "\\r", 2 );
-		}
-		else if ( *ch == '\t' )
-		{
-			out.append( "\\t", 2 );
-		}
-		else if ( static_cast<uint8_t>( *ch ) <= 0x1f )
-		{
-			char buf[8];
-			auto l = snprintf( buf, sizeof buf, "\\u%04x", *ch );
-			out.append( buf, l );
-		}
-		else if ( static_cast<uint8_t>( *ch ) == 0xe2 && static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
-					static_cast<uint8_t>( *( ch + 2 ) ) == 0xa8 )
-		{
-			out.append( "\\u2028", 6 );
-			ch += 2;
-		}
-		else if ( static_cast<uint8_t>( *ch ) == 0xe2 && static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
-					static_cast<uint8_t>( *( ch + 2 ) ) == 0xa9 )
-		{
-			out.append( "\\u2029", 6 );
-			ch += 2;
-		}
-		else
-		{
-			out.append( 1, *ch );
+			case '\\':
+				out.append( "\\\\", 2 );
+				break;
+			case '"':
+				out.append( "\\\"", 2 );
+				break;
+			case '\b':
+				out.append( "\\b", 2 );
+				break;
+			case '\f':
+				out.append( "\\f", 2 );
+				break;
+			case '\n':
+				out.append( "\\n", 2 );
+				break;
+			case '\r':
+				out.append( "\\r", 2 );
+				break;
+			case '\t':
+				out.append( "\\t", 2 );
+				break;
+			default:
+				if ( static_cast<uint8_t>( *ch ) <= 0x1f )
+				{
+					char buf[8];
+					auto l = snprintf( buf, sizeof buf, "\\u%04x", *ch );
+					out.append( buf, l );
+				}
+				else if ( static_cast<uint8_t>( *ch ) == 0xe2 &&
+				          static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
+				          static_cast<uint8_t>( *( ch + 2 ) ) == 0xa8 )
+				{
+					out.append( "\\u2028", 6 );
+					ch += 2;
+				}
+				else if ( static_cast<uint8_t>( *ch ) == 0xe2 &&
+				          static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 &&
+				          static_cast<uint8_t>( *( ch + 2 ) ) == 0xa9 )
+				{
+					out.append( "\\u2029", 6 );
+					ch += 2;
+				}
+				else
+				{
+					out.append( 1, *ch );
+				}
+				break;
 		}
 	}
 	out.append( 1, '"' );
