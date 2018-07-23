@@ -1651,53 +1651,11 @@ const su::Json &static_null()
 	return json_null;
 }
 
-size_t required_dump_size( const std::string &value )
-{
-	size_t s = 2;
-	for ( auto ch = value.begin(); ch != value.end(); ++ch )
-	{
-		switch ( *ch )
-		{
-			case '\\':
-			case '"':
-			case '\b':
-			case '\f':
-			case '\n':
-			case '\r':
-			case '\t':
-				s += 2;
-				break;
-			default:
-				if ( static_cast<uint8_t>( *ch ) <= 0x1f )
-				{
-					s += 8;
-				}
-				else if ( static_cast<uint8_t>( *ch ) == 0xe2 and
-				          static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 and
-				          static_cast<uint8_t>( *( ch + 2 ) ) == 0xa8 )
-				{
-					s += 6;
-					ch += 2;
-				}
-				else if ( static_cast<uint8_t>( *ch ) == 0xe2 and
-				          static_cast<uint8_t>( *( ch + 1 ) ) == 0x80 and
-				          static_cast<uint8_t>( *( ch + 2 ) ) == 0xa9 )
-				{
-					s += 6;
-					ch += 2;
-				}
-				else
-				{
-					s += 1;
-				}
-				break;
-		}
-	}
-	return s;
-}
-
 void dump( const std::string &value, std::string &out )
 {
+	if ( out.capacity() < (out.size() + (value.size() * 2)) )
+		out.reserve( out.size() + (value.size() * 2) );
+
 	out.append( 1, '"' );
 	for ( auto ch = value.begin(); ch != value.end(); ++ch )
 	{
@@ -2241,59 +2199,8 @@ const Json &Json::operator[]( const std::string_view &key ) const
  * Serialization
  */
 
-size_t Json::required_dump_size() const
-{
-	size_t s = 0;
-	switch ( type() )
-	{
-		case Type::NUL:
-			s += 4;
-			break;
-		case Type::BOOL:
-			s += _data.b ? 4 : 5;
-			break;
-		case Type::NUMBER:
-			s += 8;
-			break;
-		case Type::STRING:
-			s += ::required_dump_size( ( (details::JsonString *)_data.p )->value );
-			break;
-		case Type::ARRAY:
-			if ( ( (details::JsonArray *)_data.p )->value.empty() )
-				s += 2;
-			else
-			{
-				s += 1;
-				for ( const auto &value :
-				      ( (details::JsonArray *)_data.p )->value )
-				{
-					s += value.required_dump_size();
-					s += 1;
-				}
-			}
-			break;
-		case Type::OBJECT:
-			if ( ( (details::JsonObject *)_data.p )->value.empty() )
-				s += 2;
-			else
-			{
-				s += 1;
-				for ( const auto &kv :
-				      ( (details::JsonObject *)_data.p )->value )
-				{
-					s += ::required_dump_size( kv.first );
-					s += 2;
-					s += kv.second.required_dump_size();
-				}
-			}
-			break;
-	}
-	return s;
-}
 void Json::dump( std::string &output ) const
 {
-	output.reserve( output.size() + required_dump_size() );
-	
 	char buf[32];
 	switch ( type() )
 	{

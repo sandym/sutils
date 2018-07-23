@@ -227,8 +227,6 @@ private:
 	static_assert( sizeof( Storage ) == sizeof( uint64_t ), "" );
 	Type _type{Type::NUL};
 	NumberType _numberType{NumberType::NOTANUMBER};
-	
-	size_t required_dump_size() const;
 };
 
 }
