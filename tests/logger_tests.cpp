@@ -17,13 +17,13 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/log/logger.h"
-#include "su/log/logger_file.h"
-#include "su/files/filepath.h"
-#include "su/base/platform.h"
-#include "su/strings/str_ext.h"
-#include "su/concurrency/thread.h"
+#include "su_tests/simple_tests.h"
+#include "su_logger.h"
+#include "su_logger_file.h"
+#include "su_filepath.h"
+#include "su_platform.h"
+#include "su_string_utils.h"
+#include "su_thread.h"
 #include <iostream>
 #include <sstream>
 #if UPLATFORM_WIN

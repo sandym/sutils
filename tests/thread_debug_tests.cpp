@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/concurrency/thread.h"
+#include "su_tests/simple_tests.h"
+#include "su_thread.h"
 #include <ciso646>
 
 struct thread_debug_tests

@@ -17,9 +17,9 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/files/filepath.h"
-#include "su/log/logger.h"
+#include "su_tests/simple_tests.h"
+#include "su_filepath.h"
+#include "su_logger.h"
 #include <ciso646>
 
 struct filepath_tests

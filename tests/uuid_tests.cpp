@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/miscs/uuid.h"
+#include "su_tests/simple_tests.h"
+#include "su_uuid.h"
 #include <ciso646>
 
 struct uuid_tests

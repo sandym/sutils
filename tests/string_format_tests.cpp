@@ -17,9 +17,9 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/strings/str_format.h"
-#include "su/base/platform.h"
+#include "su_tests/simple_tests.h"
+#include "su_format.h"
+#include "su_platform.h"
 #include <cmath>
 #include <cstdarg>
 #include <iostream>

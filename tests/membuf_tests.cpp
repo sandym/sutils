@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/streams/membuf.h"
+#include "su_tests/simple_tests.h"
+#include "su_membuf.h"
 #include <sstream>
 
 struct membuf_tests

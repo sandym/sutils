@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/files/resource_access.h"
+#include "su_tests/simple_tests.h"
+#include "su_resource_access.h"
 #include <ciso646>
 
 struct resource_access_tests

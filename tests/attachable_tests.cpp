@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/miscs/attachable.h"
+#include "su_tests/simple_tests.h"
+#include "su_attachable.h"
 
 struct attachable_tests
 {

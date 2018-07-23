@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/strings/str_ext.h"
+#include "su_tests/simple_tests.h"
+#include "su_string_utils.h"
 
 namespace {
 const char lowerEAcute1[] = { char(0xC3), char(0xA9), 0x00 };

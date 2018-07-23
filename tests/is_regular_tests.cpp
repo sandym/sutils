@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/miscs/is_regular.h"
+#include "su_tests/simple_tests.h"
+#include "su_is_regular.h"
 
 struct is_regular_tests
 {

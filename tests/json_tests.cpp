@@ -17,10 +17,10 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/json/json.h"
-#include "su/base/platform.h"
-#include "su/files/resource_access.h"
+#include "su_tests/simple_tests.h"
+#include "su_json.h"
+#include "su_platform.h"
+#include "su_resource_access.h"
 #include <list>
 #include <set>
 #include <map>

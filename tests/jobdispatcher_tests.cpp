@@ -17,10 +17,10 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/concurrency/jobdispatcher.h"
-#include "su/concurrency/job.h"
-#include "su/concurrency/thread.h"
+#include "su_tests/simple_tests.h"
+#include "su_jobdispatcher.h"
+#include "su_job.h"
+#include "su_thread.h"
 #include <ciso646>
 #include <cassert>
 

@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/base/endian.h"
+#include "su_tests/simple_tests.h"
+#include "su_endian.h"
 
 struct endian_tests
 {

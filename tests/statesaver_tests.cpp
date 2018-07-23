@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/miscs/statesaver.h"
+#include "su_tests/simple_tests.h"
+#include "su_statesaver.h"
 
 struct statesaver_tests
 {

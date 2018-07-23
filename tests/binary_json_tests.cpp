@@ -17,13 +17,9 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/json/bson.h"
-#include "su/json/ubjson.h"
-#include "su/json/smile.h"
-#include "su/json/messagepack.h"
-#include "su/json/flat.h"
-#include "su/files/resource_access.h"
+#include "su_tests/simple_tests.h"
+#include "su_json.h"
+#include "su_resource_access.h"
 #include <iostream>
 
 struct binary_json_tests

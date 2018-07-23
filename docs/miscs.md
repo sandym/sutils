@@ -56,30 +56,6 @@ View v;
 v.attach( "frame", std::make_unique<DrawFrame>() );
 ```
 
-## `su/miscs/version.h`
-
-Helper to retrieve and compare version information at
-runtime. This need to be configured from cmake.
-
-```
-set( PRODUCT_VERSION "0.2.3.4" )
-set( USER_CONFIG_PATH "${CMAKE_BINARY_DIR}/user_config" )
-add_subdirectory( sutils )
-```
-
-You can also optionally define `GIT_REVISION` so it can be accessed as `su::build_revision()`.
-
-Usage:
-
-`su::CURRENT_VERSION()` return the current version object.
-From the version object you can access `major()`, `minor()`,
-`patch()` and `build()` components to format it yourself or
-get it as a formatted `full_string()` (1.2.3.4).
-
-You can also create version object from strings
-(`su::version::from_string("1.2.3.4")`) and compare version
-objects (==, !=, <, >, etc).
-
 ## `su/miscs/mempool.h`
 
 Overly simplistic memory pool allocation. It's a growing only

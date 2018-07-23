@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/streams/teebuf.h"
+#include "su_tests/simple_tests.h"
+#include "su_teebuf.h"
 #include <sstream>
 
 struct teebuf_tests

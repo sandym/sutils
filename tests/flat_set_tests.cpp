@@ -17,8 +17,8 @@
  *          Asserts that two values are NOT equals.
  */
 
-#include "su/tests/simple_tests.h"
-#include "su/containers/flat_set.h"
+#include "su_tests/simple_tests.h"
+#include "su_flat_set.h"
 #include <ciso646>
 
 struct flat_set_tests

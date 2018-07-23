@@ -4,9 +4,8 @@ project( sutils )
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-file( GLOB_RECURSE SUTILS_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h" )
-file( GLOB_RECURSE SUTILS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" )
-list( REMOVE_ITEM SUTILS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/su/tests/simple_tests_runner.cpp" )
+file( GLOB SUTILS_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h" )
+file( GLOB SUTILS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" )
 
 add_library( sutils STATIC
 					${SUTILS_HEADERS}
@@ -37,21 +36,5 @@ else()
 	find_library( RPCRT4_LIBRARY rpcrt4 )
 	target_link_libraries( sutils ${RPCRT4_LIBRARY} )
 endif()
-
-# parent should define those:
-# - PRODUCT_VERSION: a version string, "1.2.3.4"
-# - GIT_REVISION: the git revision hash
-# - COMPILETIME_LOG_MASK
-#
-
-if( NOT DEFINED PRODUCT_VERSION )
-	message( "PRODUCT_VERSION is not defined" )
-endif()
-if( NOT DEFINED  GIT_REVISION )
-	message( "GIT_REVISION is not defined" )
-endif()
-
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/user_config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/include/user_config.h" )
-target_include_directories( sutils PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include" )
 
 source_group( TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" PREFIX "src" FILES ${SUTILS_HEADERS} ${SUTILS_SOURCES} )
