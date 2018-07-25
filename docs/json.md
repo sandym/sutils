@@ -19,4 +19,4 @@ parts of rapidjson (https://github.com/Tencent/rapidjson) to achive this (namely
 
 [conformance result](https://sandym.github.io/docs/json_results/conformance.html)
 
-[performance result](json_results/https://sandym.github.io/docs/json_results/performance_Corei7-4850HQ@2.30GHz_mac64_clang10.0.html)
+[performance result](https://sandym.github.io/docs/json_results/performance_Corei7-4850HQ@2.30GHz_mac64_clang10.0.html)
