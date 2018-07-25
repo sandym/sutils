@@ -1,4 +1,4 @@
-## `su/strings/str_ext.h`
+## `su_string_utils.h`
 
 Various utilities, mostly built to work in utf8
 - utf conversions: to_string(), to_wstring(), to_u16string()
@@ -11,7 +11,7 @@ where "a1" < "a5" < "a10"
 - trim_spaces(), trim_spaces_view()
 - starts_with(), ends_with() and _nocae variants
 
-## `su/strings/str_format.h`
+## `su_format.h`
 
 Typesafe, variable template argument based, printf-like
 string formatting.
@@ -42,14 +42,3 @@ auto s = su::format("%@\n", foo); // will call to_string for Foo
 ```
 
 @todo: compare with other libs
-
-## `su/strings/str_load.h`
-
-Simple string loading utility, for localisation.
-
-```C++
-auto s = su::string_load( "key", "table" );
-```
-
-Uses macOS ".strings" files and the bundle's resources.
-See su::resource_access for other platforms.

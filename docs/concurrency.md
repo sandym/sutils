@@ -1,11 +1,11 @@
-## `su/concurrency/job.h`
+## `su_job.h`
 @todo
 
-## `su/concurrency/jobdispatcher.h`
+## `su_jobdispatcher.h`
 @todo
 
-## `su/concurrency/thread.h`
+## `su_thread.h`
 @todo
 
-## `su/concurrency/spinlock.h`
+## `su_spinlock.h`
 @todo

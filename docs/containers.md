@@ -1,4 +1,4 @@
-## `su/containers/stackarray.h`
+## `su_stackarray.h`
 
 Stack array that will automatically move to heap allocation if more space is
 needed.  Stack allocation is fast but size must be known at compile time,
@@ -15,7 +15,7 @@ su::stackarray<int,256> data( nb );
 // and automatically deallocated.
 ```
 
-## `su/containers/flat_map.h`
+## `su_flat_map.h`
 
 Drop in replacement for std::map, but use std::vector as
 storage. Warning: iterators are vector's iterators.
@@ -24,7 +24,7 @@ storage. Warning: iterators are vector's iterators.
 su::flat_map<std::string,int> m;
 ```
 
-## `su/containers/flat_set.h`
+## `su_flat_set.h`
 
 Drop in replacement for std::set, but use std::vector as
 storage. Warning: iterators are vector's iterators.
@@ -33,29 +33,7 @@ storage. Warning: iterators are vector's iterators.
 su::flat_set<std::string> m;
 ```
 
-## `su/containers/map_ext.h`
-
-Some map utilities, extract a value from a const map, extract all keys from a map, get a key for a given value,
-etc.
-
-## `su/containers/hash_combine.h`
+## `su_hash_combine.h`
 
 Combine hash values.
 
-## `su/containers/small_vector.h`
-
-**Incomplete**
-
-A small vector implementation.
-
-## `su/containers/chunk_vector.h`
-
-**Incomplete**
-
-A growing vector implementation.
-
-## `su/containers/array_view.h`
-
-**Incomplete**
-
-string_view for array

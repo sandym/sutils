@@ -1,9 +1,9 @@
-## `su/files/filepath.h`
+## `su_filepath.h`
 
 Encapsulate a location on the file system and define some operations on it.
 Simple path handling and file / folder operations.
 
-## `su/files/resource_access.h`
+## `su_resource_access.h`
 
 Retrieve resources at runtime.
 

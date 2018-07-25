@@ -1,6 +1,6 @@
 
 
-## `su/base/platform.h`
+## `su_platform.h`
 
 Defines the following macros to 1 or 0 according to
 each platforms.
@@ -14,7 +14,7 @@ each platforms.
 
 Usage:
 ```C++
-#include "su/base/platform.h"
+#include "su_platform.h"
 
 #if UPLATFORM_UNIX
 	// do unix stuff
@@ -23,14 +23,14 @@ Usage:
 #endif
 ```
 
-## `su/base/always_inline.h`
+## `su_always_inline.h`
 
 Defines the macros `always_inline_func` and `never_inline_func` to annotate
 functions.
 
 Usage:
 ```C++
-#include "su/base/always_inline.h"
+#include "su_always_inline.h"
 
 // compiler will always attempt to inline
 always_inline_func int incFunc( int i )
@@ -45,7 +45,7 @@ T never_inline_func incFunc2( T i )
 }
 ```
 
-## `su/base/endian.h`
+## `su_endian.h`
 
 Defines the following enum, where `su::endian::native` equals `su::endian::big`
 or `su::endian::little`, depending on the platform.
@@ -69,7 +69,7 @@ types (`short`, `int`, `long` & `long long`).
 - `T big_to_native( const T & )`
 - `T native_to_big( const T & )`
 
-## `su/base/cfauto.h`
+## `cfauto.h`
 
 Simple RAII template wrapper for CoreFoundation types (iOS & macOS).
 

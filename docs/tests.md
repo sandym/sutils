@@ -17,7 +17,7 @@ struct my_tests
 	my_tests() { /* setup */ }
 	~my_tests() { /* teardown */ }
 	
-	//	declare all test cases here...
+	// declare all test cases here...
 	void test_case_1()
 	{
 		TEST_ASSERT( some_condition );
@@ -42,7 +42,7 @@ Result would be something like:
 
 ```
 Running all tests
-Tests database: /Users/xxx/.simple_tests.db
+Tests database: ~/.simple_tests.db
 Test suite: my tests
   test case 1 : ✔
   test case 2 : ✔

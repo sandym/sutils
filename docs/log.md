@@ -1,7 +1,8 @@
 
-## `su/log/logger.h`
+## `su_logger.h`
 
-Strongly inspired by https://github.com/Iyengar111/NanoLog. But should works correctly on all platforms (NanoLog is linux only).
+Strongly inspired by https://github.com/Iyengar111/NanoLog. But should works
+correctly on all platforms (NanoLog is linux only).
 
 example:
 ```C++
@@ -14,11 +15,12 @@ Threading is optional, just instanciate a `su::logger_thread`:
   // logging will be delegated to a thread
 ```
 
-It will log to `std::clog` by default. Log output can be redirected and also support multiple loggers.
+It will log to `std::clog` by default. Log output can be redirected and also
+support multiple loggers.
 
 @todo
 
-## `su/log/logger_file.h`
+## `su_logger_file.h`
 
 Redirect a logger to a file.
 @todo

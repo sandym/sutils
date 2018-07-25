@@ -1,5 +1,5 @@
 
-## `su/miscs/signal.h`
+## `su_signal.h`
 
 Extremely simple signal class.
 
@@ -30,7 +30,7 @@ sig( 45 ); // does nothing
 
 There is nothing else to it, no thread safety, no return value from signals.
 
-## `su/miscs/attachable.h`
+## `su_attachable.h`
 
 This kind of implement a basis for the decorator pattern.
 Subclasses of `su::attachable` can have arbitrary named
@@ -56,24 +56,7 @@ View v;
 v.attach( "frame", std::make_unique<DrawFrame>() );
 ```
 
-## `su/miscs/mempool.h`
-
-Overly simplistic memory pool allocation. It's a growing only
-pool of trivially destructible type.
-
-Usage:
-```C++
-su::mempool<32> mp;
-
-auto p1 = mp.alloc<char>();
-auto p2 = mp.alloc<TrivialType>();
-auto p3 = mp.alloc<short>();
-```
-32 is the block size, everytime the pool runs out of memory,
-it will allocate a block of that size. All blocks are
-deallocated when the pool is destructed.
-
-## `su/base/is_regular.h`
+## `su_is_regular.h`
 
 Defines a `is_regular` type traits. Regular type are  default constructible, copy constructible, move constructible, copy assignable and move assignable.
 
@@ -83,7 +66,7 @@ struct S {};
 static_assert(su::is_regular_v<S>, "huh?");
 ```
 
-## `su/base/statesaver.h`
+## `su_statesaver.h`
 
 Simple RAAI template that set and restore a value.
 
@@ -98,8 +81,7 @@ int i = 2;
 
 ```
 
-
-## `su/base/uuid.h`
+## `su_uuid.h`
 
 Simple UUID class.
 

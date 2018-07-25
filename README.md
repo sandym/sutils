@@ -2,9 +2,9 @@
 A collection of very random C++ utilities I used over the years. Some might
 even be good and work as advertised!
 
-This is mostly a re-write with modern c++ in mind for my own use. Most parts
+This is mostly a re-write with modern c++ in mind for my own use. Some parts
 need some C++17 support from the compiler. Just add src to your header search
-path and add the .cpp you need, no config should be required for most part.
+path and add the .cpp you need, no config should be required.
 Or you can do a cmake `add_subdirectory` and use as a library
 
 ---

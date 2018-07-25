@@ -1,4 +1,4 @@
-## `su/parsers/saxparser.h`
+## `su_saxparser.h`
 
 Simple XML parser, implemented as a wrapper to expat. Just subclass saxparser.
 
@@ -37,9 +37,3 @@ public:
 };
 
 ```
-
-## `su/parsers/abstractparser.h`
-
-Basis for parsing text file.
-
-@todo
