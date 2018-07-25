@@ -1,4 +1,4 @@
-## `su/json/json.h`
+## `su_json.h`
 
 The dropbox json11 lib (https://github.com/dropbox/json11)
 with a lot of
