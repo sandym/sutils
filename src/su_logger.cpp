@@ -164,13 +164,13 @@ std::string thread_name( std::thread::native_handle_type i_threadId )
 class logger_thread_data
 {
 private:
-	int refCount = 1; // not protected, but typically only one logger_thread
+	int _refCount = 1; // not protected, but typically only one logger_thread
 	                  // should be created
-	std::mutex queueMutex;
-	std::condition_variable queueCond;
-	su::spinlock queueSpinLock;
-	std::thread t;
-	std::vector<RecordedEvent> logQueue;
+	std::mutex _queueMutex;
+	std::condition_variable _queueCond;
+	su::spinlock _queueSpinLock;
+	std::thread _thread;
+	std::vector<RecordedEvent> _logQueue;
 
 	bool logQueueIsEmpty();
 
@@ -179,7 +179,7 @@ private:
 public:
 	logger_thread_data();
 
-	void inc() { ++refCount; }
+	void inc() { ++_refCount; }
 	void dec();
 
 	void push( su::logger_base *i_logger, su::log_event &&i_event );
@@ -190,23 +190,23 @@ logger_thread_data *g_thread = nullptr;
 logger_thread_data::logger_thread_data()
 {
 	assert( g_thread == nullptr );
-	t = std::thread( &logger_thread_data::func, this );
-	su::set_low_priority( t );
+	_thread = std::thread( &logger_thread_data::func, this );
+	su::set_low_priority( _thread );
 }
 
 void logger_thread_data::dec()
 {
-	--refCount;
-	if ( refCount == 0 )
+	--_refCount;
+	if ( _refCount == 0 )
 	{
 		// push kill message
-		std::unique_lock<su::spinlock> l( queueSpinLock );
-		logQueue.emplace_back( RecordedEvent{} );
+		std::unique_lock<su::spinlock> l( _queueSpinLock );
+		_logQueue.emplace_back( RecordedEvent{} );
 		l.unlock();
-		queueCond.notify_one();
+		_queueCond.notify_one();
 
 		// and wait
-		t.join();
+		_thread.join();
 		delete g_thread;
 		g_thread = nullptr;
 	}
@@ -214,26 +214,26 @@ void logger_thread_data::dec()
 
 bool logger_thread_data::logQueueIsEmpty()
 {
-	std::unique_lock<su::spinlock> l( queueSpinLock );
-	return logQueue.empty();
+	std::unique_lock<su::spinlock> l( _queueSpinLock );
+	return _logQueue.empty();
 }
 
 void logger_thread_data::push( su::logger_base *i_logger,
                                su::log_event &&i_event )
 {
-	std::unique_lock<su::spinlock> l( queueSpinLock );
-	logQueue.emplace_back( RecordedEvent{i_logger, std::move( i_event )} );
+	std::unique_lock<su::spinlock> l( _queueSpinLock );
+	_logQueue.emplace_back( RecordedEvent{i_logger, std::move( i_event )} );
 	l.unlock();
-	queueCond.notify_one();
+	_queueCond.notify_one();
 }
 
 void logger_thread_data::flush()
 {
 	if ( not logQueueIsEmpty() )
 	{
-		std::unique_lock<std::mutex> l( queueMutex );
-		queueCond.notify_one();
-		queueCond.wait( l, [this]() { return this->logQueueIsEmpty(); } );
+		std::unique_lock<std::mutex> l( _queueMutex );
+		_queueCond.notify_one();
+		_queueCond.wait( l, [this]() { return this->logQueueIsEmpty(); } );
 	}
 }
 
@@ -241,7 +241,7 @@ void logger_thread_data::func()
 {
 	su::this_thread::set_name( "logger_thread" );
 
-	std::unique_lock<std::mutex> l( queueMutex, std::defer_lock );
+	std::unique_lock<std::mutex> l( _queueMutex, std::defer_lock );
 
 	std::vector<RecordedEvent> localCopy;
 	std::unordered_set<su::logger_base *> toFlush;
@@ -251,12 +251,12 @@ void logger_thread_data::func()
 	{
 		l.lock();
 		// wait for logs
-		queueCond.wait( l, [this]() { return not this->logQueueIsEmpty(); } );
+		_queueCond.wait( l, [this]() { return not this->logQueueIsEmpty(); } );
 		l.unlock();
 
 		// quickly grab a local copy
-		std::unique_lock<su::spinlock> sl( queueSpinLock );
-		localCopy.swap( logQueue );
+		std::unique_lock<su::spinlock> sl( _queueSpinLock );
+		localCopy.swap( _logQueue );
 		sl.unlock();
 
 		// dump all events
@@ -279,7 +279,7 @@ void logger_thread_data::func()
 		localCopy.clear();
 
 		// notify
-		queueCond.notify_all();
+		_queueCond.notify_all();
 	}
 }
 }

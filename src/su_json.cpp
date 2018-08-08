@@ -2478,31 +2478,26 @@ struct JsonParser final
 	struct InlineString
 	{
 		char inlineStorage[1024];
-		char *_buffer;
+		std::unique_ptr<char[]> _heapStorage;
 		size_t _capacity = 1024;
-		char *_end;
+		char *_buffer, *_end;
 		InlineString()
 		{
 			_buffer = inlineStorage;
 			_end = _buffer;
 		}
-		~InlineString()
-		{
-			if ( _buffer != inlineStorage )
-				delete[] _buffer;
-		}
+		~InlineString() = default;
 		void push_back( char c )
 		{
 			auto s = size();
 			if ( s >= ( _capacity - 2 ) )
 			{
 				// need to grow
-				_capacity *= 2;
-				auto newBuffer = new char[_capacity];
-				memcpy( newBuffer, _buffer, s );
-				if ( _buffer != inlineStorage )
-					delete[] _buffer;
-				_buffer = newBuffer;
+				_capacity = (_capacity / 10) * 16; // 1.6 grow
+				auto newBuffer = std::make_unique<char[]>( _capacity );
+				memcpy( newBuffer.get(), _buffer, s );
+				_heapStorage = std::move( newBuffer );
+				_buffer = _heapStorage.get();
 				_end = _buffer + s;
 			}
 			*_end = c;

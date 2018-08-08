@@ -89,62 +89,63 @@ int ucompare_numerically( const std::string_view &lhs, const std::string_view &r
 */
 int ucompare_nocase_numerically( const std::string_view &lhs, const std::string_view &rhs );
 
-template<typename T>
-std::vector<T> split( const T &s, typename T::value_type c )
+std::vector<std::string_view> split_view( const std::string_view &s, std::string_view::value_type c );
+
+inline std::vector<std::string> split( const std::string_view &s, std::string_view::value_type c )
 {
-	std::vector<T> res;
-	typename T::size_type a = 0;
-	for ( typename T::size_type i = 0; i < s.length(); ++i )
-	{
-		if ( s[i] == c )
-		{
-			if ( (i - a) > 0 )
-				res.push_back( s.substr( a, i - a ) );
-			a = i + 1;
-		}
-	}
-	if ( (s.length()-a) > 0 )
-		res.push_back( s.substr( a, s.length() - a ) );
-	return res;
+	auto sv = split_view( s, c );
+	std::vector<std::string> result( sv.size() );
+	std::copy( sv.begin(), sv.end(), result.begin() );
+	return result;
 }
 
-template<typename T, typename COND>
-std::vector<T>
-	split_if( const T &s, COND i_cond )
+template<typename COND>
+std::vector<std::string_view>
+	split_view_if( const std::string_view &s, COND i_cond )
 {
-	std::vector<T> res;
-	typename T::size_type a = 0;
-	for ( typename T::size_type i = 0; i < s.length(); ++i )
+	std::vector<std::string_view> result;
+	std::string_view::size_type a = 0;
+	for ( std::string_view::size_type i = 0; i < s.length(); ++i )
 	{
 		if ( i_cond( s[i] ) )
 		{
 			if ( (i - a) > 0 )
-				res.push_back( s.substr( a, i - a ) );
+				result.push_back( s.substr( a, i - a ) );
 			a = i + 1;
 		}
 	}
 	if ( (s.length()-a) > 0 )
-		res.push_back( s.substr( a, s.length() - a ) );
-	return res;
+		result.push_back( s.substr( a, s.length() - a ) );
+	return result;
 }
 
-template<typename T,typename CONT,typename SEP>
-T join( const CONT &i_list, const SEP &sep )
+template<typename COND>
+std::vector<std::string>
+	split_if( const std::string_view &s, COND i_cond )
 {
-	T result;
+	auto sv = split_view_if( s, i_cond );
+	std::vector<std::string> result( sv.size() );
+	std::copy( sv.begin(), sv.end(), result.begin() );
+	return result;
+}
+
+template<typename CONT,typename SEP>
+std::string join( const CONT &i_list, const SEP &sep )
+{
 	size_t len = 0;
 	for ( auto it : i_list )
 		len += it.size();
+	std::string result;
 	result.reserve( len + i_list.size() );
 	auto it = i_list.begin();
 	if ( it != i_list.end() )
 	{
-		result.append( *it );
+		result += *it;
 		++it;
 		while ( it != i_list.end() )
 		{
 			result += sep;
-			result.append( *it );
+			result += *it;
 			++it;
 		}
 	}

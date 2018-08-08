@@ -648,4 +648,22 @@ size_t levenshtein_distance( const std::string_view &i_string,
 	return dist;
 }
 
+std::vector<std::string_view> split_view( const std::string_view &s, std::string_view::value_type c )
+{
+	std::vector<std::string_view> result;
+	std::string_view::size_type a = 0;
+	for ( std::string_view::size_type i = 0; i < s.length(); ++i )
+	{
+		if ( s[i] == c )
+		{
+			if ( (i - a) > 0 )
+				result.push_back( s.substr( a, i - a ) );
+			a = i + 1;
+		}
+	}
+	if ( (s.length()-a) > 0 )
+		result.push_back( s.substr( a, s.length() - a ) );
+	return result;
+}
+
 }
