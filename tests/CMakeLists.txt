@@ -6,13 +6,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set( TEST_RUNNER ../src/su_tests/simple_tests_runner.cpp )
 
-add_definitions( -DENABLE_SIMPLE_TESTS )
-
 file( GLOB ALL_TESTS "*_tests.cpp" )
 
 add_executable ( sutils_tests
 					${TEST_RUNNER}
 					${ALL_TESTS} )
+
+target_compile_definitions( sutils_tests PRIVATE -DENABLE_SIMPLE_TESTS )
 
 add_subdirectory( .. lib )
 target_link_libraries( sutils_tests sutils )
