@@ -12,7 +12,6 @@
 
 #include "su_logger.h"
 #include "su_platform.h"
-#include "su_spinlock.h"
 #include "su_thread.h"
 #include <string.h>
 #include <algorithm>
@@ -168,7 +167,6 @@ private:
 	                  // should be created
 	std::mutex _queueMutex;
 	std::condition_variable _queueCond;
-	su::spinlock _queueSpinLock;
 	std::thread _thread;
 	std::vector<RecordedEvent> _logQueue;
 
@@ -200,7 +198,7 @@ void logger_thread_data::dec()
 	if ( _refCount == 0 )
 	{
 		// push kill message
-		std::unique_lock<su::spinlock> l( _queueSpinLock );
+		std::unique_lock<std::mutex> l( _queueMutex );
 		_logQueue.emplace_back( RecordedEvent{} );
 		l.unlock();
 		_queueCond.notify_one();
@@ -214,14 +212,14 @@ void logger_thread_data::dec()
 
 bool logger_thread_data::logQueueIsEmpty()
 {
-	std::unique_lock<su::spinlock> l( _queueSpinLock );
+	std::unique_lock<std::mutex> l( _queueMutex );
 	return _logQueue.empty();
 }
 
 void logger_thread_data::push( su::logger_base *i_logger,
                                su::log_event &&i_event )
 {
-	std::unique_lock<su::spinlock> l( _queueSpinLock );
+	std::unique_lock<std::mutex> l( _queueMutex );
 	_logQueue.emplace_back( RecordedEvent{i_logger, std::move( i_event )} );
 	l.unlock();
 	_queueCond.notify_one();
@@ -252,12 +250,11 @@ void logger_thread_data::func()
 		l.lock();
 		// wait for logs
 		_queueCond.wait( l, [this]() { return not this->logQueueIsEmpty(); } );
-		l.unlock();
 
 		// quickly grab a local copy
-		std::unique_lock<su::spinlock> sl( _queueSpinLock );
 		localCopy.swap( _logQueue );
-		sl.unlock();
+
+		l.unlock();
 
 		// dump all events
 		for ( auto &rec : localCopy )
